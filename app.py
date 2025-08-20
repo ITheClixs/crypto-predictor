@@ -40,7 +40,7 @@ class CryptoPredictor:
             raise ValueError(f"Data download failed: {str(e)}")
 
     def add_features(self, data):
-        """Create features without TA-Lib"""
+    """Create features without TA-Lib"""
     # Ensure pandas-like operations are available. If `data` is a
     # DataFrame coming from get_data this will work. We don't import
     # pandas here to avoid extra imports at module import time.
