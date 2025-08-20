@@ -1,23 +1,23 @@
 # Crypto Price Predictor
-    
+
 A simple web application that predicts the future price of cryptocurrencies using
 a machine learning model.
-    
+
 ## How It Works
-    
+
 This application uses an XGBoost Regressor model to predict cryptocurrency
 prices. The model is trained on historical daily price data (Open, High, Low,
 Close, Volume) for the past year, fetched from Yahoo Finance.
-    
+
 The prediction is based on the following features:
     - 7-day Simple Moving Average (SMA)
     - 14-day Simple Moving Average (SMA)
     - 4-day Price Momentum
     - 7-day Price Volatility
-   
+
 The model makes a base prediction, which is then adjusted by projecting the
 recent daily return trend into the future.
-   
+
 ## Features
    
 -   Web Interface: A simple Flask web interface to interact with the model.
