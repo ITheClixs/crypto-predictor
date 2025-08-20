@@ -32,10 +32,10 @@ recent daily return trend into the future.
 
 The project's core dependencies are:
 
-- Flask: For the web application.
+- Flask: For the web application. <3
 - yfinance: To download historical market data from Yahoo Finance.
-- pandas: For data manipulation and analysis.
-- scikit-learn: For data preprocessing (MinMaxScaler).
+- pandas: For data manipulation and analysis. <3
+- scikit-learn: For data preprocessing (MinMaxScaler). <3
 - xgboost: For the prediction model (XGBRegressor).
 
 You can install these dependencies using the provided `requirements.txt` file.
