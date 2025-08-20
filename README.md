@@ -1,41 +1,41 @@
 # Crypto Price Predictor
     
-     A simple web application that predicts the future price of cryptocurrencies using
-      a machine learning model.
+A simple web application that predicts the future price of cryptocurrencies using
+a machine learning model.
     
 ## How It Works
     
-     This application uses an XGBoost Regressor model to predict cryptocurrency
-      prices. The model is trained on historical daily price data (Open, High, Low,
-      Close, Volume) for the past year, fetched from Yahoo Finance.
+This application uses an XGBoost Regressor model to predict cryptocurrency
+prices. The model is trained on historical daily price data (Open, High, Low,
+Close, Volume) for the past year, fetched from Yahoo Finance.
     
-     The prediction is based on the following features:
+The prediction is based on the following features:
     - 7-day Simple Moving Average (SMA)
     - 14-day Simple Moving Average (SMA)
     - 4-day Price Momentum
     - 7-day Price Volatility
    
-    The model makes a base prediction, which is then adjusted by projecting the
-    recent daily return trend into the future.
+The model makes a base prediction, which is then adjusted by projecting the
+recent daily return trend into the future.
    
 ## Features
    
-    -   Web Interface: A simple Flask web interface to interact with the model.
-    -   Dynamic Data: Fetches the latest cryptocurrency data from Yahoo Finance.
-    -   On-the-fly Training: The model is trained with the latest data when the
+-   Web Interface: A simple Flask web interface to interact with the model.
+-   Dynamic Data: Fetches the latest cryptocurrency data from Yahoo Finance.
+-   On-the-fly Training: The model is trained with the latest data when the
       application starts.
-    -   Price Prediction: Predicts the price for a given cryptocurrency for a
+-   Price Prediction: Predicts the price for a given cryptocurrency for a
       specified number of days in the future (1-90).
    
 ## Dependencies
    
-    The project's core dependencies are:
+The project's core dependencies are:
    
-    -   Flask: For the web application.
-    -   yfinance: To download historical market data from Yahoo Finance.
-    -   pandas: For data manipulation and analysis.
-    -   scikit-learn: For data preprocessing (MinMaxScaler).
-    -   xgboost: For the prediction model (XGBRegressor).
+-   Flask: For the web application.
+-   yfinance: To download historical market data from Yahoo Finance.
+-   pandas: For data manipulation and analysis.
+-   scikit-learn: For data preprocessing (MinMaxScaler).
+-   xgboost: For the prediction model (XGBRegressor).
    
     You can install these dependencies using the provided `requirements.txt` file.
    
@@ -66,12 +66,12 @@
    
 1.  **Run the Flask application:**
 
-      python app.py
+        python app.py
 
    
 2.  **Open your web browser** and navigate to:
 
-      http://127.0.0.1:5000
+        http://127.0.0.1:5000
 
 
    
@@ -82,7 +82,7 @@
    
  ## Disclaimer
    
-    This project is for educational purposes only. The predictions are based on a
-     simple model and historical data, and should not be considered financial advice.
-     Cryptocurrency markets are highly volatile, and you should do your own research
-     before making any investment decisions.
+This project is for educational purposes only. The predictions are based on a
+simple model and historical data, and should not be considered financial advice.
+Cryptocurrency markets are highly volatile, and you should do your own research
+before making any investment decisions.
