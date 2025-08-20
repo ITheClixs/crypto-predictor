@@ -43,18 +43,20 @@
    
 1.  **Clone the repository:**
 
-      git clone <repository-url>
+      git clone [insert Repo-URL here]
+    
       cd crypto-predictor
 
 
    
-2.  **Create a virtual environment:**
+3.  **Create a virtual environment:**
 
       python3 -m venv venv
+    
       source venv/bin/activate
 
    
-3.  **Install the dependencies:**
+5.  **Install the dependencies:**
 
       pip install -r requirements.txt
 
