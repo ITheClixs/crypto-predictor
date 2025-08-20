@@ -40,23 +40,23 @@
     You can install these dependencies using the provided `requirements.txt` file.
    
 ## Installation
-   
-1.  **Clone the repository:**
+
+
+
+   1.  **Clone the repository:**
 
       git clone [insert Repo-URL here]
     
       cd crypto-predictor
 
 
-   
-3.  **Create a virtual environment:**
+   3.  **Create a virtual environment:**
 
-   python3 -m venv venv
+      python3 -m venv venv
     
       source venv/bin/activate
 
-   
-5.  **Install the dependencies:**
+   5.  **Install the dependencies:**
 
       pip install -r requirements.txt
 
