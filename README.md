@@ -66,7 +66,7 @@ The project's core dependencies are:
    
 1.  **Run the Flask application:**
 
-        python app.py
+        python src/app.py
 
    
 2.  **Open your web browser** and navigate to:
