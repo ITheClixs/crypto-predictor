@@ -91,8 +91,11 @@ class CryptoPredictor:
     def predict_price(self, crypto, days=7):
         """Predict future price after X days"""
         if not self.is_trained:
-            self.train_model()  # Ensure model is trained
-            
+            try:
+                self.train_model()  # Ensure model is trained
+            except Exception as e:
+                raise ValueError(f"Model training failed: {str(e)}")
+        
         try:
             # Get recent data
             ticker = crypto if '-' in crypto else f"{crypto}-USD"
@@ -104,8 +107,8 @@ class CryptoPredictor:
             
             # Prepare latest features
             latest = data.iloc[-1:].drop('Close', axis=1)
-            if self.scaler is None:
-                raise ValueError('Model scaler not available; train the model first')
+            if self.scaler is None or self.model is None:
+                raise ValueError('Model or scaler not available; train the model first')
             features = self.scaler.transform(latest)
             
             # Make base prediction
