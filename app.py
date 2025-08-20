@@ -33,6 +33,8 @@ class CryptoPredictor:
 
         try:
             data = yf.download(ticker, period=f"{days}d", progress=False)
+            if data is None or data.empty:
+                raise ValueError(f"No data returned for ticker '{ticker}'. Please check the symbol and try again.")
             # Standardize column names
             data = data[['Open', 'High', 'Low', 'Close', 'Volume']]
             return data.dropna()
