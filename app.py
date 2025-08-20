@@ -1,11 +1,10 @@
-import yfinance as yf
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler
-from xgboost import XGBRegressor
-from flask import Flask, render_template, request
+import os
 import warnings
 warnings.filterwarnings('ignore')
+
+# Import Flask (needed for the app); keep other heavy imports lazy so module
+# can be imported in environments that don't have all ML/data packages.
+from flask import Flask, render_template, request
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -13,13 +12,25 @@ app = Flask(__name__)
 # Crypto Predictor Class
 class CryptoPredictor:
     def __init__(self):
-        self.model = XGBRegressor(objective='reg:squarederror', n_estimators=150)
-        self.scaler = MinMaxScaler()
+        # Defer heavy ML object creation to training time so importing the
+        # module doesn't require xgboost/sklearn to be installed.
+        self.model = None
+        self.scaler = None
         self.daily_return = 0.0
         self.is_trained = False
 
     def get_data(self, ticker='BTC-USD', days=60):
-        """Get clean standardized data"""
+        """Get clean standardized data (lazy-import yfinance/pandas).
+
+        Raises a clear ValueError when dependencies are missing so callers
+        can return a user-friendly message instead of an ImportError.
+        """
+        try:
+            import yfinance as yf
+            import pandas as pd
+        except Exception as e:
+            raise ValueError("Missing package: please install 'yfinance' and 'pandas' (pip install -r requirements.txt)")
+
         try:
             data = yf.download(ticker, period=f"{days}d", progress=False)
             # Standardize column names
@@ -30,36 +41,49 @@ class CryptoPredictor:
 
     def add_features(self, data):
         """Create features without TA-Lib"""
-        # Simple moving averages
-        data['SMA_7'] = data['Close'].rolling(7).mean()
-        data['SMA_14'] = data['Close'].rolling(14).mean()
-        
-        # Price momentum
-        data['Momentum'] = data['Close'] - data['Close'].shift(4)
-        
-        # Volatility
-        data['Volatility'] = data['Close'].rolling(7).std()
-        
-        return data.dropna()
+    # Ensure pandas-like operations are available. If `data` is a
+    # DataFrame coming from get_data this will work. We don't import
+    # pandas here to avoid extra imports at module import time.
+    # Simple moving averages
+    data['SMA_7'] = data['Close'].rolling(7).mean()
+    data['SMA_14'] = data['Close'].rolling(14).mean()
+
+    # Price momentum
+    data['Momentum'] = data['Close'] - data['Close'].shift(4)
+
+    # Volatility
+    data['Volatility'] = data['Close'].rolling(7).std()
+
+    return data.dropna()
 
     def train_model(self, ticker='BTC-USD'):
         """Train model with latest data"""
         try:
             data = self.get_data(ticker, 365)  # 1 year of data
             data = self.add_features(data)
-            
+
             # Calculate daily return trend
             self.daily_return = data['Close'].pct_change().mean()
-            
+
             # Prepare features
             X = data.drop('Close', axis=1)
             y = data['Close']
-            
+
+            # Lazy-import ML dependencies and create objects
+            try:
+                from sklearn.preprocessing import MinMaxScaler
+                from xgboost import XGBRegressor
+            except Exception:
+                raise ValueError("Missing ML packages: please install 'scikit-learn' and 'xgboost' (pip install -r requirements.txt)")
+
+            self.scaler = MinMaxScaler()
+            self.model = XGBRegressor(objective='reg:squarederror', n_estimators=150)
+
             # Scale and train
             X_scaled = self.scaler.fit_transform(X)
             self.model.fit(X_scaled, y)
             self.is_trained = True
-            
+
             return True
         except Exception as e:
             raise ValueError(f"Training failed: {str(e)}")
@@ -80,6 +104,8 @@ class CryptoPredictor:
             
             # Prepare latest features
             latest = data.iloc[-1:].drop('Close', axis=1)
+            if self.scaler is None:
+                raise ValueError('Model scaler not available; train the model first')
             features = self.scaler.transform(latest)
             
             # Make base prediction
@@ -92,9 +118,8 @@ class CryptoPredictor:
         except Exception as e:
             raise ValueError(f"Prediction failed: {str(e)}")
 
-# Initialize predictor
+# Initialize predictor (defer training until needed)
 predictor = CryptoPredictor()
-predictor.train_model()  # Pre-train with BTC
 
 # Flask Routes
 @app.route("/", methods=["GET", "POST"])
