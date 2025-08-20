@@ -20,22 +20,22 @@
    
 ## Features
    
-    -   **Web Interface**: A simple Flask web interface to interact with the model.
-    -   **Dynamic Data**: Fetches the latest cryptocurrency data from Yahoo Finance.
-    -   **On-the-fly Training**: The model is trained with the latest data when the
+    -   Web Interface: A simple Flask web interface to interact with the model.
+    -   Dynamic Data: Fetches the latest cryptocurrency data from Yahoo Finance.
+    -   On-the-fly Training: The model is trained with the latest data when the
       application starts.
-    -   **Price Prediction**: Predicts the price for a given cryptocurrency for a
+    -   Price Prediction: Predicts the price for a given cryptocurrency for a
       specified number of days in the future (1-90).
    
 ## Dependencies
    
     The project's core dependencies are:
    
-    -   **Flask**: For the web application.
-    -   **yfinance**: To download historical market data from Yahoo Finance.
-    -   **pandas**: For data manipulation and analysis.
-    -   **scikit-learn**: For data preprocessing (MinMaxScaler).
-    -   **xgboost**: For the prediction model (XGBRegressor).
+    -   Flask: For the web application.
+    -   yfinance: To download historical market data from Yahoo Finance.
+    -   pandas: For data manipulation and analysis.
+    -   scikit-learn: For data preprocessing (MinMaxScaler).
+    -   xgboost: For the prediction model (XGBRegressor).
    
     You can install these dependencies using the provided `requirements.txt` file.
    
@@ -59,26 +59,26 @@
       pip install -r requirements.txt
 
 
+
+ ## Usage
    
-    ## Usage
-   
-    1.  **Run the Flask application:**
+1.  **Run the Flask application:**
 
       python app.py
 
    
-    2.  **Open your web browser** and navigate to:
+2.  **Open your web browser** and navigate to:
 
       http://127.0.0.1:5000
 
 
    
-    3.  **Enter a cryptocurrency symbol** (e.g., `BTC`, `ETH`, `SOL`) and the number
+3.  **Enter a cryptocurrency symbol** (e.g., `BTC`, `ETH`, `SOL`) and the number
      of days you want to predict into the future.
    
-    4.  **Click "Predict Price"** to see the result.
+4.  **Click "Predict Price"** to see the result.
    
-    ## Disclaimer
+ ## Disclaimer
    
     This project is for educational purposes only. The predictions are based on a
      simple model and historical data, and should not be considered financial advice.
