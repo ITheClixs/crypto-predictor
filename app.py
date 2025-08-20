@@ -40,21 +40,21 @@ class CryptoPredictor:
             raise ValueError(f"Data download failed: {str(e)}")
 
     def add_features(self, data):
-    """Create features without TA-Lib"""
-    # Ensure pandas-like operations are available. If `data` is a
-    # DataFrame coming from get_data this will work. We don't import
-    # pandas here to avoid extra imports at module import time.
-    # Simple moving averages
-    data['SMA_7'] = data['Close'].rolling(7).mean()
-    data['SMA_14'] = data['Close'].rolling(14).mean()
+        """Create features without TA-Lib"""
+        # Ensure pandas-like operations are available. If `data` is a
+        # DataFrame coming from get_data this will work. We don't import
+        # pandas here to avoid extra imports at module import time.
+        # Simple moving averages
+        data['SMA_7'] = data['Close'].rolling(7).mean()
+        data['SMA_14'] = data['Close'].rolling(14).mean()
 
-    # Price momentum
-    data['Momentum'] = data['Close'] - data['Close'].shift(4)
+        # Price momentum
+        data['Momentum'] = data['Close'] - data['Close'].shift(4)
 
-    # Volatility
-    data['Volatility'] = data['Close'].rolling(7).std()
+        # Volatility
+        data['Volatility'] = data['Close'].rolling(7).std()
 
-    return data.dropna()
+        return data.dropna()
 
     def train_model(self, ticker='BTC-USD'):
         """Train model with latest data"""
