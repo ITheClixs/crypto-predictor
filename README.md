@@ -3,7 +3,7 @@
      A simple web application that predicts the future price of cryptocurrencies using
       a machine learning model.
     
-     ## How It Works
+## How It Works
     
      This application uses an XGBoost Regressor model to predict cryptocurrency
       prices. The model is trained on historical daily price data (Open, High, Low,
@@ -16,9 +16,9 @@
     - 7-day Price Volatility
    
     The model makes a base prediction, which is then adjusted by projecting the
-      recent daily return trend into the future.
+    recent daily return trend into the future.
    
-    ## Features
+## Features
    
     -   **Web Interface**: A simple Flask web interface to interact with the model.
     -   **Dynamic Data**: Fetches the latest cryptocurrency data from Yahoo Finance.
@@ -27,7 +27,7 @@
     -   **Price Prediction**: Predicts the price for a given cryptocurrency for a
       specified number of days in the future (1-90).
    
-    ## Dependencies
+## Dependencies
    
     The project's core dependencies are:
    
@@ -39,22 +39,22 @@
    
     You can install these dependencies using the provided `requirements.txt` file.
    
-    ## Installation
+## Installation
    
-    1.  **Clone the repository:**
+1.  **Clone the repository:**
 
       git clone <repository-url>
       cd crypto-predictor
 
 
    
-    2.  **Create a virtual environment:**
+2.  **Create a virtual environment:**
 
       python3 -m venv venv
       source venv/bin/activate
 
    
-    3.  **Install the dependencies:**
+3.  **Install the dependencies:**
 
       pip install -r requirements.txt
 
