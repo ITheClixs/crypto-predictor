@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crypto Price Prediction</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
+        form { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        input, button { padding: 10px; margin: 10px 0; width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #3498db; color: white; border: none; cursor: pointer; }
+        .result { padding: 20px; border-radius: 8px; }
+        .success { background: #e8f5e9; border: 1px solid #c8e6c9; }
+        .error { background: #ffebee; border: 1px solid #ffcdd2; }
+        .price { font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .up { color: #27ae60; }
+        .down { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <h1>Cryptocurrency Price Prediction</h1>
+    <form method="POST">
+        <input type="text" name="crypto" placeholder="Enter crypto symbol (e.g. BTC)" value="BTC" required>
+        <input type="number" name="days" placeholder="Days to predict (1-90)" value="7" min="1" max="90" required>
+        <button type="submit">Predict Price</button>
+    </form>
+    {% if prediction %}
+        <div class="result {% if prediction.success %}success{% else %}error{% endif %}">
+            {% if prediction.success %}
+                <h2>{{ prediction.crypto }} Price Prediction</h2>
+                <p>Current Price: <strong>{{ prediction.current_price }}</strong></p>
+                <p>Predicted in {{ prediction.days }} days: 
+                    <strong class="price {% if prediction.is_up %}up{% else %}down{% endif %}">
+                        {{ prediction.predicted_price }}
+                    </strong>
+                </p>
+                <p>Projected Change: <span class="{% if prediction.is_up %}up{% else %}down{% endif %}">
+                    {{ prediction.change }}
+                </span></p>
+            {% else %}
+                <h2>Error</h2>
+                <p>{{ prediction.error }}</p>
+                <p>Try symbols like: BTC, ETH, XRP, SOL</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</body>
+</html>
