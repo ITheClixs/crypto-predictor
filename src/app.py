@@ -163,7 +163,16 @@ class CryptoPredictor:
                 except Exception as e2:
                     raise ValueError(f"Data download failed and CoinGecko fallback failed: {e2}")
             
-            if len(data) < 7:
+            # Determine number of historical points available. If data is
+            # a dict (CoinGecko fallback) use the 'Close' list length; if
+            # it's a pandas DataFrame/Series use len(data).
+            try:
+                n_points = len(data['Close']) if isinstance(data, dict) else len(data)
+            except Exception:
+                # conservative fallback
+                n_points = 0
+
+            if n_points < 7:
                 raise ValueError("Not enough historical data")
             
             # Prepare latest features
