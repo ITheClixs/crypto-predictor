@@ -18,10 +18,59 @@
 </head>
 <body>
     <h1>Cryptocurrency Price Prediction</h1>
-    <form method="POST">
-        <input type="text" name="crypto" placeholder="Enter crypto symbol (e.g. BTC)" value="BTC" required>
-        <input type="number" name="days" placeholder="Days to predict (1-90)" value="7" min="1" max="90" required>
-        <button type="submit">Predict Price</button>
+function unitToDays(amount, unit) {
+    amount = Number(amount) || 0;
+    switch(unit) {
+        case 'days': return amount;
+        case 'weeks': return amount * 7;
+        case 'months': return Math.round(amount * 30.4375); // avg days
+        case 'years': return Math.round(amount * 365.25);
+        default: return amount;
+    }
+}
+
+function prepareSubmit(e){
+    const amt = document.getElementById('days_input').value;
+    const unit = document.getElementById('days_unit').value;
+    const days = unitToDays(amt, unit);
+    // clamp to 1..3650 (10 years) to avoid absurd values
+    const clamped = Math.max(1, Math.min(3650, days));
+    document.getElementById('days_hidden').value = clamped;
+    // update note for clarity
+    document.getElementById('days_note').innerText = `(${clamped} days)`;
+    return true; // allow submit
+}
+
+// live update note when inputs change
+document.addEventListener('input', ()=>{
+    const amt = document.getElementById('days_input').value;
+    const unit = document.getElementById('days_unit').value;
+    const days = unitToDays(amt, unit);
+    document.getElementById('days_note').innerText = `(${days} days)`;
+});
+    <form id="predict-form" method="POST" onsubmit="return prepareSubmit(event)">
+        <label for="crypto" style="display:block; font-weight:600; margin-bottom:6px">Crypto symbol</label>
+        <input id="crypto" type="text" name="crypto" placeholder="Enter crypto symbol (e.g. BTC)" value="BTC" required style="padding:10px; width:100%; box-sizing:border-box;">
+
+        <label for="days_input" style="display:block; font-weight:600; margin:12px 0 6px">Prediction horizon</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <input id="days_input" type="number" placeholder="Amount" value="7" min="1" max="90" style="flex:1; padding:10px;" required>
+            <select id="days_unit" style="padding:10px;">
+                <option value="days">Days</option>
+                <option value="weeks">Weeks</option>
+                <option value="months">Months</option>
+                <option value="years">Years</option>
+            </select>
+        </div>
+        <div style="margin-top:6px; color:#555; font-size:13px;">
+            Enter an amount and choose the unit — the site will convert it to days for prediction.
+            <span id="days_note" style="margin-left:8px; font-weight:600;">(7 days)</span>
+        </div>
+
+        <!-- Hidden field named 'days' keeps backend unchanged -->
+        <input type="hidden" name="days" id="days_hidden" value="7">
+
+        <button type="submit" style="margin-top:14px; padding:10px; width:100%;">Predict Price</button>
     </form>
     {% if prediction %}
         <div class="result {% if prediction.success %}success{% else %}error{% endif %}">
