@@ -175,8 +175,6 @@ class CryptoPredictor:
             if n_points < 7:
                 raise ValueError("Not enough historical data")
             
-            # Prepare latest features
-            latest = data.iloc[-1:].drop('Close', axis=1)
             # If model or scaler are missing (pre-trained model couldn't be
             # loaded because sklearn/xgboost aren't installed), fall back to a
             # lightweight heuristic: project recent average daily return.
@@ -194,13 +192,22 @@ class CryptoPredictor:
                             if prev:
                                 recent_returns.append((cur - prev) / prev)
                     else:
+                        # pandas Series branch; compute pct_change safely
                         recent_returns = data['Close'].pct_change().dropna()
 
-                    if recent_returns:
-                        # take mean of last 7 entries
-                        mean_daily = (sum(recent_returns[-7:]) / len(recent_returns[-7:])) if len(recent_returns) else 0.0
-                    else:
-                        mean_daily = 0.0
+                    # safe way to compute mean of last up to 7 entries for both
+                    # list and pandas Series types
+                    mean_daily = 0.0
+                    if hasattr(recent_returns, '__len__') and len(recent_returns) > 0:
+                        try:
+                            # pandas Series supports tail/mean
+                            if hasattr(recent_returns, 'tail'):
+                                mean_daily = float(recent_returns.tail(7).mean())
+                            else:
+                                last7 = recent_returns[-7:]
+                                mean_daily = float(sum(last7) / len(last7))
+                        except Exception:
+                            mean_daily = 0.0
                 except Exception:
                     mean_daily = 0.0
 
@@ -211,12 +218,14 @@ class CryptoPredictor:
                 if isinstance(data, dict):
                     current_price = data['Close'][-1]
                 else:
-                    current_price = data['Close'].iloc[-1]
+                    current_price = float(data['Close'].iloc[-1])
 
                 projected_price = current_price * (1 + self.daily_return) ** days
                 return round(projected_price, 2)
 
             # Normal path: scale features and predict with the model
+            # compute latest row/features (pandas DataFrame expected)
+            latest = data.iloc[-1:].drop('Close', axis=1)
             features = self.scaler.transform(latest)
 
             # Make base prediction
