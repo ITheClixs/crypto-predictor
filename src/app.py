@@ -12,6 +12,33 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 app = Flask(__name__, template_folder=TEMPLATES_DIR)
 
+
+def _to_scalar(val):
+    """Coerce pandas/numpy/iterable values to a Python float scalar."""
+    try:
+        return float(val)
+    except Exception:
+        pass
+    # pandas Series / numpy types
+    try:
+        # pandas Series: try .iloc or .values
+        if hasattr(val, 'iloc'):
+            return float(val.iloc[-1])
+        if hasattr(val, 'item'):
+            return float(val.item())
+        if hasattr(val, 'values'):
+            arr = val.values
+            return float(arr.flatten()[-1])
+    except Exception:
+        pass
+    # list/tuple
+    try:
+        if isinstance(val, (list, tuple)) and len(val) > 0:
+            return float(val[-1])
+    except Exception:
+        pass
+    raise ValueError(f"Unable to convert value to scalar: {type(val)}")
+
 # Crypto Predictor Class
 class CryptoPredictor:
     def __init__(self):
@@ -278,9 +305,19 @@ def index():
             ticker = crypto if '-' in crypto else f"{crypto}-USD"
             current_data = predictor.get_data(ticker, 1)
             current_price = current_data['Close'].iloc[-1]
-            
+
             # Get predicted price
             predicted_price = predictor.predict_price(crypto, days)
+
+            # Coerce to numeric scalars to avoid pandas Series formatting errors
+            try:
+                current_price = _to_scalar(current_price)
+            except Exception:
+                current_price = float(current_price)
+            try:
+                predicted_price = _to_scalar(predicted_price)
+            except Exception:
+                predicted_price = float(predicted_price)
             
             prediction = {
                 'success': True,
@@ -288,7 +325,7 @@ def index():
                 'days': days,
                 'current_price': f"${current_price:,.2f}",
                 'predicted_price': f"${predicted_price:,.2f}",
-                'change': f"{((predicted_price - current_price)/current_price*100):.1f}%",
+                'change': f"{((predicted_price - current_price)/current_price*100 if current_price else 0):.1f}%",
                 'is_up': predicted_price > current_price
             }
         except Exception as e:
