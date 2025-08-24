@@ -1,113 +1,150 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Crypto Price Prediction</title>
     <style>
-        body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
-        form { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        input, button { padding: 10px; margin: 10px 0; width: 100%; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #3498db; color: white; border: none; cursor: pointer; }
-        .result { padding: 20px; border-radius: 8px; }
-        .success { background: #e8f5e9; border: 1px solid #c8e6c9; }
-        .error { background: #ffebee; border: 1px solid #ffcdd2; }
-        .price { font-size: 24px; font-weight: bold; margin: 10px 0; }
-        .up { color: #27ae60; }
-        .down { color: #e74c3c; }
+      body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
+      form { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+      input, button { padding: 10px; margin: 10px 0; width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+      button { background: #3498db; color: white; border: none; cursor: pointer; }
+      .result { padding: 20px; border-radius: 8px; }
+      .success { background: #e8f5e9; border: 1px solid #c8e6c9; }
+      .error { background: #ffebee; border: 1px solid #ffcdd2; }
+      .price { font-size: 24px; font-weight: bold; margin: 10px 0; }
+      .up { color: #27ae60; }
+      .down { color: #e74c3c; }
+      .small { font-size: 13px; color: #555; }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Cryptocurrency Price Prediction</h1>
-function unitToDays(amount, unit) {
-    amount = Number(amount) || 0;
-    switch(unit) {
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width,initial-scale=1">
-            <title>Crypto Price Prediction</title>
-            <style>
-                body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
-                form { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-                input, button { padding: 10px; margin: 10px 0; width: 100%; border: 1px solid #ddd; border-radius: 4px; }
-                button { background: #3498db; color: white; border: none; cursor: pointer; }
-                .result { padding: 20px; border-radius: 8px; }
-                .success { background: #e8f5e9; border: 1px solid #c8e6c9; }
-                .error { background: #ffebee; border: 1px solid #ffcdd2; }
-                .price { font-size: 24px; font-weight: bold; margin: 10px 0; }
-                .up { color: #27ae60; }
-                .down { color: #e74c3c; }
-                .small { font-size: 13px; color: #555; }
-            </style>
-        </head>
-        <body>
-            <h1>Cryptocurrency Price Prediction</h1>
-            <form id="predict-form" method="POST" onsubmit="return prepareSubmit(event)">
-                <label for="crypto" style="display:block; font-weight:600; margin-bottom:6px">Crypto symbol</label>
-                <input id="crypto" type="text" name="crypto" placeholder="Enter crypto symbol (e.g. BTC)" value="BTC" required style="padding:10px; width:100%; box-sizing:border-box;">
 
-                <label for="days_input" style="display:block; font-weight:600; margin:12px 0 6px">Prediction horizon</label>
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <input id="days_input" type="number" placeholder="Amount" value="7" min="1" max="3650" style="flex:1; padding:10px;" required>
-                    <select id="days_unit" style="padding:10px;">
-                        <option value="days">Days</option>
-                        <option value="weeks">Weeks</option>
-                        <option value="months">Months</option>
-                        <option value="years">Years</option>
-                    </select>
-                </div>
-                <div style="margin-top:6px;" class="small">
-                    Enter an amount and choose the unit — the site will convert it to days for prediction.
-                    <span id="days_note" style="margin-left:8px; font-weight:600;">(7 days)</span>
-                </div>
-    <script>
-    function unitToDays(amount, unit) {
-        amount = Number(amount) || 0;
-        switch(unit) {
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width,initial-scale=1">
-                <title>Crypto Price Prediction</title>
-                <style>
-                    body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
-                    form { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-                    input, button { padding: 10px; margin: 10px 0; width: 100%; border: 1px solid #ddd; border-radius: 4px; }
-                    button { background: #3498db; color: white; border: none; cursor: pointer; }
-                    .result { padding: 20px; border-radius: 8px; }
-                    .success { background: #e8f5e9; border: 1px solid #c8e6c9; }
-                    .error { background: #ffebee; border: 1px solid #ffcdd2; }
-                    .price { font-size: 24px; font-weight: bold; margin: 10px 0; }
-                    .up { color: #27ae60; }
-                    .down { color: #e74c3c; }
-                    .small { font-size: 13px; color: #555; }
-                </style>
-            </head>
-            <body>
-                <h1>Cryptocurrency Price Prediction</h1>
-                <form id="predict-form" method="POST" onsubmit="return prepareSubmit(event)">
-                    <label for="crypto" style="display:block; font-weight:600; margin-bottom:6px">Crypto symbol</label>
-                    <input id="crypto" type="text" name="crypto" placeholder="Enter crypto symbol (e.g. BTC)" value="BTC" required style="padding:10px; width:100%; box-sizing:border-box;">
+    <form id="predict-form" method="POST" onsubmit="return prepareSubmit(event)">
+      <label for="crypto" style="display:block; font-weight:600; margin-bottom:6px">Crypto symbol</label>
+      <input id="crypto" type="text" name="crypto" placeholder="Enter crypto symbol (e.g. BTC)" value="BTC" required style="padding:10px; width:100%; box-sizing:border-box;">
 
-                    <label for="days_input" style="display:block; font-weight:600; margin:12px 0 6px">Prediction horizon</label>
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <input id="days_input" type="number" placeholder="Amount" value="7" min="1" max="3650" style="flex:1; padding:10px;" required>
-                        <select id="days_unit" style="padding:10px;">
-                            <option value="days">Days</option>
-                            <option value="weeks">Weeks</option>
-                            <option value="months">Months</option>
-                            <option value="years">Years</option>
-                        </select>
-                    </div>
-                    <div style="margin-top:6px;" class="small">
-                        Enter an amount and choose the unit — the site will convert it to days for prediction.
-                        <span id="days_note" style="margin-left:8px; font-weight:600;">(7 days)</span>
-                    </div>
+      <label for="days_input" style="display:block; font-weight:600; margin:12px 0 6px">Prediction horizon</label>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input id="days_input" type="number" placeholder="Amount" value="7" min="1" max="3650" style="flex:1; padding:10px;" required>
+        <select id="days_unit" style="padding:10px;">
+          <option value="days">Days</option>
+          <option value="weeks">Weeks</option>
+          <option value="months">Months</option>
+          <option value="years">Years</option>
+        </select>
+      </div>
+      <div style="margin-top:6px;" class="small">
+        Enter an amount and choose the unit — the site will convert it to days for prediction.
+        <span id="days_note" style="margin-left:8px; font-weight:600;">(7 days)</span>
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Crypto Price Prediction</title>
+        <style>
+          body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
+          form { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+          input, button { padding: 10px; margin: 10px 0; width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+          button { background: #3498db; color: white; border: none; cursor: pointer; }
+          .result { padding: 20px; border-radius: 8px; }
+          .success { background: #e8f5e9; border: 1px solid #c8e6c9; }
+          .error { background: #ffebee; border: 1px solid #ffcdd2; }
+          .price { font-size: 24px; font-weight: bold; margin: 10px 0; }
+          .up { color: #27ae60; }
+          .down { color: #e74c3c; }
+          .small { font-size: 13px; color: #555; }
+        </style>
+      </head>
+      <body>
+        <h1>Cryptocurrency Price Prediction</h1>
 
-                    <!-- Hidden field named 'days' keeps backend unchanged -->
-                    <input type="hidden" name="days" id="days_hidden" value="7">
+        <form id="predict-form" method="POST" onsubmit="return prepareSubmit(event)">
+          <label for="crypto" style="display:block; font-weight:600; margin-bottom:6px">Crypto symbol</label>
+          <input id="crypto" type="text" name="crypto" placeholder="Enter crypto symbol (e.g. BTC)" value="BTC" required style="padding:10px; width:100%; box-sizing:border-box;">
 
-                    <button type="submit" style="margin-top:14px; padding:10px; width:100%">Predict Price</button>
-                </form>
+          <label for="days_input" style="display:block; font-weight:600; margin:12px 0 6px">Prediction horizon</label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input id="days_input" type="number" placeholder="Amount" value="7" min="1" max="3650" style="flex:1; padding:10px;" required>
+            <select id="days_unit" style="padding:10px;">
+              <option value="days">Days</option>
+              <option value="weeks">Weeks</option>
+              <option value="months">Months</option>
+              <option value="years">Years</option>
+            </select>
+          </div>
+          <div style="margin-top:6px;" class="small">
+            Enter an amount and choose the unit — the site will convert it to days for prediction.
+            <span id="days_note" style="margin-left:8px; font-weight:600;">(7 days)</span>
+          </div>
+
+          <!-- Hidden field named 'days' keeps backend unchanged -->
+          <input type="hidden" name="days" id="days_hidden" value="7">
+
+          <button type="submit" style="margin-top:14px; padding:10px; width:100%">Predict Price</button>
+        </form>
+
+        {% if prediction %}
+          <div class="result {% if prediction.success %}success{% else %}error{% endif %}">
+            {% if prediction.success %}
+              <h2>{{ prediction.crypto }} Price Prediction</h2>
+              <p>Current Price: <strong>{{ prediction.current_price }}</strong></p>
+              <p>Predicted in {{ prediction.days }} days:
+                <strong class="price {% if prediction.is_up %}up{% else %}down{% endif %}">
+                  {{ prediction.predicted_price }}
+                </strong>
+              </p>
+              <p>Projected Change: <span class="{% if prediction.is_up %}up{% else %}down{% endif %}">
+                  {{ prediction.change }}
+                </span></p>
+            {% else %}
+              <h2>Error</h2>
+              <p>{{ prediction.error }}</p>
+              <p>Try symbols like: BTC, ETH, XRP, SOL</p>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <script>
+          function unitToDays(amount, unit) {
+            amount = Number(amount) || 0;
+            switch(unit) {
+              case 'days': return amount;
+              case 'weeks': return amount * 7;
+              case 'months': return Math.round(amount * 30.4375); // avg days
+              case 'years': return Math.round(amount * 365.25);
+              default: return amount;
+            }
+          }
+
+          function prepareSubmit(e){
+            const amt = document.getElementById('days_input').value;
+            const unit = document.getElementById('days_unit').value;
+            const days = unitToDays(amt, unit);
+            // clamp to 1..3650 (10 years) to avoid absurd values
+            const clamped = Math.max(1, Math.min(3650, days));
+            document.getElementById('days_hidden').value = clamped;
+            // update note for clarity
+            document.getElementById('days_note').innerText = `(${clamped} days)`;
+            return true; // allow submit
+          }
+
+          // live update note when inputs change
+          document.addEventListener('input', ()=>{
+            try {
+              const amt = document.getElementById('days_input').value;
+              const unit = document.getElementById('days_unit').value;
+              const days = unitToDays(amt, unit);
+              document.getElementById('days_note').innerText = `(${days} days)`;
+            } catch(e) { /* ignore during initial render */ }
+          });
+        </script>
+      </body>
+      </html>
