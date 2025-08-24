@@ -1,6 +1,7 @@
 import os
 import warnings
 warnings.filterwarnings('ignore')
+import pickle
 
 # Import Flask (needed for the app); keep other heavy imports lazy so module
 # can be imported in environments that don't have all ML/data packages.
@@ -127,6 +128,30 @@ class CryptoPredictor:
 
 # Initialize predictor (defer training until needed)
 predictor = CryptoPredictor()
+
+# Try to load a bundled pre-trained model to avoid expensive local training.
+# The file is expected at repo-root `data/crypto_predictor.pkl` and can be
+# either the model object itself or a dict {'model': ..., 'scaler': ..., 'daily_return': ...}.
+MODEL_PATH = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')), 'data', 'crypto_predictor.pkl')
+if os.path.exists(MODEL_PATH):
+    try:
+        with open(MODEL_PATH, 'rb') as fh:
+            blob = pickle.load(fh)
+        if isinstance(blob, dict):
+            # common keys fallback
+            predictor.model = blob.get('model') or blob.get('clf') or blob.get('estimator')
+            predictor.scaler = blob.get('scaler', predictor.scaler)
+            predictor.daily_return = blob.get('daily_return', predictor.daily_return)
+        else:
+            predictor.model = blob
+
+        if predictor.model is not None:
+            predictor.is_trained = True
+            # best-effort message
+            print(f"Loaded pre-trained model from {MODEL_PATH}")
+    except Exception as e:
+        # Don't crash app if loading fails; fall back to training path when requested
+        print(f"Warning: failed to load pre-trained model: {e}")
 
 # Flask Routes
 @app.route("/", methods=["GET", "POST"])
