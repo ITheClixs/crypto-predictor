@@ -369,16 +369,16 @@ if not os.path.exists(index_path):
         <button type="submit">Predict Price</button>
     </form>
     {% if prediction %}
-        <div class="result {% if prediction.success %}success{% else %}error{% endif %}">
+        <div class="result {{ 'success' if prediction.success else 'error' }}">
             {% if prediction.success %}
                 <h2>{{ prediction.crypto }} Price Prediction</h2>
                 <p>Current Price: <strong>{{ prediction.current_price }}</strong></p>
                 <p>Predicted in {{ prediction.days }} days: 
-                    <strong class="price {% if prediction.is_up %}up{% else %}down{% endif %}">
+                    <strong class="price {{ 'up' if prediction.is_up else 'down' }}">
                         {{ prediction.predicted_price }}
                     </strong>
                 </p>
-                <p>Projected Change: <span class="{% if prediction.is_up %}up{% else %}down{% endif %}">
+                <p>Projected Change: <span class="{{ 'up' if prediction.is_up else 'down' }}">
                     {{ prediction.change }}
                 </span></p>
             {% else %}
