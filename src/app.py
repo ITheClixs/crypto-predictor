@@ -109,7 +109,19 @@ class CryptoPredictor:
                 # If yfinance/pandas aren't available or data download fails,
                 # fall back to CoinGecko public API (no heavy deps required).
                 try:
-                    import requests
+                    # Prefer requests if available; otherwise use urllib (stdlib)
+                    try:
+                        import requests
+                        def http_get(url, timeout=10):
+                            r = requests.get(url, timeout=timeout)
+                            r.raise_for_status()
+                            return r.text
+                    except Exception:
+                        import urllib.request, json
+                        def http_get(url, timeout=10):
+                            with urllib.request.urlopen(url, timeout=timeout) as resp:
+                                return resp.read().decode('utf-8')
+
                     # map common symbols to CoinGecko ids
                     symbol = crypto.split('-')[0]
                     cg_map = {
@@ -125,9 +137,9 @@ class CryptoPredictor:
                         raise ValueError("Unknown symbol for fallback. Install yfinance/pandas or use BTC/ETH/XRP/SOL/LTC/DOGE")
 
                     url = f"https://api.coingecko.com/api/v3/coins/{cg_id}/market_chart?vs_currency=usd&days=30"
-                    resp = requests.get(url, timeout=10)
-                    resp.raise_for_status()
-                    obj = resp.json()
+                    txt = http_get(url)
+                    import json
+                    obj = json.loads(txt)
                     prices = obj.get('prices') or []
                     if not prices:
                         raise ValueError('CoinGecko returned no price data')
