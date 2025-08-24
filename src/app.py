@@ -6,8 +6,10 @@ warnings.filterwarnings('ignore')
 # can be imported in environments that don't have all ML/data packages.
 from flask import Flask, render_template, request
 
-# Initialize Flask app
-app = Flask(__name__)
+# Initialize Flask app and ensure it uses the repo-level `templates` folder
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+app = Flask(__name__, template_folder=TEMPLATES_DIR)
 
 # Crypto Predictor Class
 class CryptoPredictor:
@@ -160,13 +162,15 @@ def index():
     
     return render_template("index.html", prediction=prediction)
 
-# Create templates folder and index.html
-import os
-if not os.path.exists('templates'):
-    os.makedirs('templates')
+# Create templates folder and index.html at repo root if missing
+if not os.path.exists(TEMPLATES_DIR):
+    os.makedirs(TEMPLATES_DIR, exist_ok=True)
 
-with open('templates/index.html', 'w') as f:
-    f.write('''<!DOCTYPE html>
+index_path = os.path.join(TEMPLATES_DIR, 'index.html')
+# Only write the template if it doesn't exist to avoid overwriting manual edits
+if not os.path.exists(index_path):
+    with open(index_path, 'w') as f:
+        f.write('''<!DOCTYPE html>
 <html>
 <head>
     <title>Crypto Price Prediction</title>
