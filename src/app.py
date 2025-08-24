@@ -95,11 +95,9 @@ class CryptoPredictor:
 
     def predict_price(self, crypto, days=7):
         """Predict future price after X days"""
-        if not self.is_trained:
-            try:
-                self.train_model()  # Ensure model is trained
-            except Exception as e:
-                raise ValueError(f"Model training failed: {str(e)}")
+    # Do NOT auto-train here. Training requires heavy dependencies and
+    # often times out on user machines. Prefer using a pre-trained model
+    # (loaded at startup) or the lightweight fallback implemented below.
         
         try:
             # Get recent data
