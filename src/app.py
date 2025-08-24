@@ -392,4 +392,4 @@ if not os.path.exists(index_path):
 </html>''')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=8000)
