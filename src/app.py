@@ -104,8 +104,54 @@ class CryptoPredictor:
         try:
             # Get recent data
             ticker = crypto if '-' in crypto else f"{crypto}-USD"
-            data = self.get_data(ticker, 30)
-            data = self.add_features(data)
+            try:
+                data = self.get_data(ticker, 30)
+                data = self.add_features(data)
+            except Exception as e_data:
+                # If yfinance/pandas aren't available or data download fails,
+                # fall back to CoinGecko public API (no heavy deps required).
+                try:
+                    import requests
+                    # map common symbols to CoinGecko ids
+                    symbol = crypto.split('-')[0]
+                    cg_map = {
+                        'BTC': 'bitcoin',
+                        'ETH': 'ethereum',
+                        'XRP': 'ripple',
+                        'SOL': 'solana',
+                        'LTC': 'litecoin',
+                        'DOGE': 'dogecoin'
+                    }
+                    cg_id = cg_map.get(symbol)
+                    if not cg_id:
+                        raise ValueError("Unknown symbol for fallback. Install yfinance/pandas or use BTC/ETH/XRP/SOL/LTC/DOGE")
+
+                    url = f"https://api.coingecko.com/api/v3/coins/{cg_id}/market_chart?vs_currency=usd&days=30"
+                    resp = requests.get(url, timeout=10)
+                    resp.raise_for_status()
+                    obj = resp.json()
+                    prices = obj.get('prices') or []
+                    if not prices:
+                        raise ValueError('CoinGecko returned no price data')
+
+                    # prices is list of [timestamp, price]; build a simple closes list
+                    closes = [p[1] for p in prices]
+                    # create a minimal data-like object with Close series compatible access
+                    class SimpleData:
+                        def __init__(self, closes):
+                            self._closes = closes
+                        @property
+                        def Close(self):
+                            return self._closes
+                        def __len__(self):
+                            return len(self._closes)
+                        def iloc(self, idx):
+                            return self._closes[idx]
+                    # For our fallback we only need 'Close' values as a pandas-like series
+                    # We'll represent it as a dict-like object for downstream code.
+                    data = {'Close': closes}
+                except Exception as e2:
+                    raise ValueError(f"Data download failed and CoinGecko fallback failed: {e2}")
             
             if len(data) < 7:
                 raise ValueError("Not enough historical data")
@@ -116,18 +162,38 @@ class CryptoPredictor:
             # loaded because sklearn/xgboost aren't installed), fall back to a
             # lightweight heuristic: project recent average daily return.
             if self.scaler is None or self.model is None:
-                # Use recent pct_change as a robust fallback
-                recent_returns = data['Close'].pct_change().dropna()
-                if not recent_returns.empty:
-                    # Use last 7 days (or fewer if not available)
-                    mean_daily = recent_returns.tail(7).mean()
-                else:
+                # If 'data' came from CoinGecko fallback it is a dict with 'Close'
+                # as a plain list; otherwise it's a pandas DataFrame/Series.
+                try:
+                    if isinstance(data, dict):
+                        closes = data['Close']
+                        # compute returns on consecutive entries
+                        recent_returns = []
+                        for i in range(1, len(closes)):
+                            prev = closes[i-1]
+                            cur = closes[i]
+                            if prev:
+                                recent_returns.append((cur - prev) / prev)
+                    else:
+                        recent_returns = data['Close'].pct_change().dropna()
+
+                    if recent_returns:
+                        # take mean of last 7 entries
+                        mean_daily = (sum(recent_returns[-7:]) / len(recent_returns[-7:])) if len(recent_returns) else 0.0
+                    else:
+                        mean_daily = 0.0
+                except Exception:
                     mean_daily = 0.0
 
                 # remember the fallback daily return
                 self.daily_return = float(mean_daily) if mean_daily is not None else 0.0
 
-                current_price = data['Close'].iloc[-1]
+                # get current price
+                if isinstance(data, dict):
+                    current_price = data['Close'][-1]
+                else:
+                    current_price = data['Close'].iloc[-1]
+
                 projected_price = current_price * (1 + self.daily_return) ** days
                 return round(projected_price, 2)
 
