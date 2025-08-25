@@ -311,7 +311,7 @@ def index():
             current_price = current_data['Close'].iloc[-1]
 
             # Get predicted price
-            predicted_price = predictor.predict_price(crypto_symbol, days_to_predict)
+            predicted_price = predictor.predict_price(crypto=crypto_symbol, days=days_to_predict)
 
             # Coerce to numeric scalars to avoid pandas Series formatting errors
             try:
