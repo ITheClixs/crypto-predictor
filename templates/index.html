@@ -4,81 +4,123 @@
     <title>Crypto Price Prediction</title>
     <style>
         body {
-            font-family: Arial;
-            max-width: 800px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #282c34; /* Dark background */
-            color: #f8f8f2; /* Light text */
+            padding: 30px;
+            background-color: #000000; /* True black background */
+            color: #e0e0e0; /* Light gray text */
+            line-height: 1.6;
         }
         h1, h2 {
-            color: #61dafb; /* Accent color for headings */
+            color: #00e676; /* Vibrant green accent */
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
         }
         form {
-            background: #3a3f4b; /* Darker background for form */
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background: #1a1a1a; /* Darker background for form */
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            border: 1px solid #333;
         }
         label {
-            color: #f8f8f2;
-            margin-bottom: 5px;
+            color: #e0e0e0;
+            margin-bottom: 8px;
             display: block;
+            font-weight: bold;
+            font-size: 0.95em;
         }
-        input, button, select {
-            padding: 10px;
-            margin: 10px 0;
-            width: 100%;
-            border: 1px solid #555;
-            border-radius: 4px;
-            background-color: #4a4f5b; /* Darker input fields */
-            color: #f8f8f2;
+        input[type="text"],
+        input[type="number"],
+        select {
+            padding: 12px;
+            margin: 8px 0 20px 0;
+            width: calc(100% - 24px); /* Account for padding */
+            border: 1px solid #444;
+            border-radius: 6px;
+            background-color: #2a2a2a; /* Darker input fields */
+            color: #e0e0e0;
+            font-size: 1em;
+            box-sizing: border-box; /* Include padding in width */
+            -webkit-appearance: none; /* Remove default select styling */
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cpath%20fill%3D%22%23e0e0e0%22%20d%3D%22M208%2096L128%20176L48%2096z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border-color: #00e676;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.3);
         }
         button {
-            background: #61dafb; /* Accent color for button */
-            color: #282c34; /* Dark text on accent button */
+            background: #00e676; /* Vibrant green for button */
+            color: #1a1a1a; /* Dark text on vibrant button */
             border: none;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0, 230, 118, 0.3);
         }
         button:hover {
-            background-color: #4fa3d1;
+            background-color: #00c853;
+            transform: translateY(-2px);
         }
         .result {
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            border: 1px solid #333;
         }
         .success {
-            background: #4CAF50; /* Green for success */
-            border: 1px solid #388E3C;
+            background: #1a1a1a; /* Dark background for success result */
+            border-color: #00e676;
         }
         .error {
-            background: #F44336; /* Red for error */
-            border: 1px solid #D32F2F;
+            background: #1a1a1a; /* Dark background for error result */
+            border-color: #ff1744;
+        }
+        .result h2 {
+            color: #e0e0e0;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .result p {
+            margin-bottom: 10px;
+            font-size: 1.05em;
         }
         .price {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            margin: 10px 0;
+            margin: 15px 0;
+            display: block;
         }
         .up {
-            color: #27ae60; /* Green for up */
+            color: #00e676; /* Vibrant green for up */
         }
         .down {
-            color: #e74c3c; /* Red for down */
+            color: #ff1744; /* Vibrant red for down */
         }
         .chart-container {
             position: relative;
-            height: 400px;
+            height: 450px; /* Slightly taller chart */
             width: 100%;
-            margin-top: 20px;
-            background-color: #3a3f4b; /* Darker background for chart */
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 30px;
+            background-color: #1a1a1a; /* Darker background for chart */
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            border: 1px solid #333;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -128,6 +170,8 @@
         <canvas id="priceChart"></canvas>
     </div>
     <script>
+        console.log("Chart Data:", {{ chart_data | tojson }}); // Debugging line
+
         var ctx = document.getElementById('priceChart').getContext('2d');
         var priceChart = new Chart(ctx, {
             type: 'line',
@@ -136,9 +180,9 @@
                 datasets: [{
                     label: 'Price (USD)',
                     data: {{ chart_data.values | tojson }},
-                    borderColor: '#61dafb', /* Accent color for line */
-                    backgroundColor: 'rgba(97, 218, 251, 0.2)', /* Light fill */
-                    tension: 0.3,
+                    borderColor: '#00e676', /* Vibrant green for line */
+                    backgroundColor: 'rgba(0, 230, 118, 0.1)', /* Light fill */
+                    tension: 0.4, /* Smoother lines */
                     fill: true
                 }]
             },
@@ -148,7 +192,7 @@
                 plugins: {
                     legend: {
                         labels: {
-                            color: '#f8f8f2' // Light color for legend text
+                            color: '#e0e0e0' // Light color for legend text
                         }
                     }
                 },
@@ -156,31 +200,32 @@
                     x: {
                         type: 'time',
                         time: {
-                            unit: 'day'
+                            unit: 'day',
+                            tooltipFormat: 'MMM d, yyyy'
                         },
                         title: {
                             display: true,
                             text: 'Date',
-                            color: '#f8f8f2' // Light color for axis title
+                            color: '#e0e0e0' // Light color for axis title
                         },
                         ticks: {
-                            color: '#f8f8f2' // Light color for axis ticks
+                            color: '#e0e0e0' // Light color for axis ticks
                         },
                         grid: {
-                            color: '#555' // Darker grid lines
+                            color: '#333' // Darker grid lines
                         }
                     },
                     y: {
                         title: {
                             display: true,
                             text: 'Price (USD)',
-                            color: '#f8f8f2' // Light color for axis title
+                            color: '#e0e0e0' // Light color for axis title
                         },
                         ticks: {
-                            color: '#f8f8f2' // Light color for axis ticks
+                            color: '#e0e0e0' // Light color for axis ticks
                         },
                         grid: {
-                            color: '#555' // Darker grid lines
+                            color: '#333' // Darker grid lines
                         }
                     }
                 }
