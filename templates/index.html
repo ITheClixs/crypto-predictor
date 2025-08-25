@@ -3,19 +3,86 @@
 <head>
     <title>Crypto Price Prediction</title>
     <style>
-        body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
-        form { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        input, button, select { padding: 10px; margin: 10px 0; width: 100%; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #3498db; color: white; border: none; cursor: pointer; }
-        .result { padding: 20px; border-radius: 8px; margin-top: 20px; }
-        .success { background: #e8f5e9; border: 1px solid #c8e6c9; }
-        .error { background: #ffebee; border: 1px solid #ffcdd2; }
-        .price { font-size: 24px; font-weight: bold; margin: 10px 0; }
-        .up { color: #27ae60; }
-        .down { color: #e74c3c; }
-        .chart-container { position: relative; height: 400px; width: 100%; margin-top: 20px; }
+        body {
+            font-family: Arial;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #282c34; /* Dark background */
+            color: #f8f8f2; /* Light text */
+        }
+        h1, h2 {
+            color: #61dafb; /* Accent color for headings */
+        }
+        form {
+            background: #3a3f4b; /* Darker background for form */
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        label {
+            color: #f8f8f2;
+            margin-bottom: 5px;
+            display: block;
+        }
+        input, button, select {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #4a4f5b; /* Darker input fields */
+            color: #f8f8f2;
+        }
+        button {
+            background: #61dafb; /* Accent color for button */
+            color: #282c34; /* Dark text on accent button */
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #4fa3d1;
+        }
+        .result {
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .success {
+            background: #4CAF50; /* Green for success */
+            border: 1px solid #388E3C;
+        }
+        .error {
+            background: #F44336; /* Red for error */
+            border: 1px solid #D32F2F;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .up {
+            color: #27ae60; /* Green for up */
+        }
+        .down {
+            color: #e74c3c; /* Red for down */
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+            background-color: #3a3f4b; /* Darker background for chart */
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.umd.min.js"></script>
 </head>
 <body>
     <h1>Cryptocurrency Price Prediction</h1>
@@ -69,14 +136,22 @@
                 datasets: [{
                     label: 'Price (USD)',
                     data: {{ chart_data.values | tojson }},
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1,
-                    fill: false
+                    borderColor: '#61dafb', /* Accent color for line */
+                    backgroundColor: 'rgba(97, 218, 251, 0.2)', /* Light fill */
+                    tension: 0.3,
+                    fill: true
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#f8f8f2' // Light color for legend text
+                        }
+                    }
+                },
                 scales: {
                     x: {
                         type: 'time',
@@ -85,13 +160,27 @@
                         },
                         title: {
                             display: true,
-                            text: 'Date'
+                            text: 'Date',
+                            color: '#f8f8f2' // Light color for axis title
+                        },
+                        ticks: {
+                            color: '#f8f8f2' // Light color for axis ticks
+                        },
+                        grid: {
+                            color: '#555' // Darker grid lines
                         }
                     },
                     y: {
                         title: {
                             display: true,
-                            text: 'Price (USD)'
+                            text: 'Price (USD)',
+                            color: '#f8f8f2' // Light color for axis title
+                        },
+                        ticks: {
+                            color: '#f8f8f2' // Light color for axis ticks
+                        },
+                        grid: {
+                            color: '#555' // Darker grid lines
                         }
                     }
                 }
