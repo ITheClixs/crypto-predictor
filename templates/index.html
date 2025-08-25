@@ -5,23 +5,35 @@
     <style>
         body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
         form { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        input, button { padding: 10px; margin: 10px 0; width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+        input, button, select { padding: 10px; margin: 10px 0; width: 100%; border: 1px solid #ddd; border-radius: 4px; }
         button { background: #3498db; color: white; border: none; cursor: pointer; }
-        .result { padding: 20px; border-radius: 8px; }
+        .result { padding: 20px; border-radius: 8px; margin-top: 20px; }
         .success { background: #e8f5e9; border: 1px solid #c8e6c9; }
         .error { background: #ffebee; border: 1px solid #ffcdd2; }
         .price { font-size: 24px; font-weight: bold; margin: 10px 0; }
         .up { color: #27ae60; }
         .down { color: #e74c3c; }
+        .chart-container { position: relative; height: 400px; width: 100%; margin-top: 20px; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <h1>Cryptocurrency Price Prediction</h1>
     <form method="POST">
-        <input type="text" name="crypto" placeholder="Enter crypto symbol (e.g. BTC)" value="BTC" required>
-        <input type="number" name="days" placeholder="Days to predict (1-90)" value="7" min="1" max="90" required>
+        <label for="crypto">Select Cryptocurrency:</label>
+        <select name="crypto" id="crypto">
+            <option value="BTC" {% if crypto_symbol == 'BTC' %}selected{% endif %}>Bitcoin (BTC)</option>
+            <option value="ETH" {% if crypto_symbol == 'ETH' %}selected{% endif %}>Ethereum (ETH)</option>
+            <option value="SOL" {% if crypto_symbol == 'SOL' %}selected{% endif %}>Solana (SOL)</option>
+            <option value="XRP" {% if crypto_symbol == 'XRP' %}selected{% endif %}>Ripple (XRP)</option>
+            <option value="LTC" {% if crypto_symbol == 'LTC' %}selected{% endif %}>Litecoin (LTC)</option>
+            <option value="DOGE" {% if crypto_symbol == 'DOGE' %}selected{% endif %}>Dogecoin (DOGE)</option>
+        </select>
+        <label for="days">Days to predict (1-90):</label>
+        <input type="number" name="days" id="days" value="{{ days_to_predict }}" min="1" max="90" required>
         <button type="submit">Predict Price</button>
     </form>
+
     {% if prediction %}
         <div class="result {{ 'success' if prediction.success else 'error' }}">
             {% if prediction.success %}
@@ -41,6 +53,51 @@
                 <p>Try symbols like: BTC, ETH, XRP, SOL</p>
             {% endif %}
         </div>
+    {% endif %}
+
+    {% if chart_data %}
+    <div class="chart-container">
+        <h2>{{ chart_data.crypto_symbol }} Price History (Last 180 Days)</h2>
+        <canvas id="priceChart"></canvas>
+    </div>
+    <script>
+        var ctx = document.getElementById('priceChart').getContext('2d');
+        var priceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_data.labels | tojson }},
+                datasets: [{
+                    label: 'Price (USD)',
+                    data: {{ chart_data.values | tojson }},
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Price (USD)'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
     {% endif %}
 </body>
 </html>
