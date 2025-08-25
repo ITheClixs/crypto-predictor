@@ -296,18 +296,22 @@ if os.path.exists(MODEL_PATH):
 @app.route("/", methods=["GET", "POST"])
 def index():
     prediction = None
+    chart_data = None
+    crypto_symbol = "BTC" # Default crypto
+    days_to_predict = 7 # Default days
+
     if request.method == "POST":
-        crypto = request.form.get("crypto", "BTC").strip().upper()
-        days = min(int(request.form.get("days", 7)), 90)  # Max 90 days
+        crypto_symbol = request.form.get("crypto", "BTC").strip().upper()
+        days_to_predict = min(int(request.form.get("days", 7)), 90)  # Max 90 days
         
         try:
             # Get current price
-            ticker = crypto if '-' in crypto else f"{crypto}-USD"
+            ticker = crypto_symbol if '-' in crypto_symbol else f"{crypto_symbol}-USD"
             current_data = predictor.get_data(ticker, 1)
             current_price = current_data['Close'].iloc[-1]
 
             # Get predicted price
-            predicted_price = predictor.predict_price(crypto, days)
+            predicted_price = predictor.predict_price(crypto_symbol, days_to_predict)
 
             # Coerce to numeric scalars to avoid pandas Series formatting errors
             try:
@@ -321,8 +325,8 @@ def index():
             
             prediction = {
                 'success': True,
-                'crypto': crypto,
-                'days': days,
+                'crypto': crypto_symbol,
+                'days': days_to_predict,
                 'current_price': f"${current_price:,.2f}",
                 'predicted_price': f"${predicted_price:,.2f}",
                 'change': f"{((predicted_price - current_price)/current_price*100 if current_price else 0):.1f}%",
@@ -334,7 +338,26 @@ def index():
                 'error': str(e)
             }
     
-    return render_template("index.html", prediction=prediction)
+    # Fetch historical data for charting (for both GET and POST requests)
+    try:
+        ticker_for_chart = crypto_symbol if '-' in crypto_symbol else f"{crypto_symbol}-USD"
+        historical_data = predictor.get_data(ticker_for_chart, 180) # Get 180 days of historical data
+        
+        # Prepare data for Chart.js
+        chart_labels = historical_data.index.strftime('%Y-%m-%d').tolist()
+        chart_values = historical_data['Close'].tolist()
+        
+        chart_data = {
+            'labels': chart_labels,
+            'values': chart_values,
+            'crypto_symbol': crypto_symbol
+        }
+    except Exception as e:
+        print(f"Error fetching historical data for chart: {e}")
+        chart_data = None # Or handle error gracefully in UI
+
+    return render_template("index.html", prediction=prediction, chart_data=chart_data, 
+                           crypto_symbol=crypto_symbol, days_to_predict=days_to_predict)
 
 # Create templates folder and index.html at repo root if missing
 if not os.path.exists(TEMPLATES_DIR):
