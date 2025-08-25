@@ -1,4 +1,7 @@
-# Crypto Price Predictor
+![Crypto Predictor UI](images/Screenshot%202025-08-26%20at%2000.41.28.png)
+
+
+# Introducing Crypto Price Predictor
 
 A simple web application that predicts the future price of cryptocurrencies using
 a machine learning model.
@@ -87,7 +90,3 @@ This project is for educational purposes only. The predictions are based on a
 simple model and historical data, and should not be considered financial advice.
 Cryptocurrency markets are highly volatile, and you should do your own research
 before making any investment decisions.
-
-## Screenshot
-
-![Crypto Predictor UI](images/Screenshot%202025-08-26%20at%2000.41.28.png)
