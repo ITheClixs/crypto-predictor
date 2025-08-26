@@ -1,8 +1,8 @@
+# Introducing Crypto Price Predictor
 ![Crypto Predictor UI](images/Screenshot%202025-08-26%20at%2000.41.28.png)
 
 
-# Introducing Crypto Price Predictor
-
+# Overview
 A simple web application that predicts the future price of cryptocurrencies using
 a machine learning model.
 
