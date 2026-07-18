@@ -71,8 +71,10 @@ def diebold_mariano(
         return TestResult(float("nan"), float("nan"))
 
     dm = d_bar / math.sqrt(lrv / n)
-    hln = math.sqrt((n + 1 - 2 * horizon + horizon * (horizon - 1) / n) / n)
-    dm_corrected = dm * hln
+    hln_arg = (n + 1 - 2 * horizon + horizon * (horizon - 1) / n) / n
+    if hln_arg <= 0:  # sample too short for this horizon to apply the HLN correction
+        return TestResult(float("nan"), float("nan"))
+    dm_corrected = dm * math.sqrt(hln_arg)
     p_value = 2.0 * stats.t.cdf(-abs(dm_corrected), df=n - 1)
     return TestResult(float(dm_corrected), float(p_value))
 
