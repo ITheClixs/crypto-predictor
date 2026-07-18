@@ -32,11 +32,11 @@ test:
 	$(PY) -m pytest --cov=cryptoforecast --cov-report=term-missing
 
 lint:
-	$(PY) -m ruff check src tests
+	$(PY) -m ruff check src tests app
 
 format:
-	$(PY) -m black src tests
-	$(PY) -m ruff check --fix src tests
+	$(PY) -m black src tests app
+	$(PY) -m ruff check --fix src tests app
 
 typecheck:
 	$(PY) -m mypy

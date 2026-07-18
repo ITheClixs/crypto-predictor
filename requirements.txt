@@ -1,6 +1,0 @@
-flask
-yfinance
-pandas
-scikit-learn
-xgboost
-requests==2.31.0

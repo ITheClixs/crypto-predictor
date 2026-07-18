@@ -21,9 +21,9 @@ jobs:
       - name: Install
         run: pip install -e ".[dev,demo]"
       - name: Lint
-        run: ruff check src tests
+        run: ruff check src tests app
       - name: Format check
-        run: black --check src tests
+        run: black --check src tests app
       - name: Type check
         run: mypy
       - name: Test

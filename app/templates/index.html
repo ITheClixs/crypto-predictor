@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Crypto Return Predictability — research demo</title>
+    <style>
+        :root {
+            --bg: #0d1117; --panel: #161b22; --border: #30363d;
+            --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+            --up: #3fb950; --down: #f85149; --warn: #d29922;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 820px; margin: 0 auto; padding: 32px 20px;
+            background: var(--bg); color: var(--text); line-height: 1.55;
+        }
+        h1 { font-size: 1.5rem; margin: 0 0 4px; }
+        .sub { color: var(--muted); margin: 0 0 24px; }
+        .banner {
+            background: rgba(210, 153, 34, 0.1); border: 1px solid var(--warn);
+            border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; font-size: 0.9rem;
+        }
+        form {
+            display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px;
+            align-items: end; background: var(--panel); border: 1px solid var(--border);
+            border-radius: 10px; padding: 20px; margin-bottom: 24px;
+        }
+        label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; }
+        select, button {
+            width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border);
+            background: var(--bg); color: var(--text); font-size: 0.95rem;
+        }
+        button { background: var(--accent); color: #0d1117; border: none; font-weight: 600; cursor: pointer; }
+        button:hover { filter: brightness(1.1); }
+        .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .verdict { font-size: 1.05rem; font-weight: 600; margin: 0 0 4px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-top: 12px; }
+        .metric { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+        .metric .k { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
+        .metric .v { font-size: 1.2rem; font-weight: 600; margin-top: 2px; }
+        .up { color: var(--up); } .down { color: var(--down); }
+        img { width: 100%; border-radius: 8px; margin-top: 16px; border: 1px solid var(--border); }
+        .error { border-color: var(--down); color: var(--down); }
+        code { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 0.85em; }
+        a { color: var(--accent); }
+        footer { color: var(--muted); font-size: 0.82rem; margin-top: 28px; border-top: 1px solid var(--border); padding-top: 16px; }
+        @media (max-width: 640px) { form { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+    <h1>Is this crypto return predictable?</h1>
+    <p class="sub">A leak-free walk-forward evaluation — not a price oracle.</p>
+
+    <div class="banner">
+        <strong>What this is.</strong> This runs the same out-of-sample backtest as the study and
+        reports how the model actually did. Across the full study, no model beats a random walk after
+        costs. Nothing here is investment advice.
+    </div>
+
+    <form method="POST">
+        <div>
+            <label for="asset">Asset</label>
+            <select name="asset" id="asset">
+                {% for a in assets %}<option value="{{ a }}" {{ 'selected' if a == selected.asset }}>{{ a }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="model">Model</label>
+            <select name="model" id="model">
+                {% for m in models %}<option value="{{ m }}" {{ 'selected' if m == selected.model }}>{{ m }}</option>{% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="horizon">Horizon</label>
+            <select name="horizon" id="horizon">
+                {% for h in horizons %}<option value="{{ h }}" {{ 'selected' if h == selected.horizon }}>{{ h }}-day</option>{% endfor %}
+            </select>
+        </div>
+        <div><button type="submit">Evaluate</button></div>
+    </form>
+
+    {% if error %}
+        <div class="panel error"><strong>Could not evaluate:</strong> {{ error }}</div>
+    {% endif %}
+
+    {% if result %}
+    <div class="panel">
+        <p class="verdict">
+            {{ result.model }} on {{ result.asset }}, {{ result.horizon }}-day horizon:
+            {% if result.beats_rw %}
+                <span class="up">beats the random walk (p = {{ result.dm_p }})</span>
+            {% else %}
+                <span class="down">does not beat the random walk</span> (Diebold–Mariano p = {{ result.dm_p }})
+            {% endif %}
+        </p>
+        <p class="sub" style="margin:0">
+            Evaluated on {{ result.n_oos }} out-of-sample days. Current price {{ result.current_price }};
+            the model currently leans
+            <strong class="{{ 'up' if result.lean_up else 'down' }}">{{ 'up' if result.lean_up else 'down' }}</strong>
+            — but note the edge above is not statistically significant.
+        </p>
+
+        <div class="grid">
+            <div class="metric"><div class="k">RMSE</div><div class="v">{{ result.rmse }}</div></div>
+            <div class="metric"><div class="k">RMSE (random walk)</div><div class="v">{{ result.rmse_rw }}</div></div>
+            <div class="metric"><div class="k">Directional acc.</div><div class="v">{{ result.dir_acc }}</div></div>
+            <div class="metric"><div class="k">Net Sharpe</div><div class="v">{{ result.sharpe }}</div></div>
+            <div class="metric"><div class="k">Sharpe 95% CI</div><div class="v">{{ result.sharpe_ci }}</div></div>
+            <div class="metric"><div class="k">Max drawdown</div><div class="v">{{ result.max_dd }}</div></div>
+        </div>
+
+        <img src="data:image/png;base64,{{ result.equity_png }}" alt="Out-of-sample equity curve">
+    </div>
+    {% endif %}
+
+    <footer>
+        Built on the <code>cryptoforecast</code> library. Full methodology and results:
+        <a href="https://github.com/ITheClixs/crypto-predictor">README</a> and
+        <code>reports/results.md</code>. Educational research only — not financial advice.
+    </footer>
+</body>
+</html>
