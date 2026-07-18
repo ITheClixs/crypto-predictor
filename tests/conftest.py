@@ -26,3 +26,50 @@ def make_synthetic_ohlcv(n: int = 400, seed: int = 0) -> pd.DataFrame:
 @pytest.fixture
 def synthetic_ohlcv() -> pd.DataFrame:
     return make_synthetic_ohlcv()
+
+
+def make_study(n: int = 300):
+    """A small, deterministic StudyResults for one asset/horizon with two models.
+
+    Built directly (bypassing the network and model fitting) so reporting, plotting,
+    and CLI code can be exercised fast. The ``ridge`` run is a near-perfect sign
+    predictor; the ``random_walk`` run predicts zero.
+    """
+    from cryptoforecast.backtest.strategy import backtest_strategy
+    from cryptoforecast.config import CostModel, StudyConfig
+    from cryptoforecast.evaluate.metrics import regression_metrics
+    from cryptoforecast.study import ModelRun, StudyResults
+
+    rng = np.random.default_rng(11)
+    index = pd.date_range("2021-01-01", periods=n, freq="D")
+    y_true = pd.Series(rng.normal(0.0, 0.03, n), index=index)
+    close = pd.Series(100.0 * np.exp(np.cumsum(rng.normal(0.0, 0.03, n))), index=index)
+
+    def _run(model: str, y_pred: pd.Series, dm_stat: float, dm_p: float, pt_s: float, pt_p: float):
+        oos = pd.DataFrame({"y_true": y_true, "y_pred": y_pred, "close": close, "fold": 0})
+        return ModelRun(
+            asset="BTC",
+            horizon=1,
+            model=model,
+            oos=oos,
+            metrics=regression_metrics(y_true, y_pred.to_numpy()),
+            strategy=backtest_strategy(oos, 1, CostModel()),
+            dm_stat_vs_rw=dm_stat,
+            dm_p_vs_rw=dm_p,
+            pt_stat=pt_s,
+            pt_p=pt_p,
+        )
+
+    runs = [
+        _run(
+            "random_walk",
+            pd.Series(0.0, index=index),
+            float("nan"),
+            float("nan"),
+            float("nan"),
+            float("nan"),
+        ),
+        _run("ridge", y_true * 0.5, -2.5, 0.01, 2.1, 0.02),
+    ]
+    config = StudyConfig(assets=("BTC",), horizons=(1,))
+    return StudyResults(config=config, runs=runs)
