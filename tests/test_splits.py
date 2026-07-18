@@ -1,0 +1,60 @@
+"""Walk-forward splits must never leak the future into training."""
+
+from __future__ import annotations
+
+from itertools import pairwise
+
+import pytest
+
+from cryptoforecast.splits import walk_forward_splits
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("mode", ["expanding", "rolling"])
+@pytest.mark.parametrize("horizon", [1, 7])
+@pytest.mark.parametrize("embargo", [0, 5])
+def test_purge_and_embargo_gap(mode: str, horizon: int, embargo: int) -> None:
+    splits = walk_forward_splits(
+        1000, train_size=300, test_size=50, horizon=horizon, embargo=embargo, mode=mode
+    )
+    assert splits, "expected at least one fold"
+    for train, test in splits:
+        # The core guarantee: last train label lands strictly before the test block.
+        assert train.max() + horizon + embargo < test.min()
+        assert set(train).isdisjoint(set(test))
+        assert train.min() >= 0 and test.max() < 1000
+
+
+@pytest.mark.unit
+def test_expanding_starts_at_zero() -> None:
+    splits = walk_forward_splits(800, train_size=200, test_size=40, mode="expanding")
+    assert all(train.min() == 0 for train, _ in splits)
+    # Training window grows monotonically across folds.
+    sizes = [len(train) for train, _ in splits]
+    assert sizes == sorted(sizes)
+
+
+@pytest.mark.unit
+def test_rolling_caps_train_size() -> None:
+    splits = walk_forward_splits(800, train_size=200, test_size=40, mode="rolling")
+    assert all(len(train) <= 200 for train, _ in splits)
+
+
+@pytest.mark.unit
+def test_test_blocks_tile_forward_without_overlap() -> None:
+    splits = walk_forward_splits(600, train_size=150, test_size=50, mode="expanding")
+    starts = [test.min() for _, test in splits]
+    assert starts == sorted(starts)
+    for (_, a), (_, b) in pairwise(splits):
+        assert a.max() < b.min()
+
+
+@pytest.mark.unit
+def test_min_train_enforced() -> None:
+    splits = walk_forward_splits(500, train_size=100, test_size=50, min_train=100, mode="expanding")
+    assert all(len(train) >= 100 for train, _ in splits)
+
+
+@pytest.mark.unit
+def test_returns_empty_when_too_short() -> None:
+    assert walk_forward_splits(50, train_size=300, test_size=50) == []
