@@ -48,6 +48,9 @@ cryptoforecast = "cryptoforecast.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+cryptoforecast = ["py.typed"]
+
 [tool.black]
 line-length = 100
 target-version = ["py310"]
@@ -59,7 +62,6 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "C4", "PD", "NPY", "RUF"]
-ignore = ["PD901"]  # allow `df` as a variable name
 
 [tool.mypy]
 python_version = "3.10"
