@@ -7,7 +7,7 @@ name = "cryptoforecast"
 version = "0.1.0"
 description = "A leak-free walk-forward study of short-horizon crypto return predictability."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = { file = "LICENSE" }
 authors = [{ name = "ITheClixs" }]
 keywords = [
@@ -53,18 +53,18 @@ cryptoforecast = ["py.typed"]
 
 [tool.black]
 line-length = 100
-target-version = ["py310"]
+target-version = ["py312"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py312"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "C4", "PD", "NPY", "RUF"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 packages = ["cryptoforecast"]
 disallow_untyped_defs = true
 warn_unused_ignores = true

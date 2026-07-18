@@ -5,7 +5,7 @@ A small, leak-free walk-forward study that tries to beat a random walk — and r
 honestly, that it does not.
 
 [![ci](https://github.com/ITheClixs/crypto-predictor/actions/workflows/ci.yml/badge.svg)](https://github.com/ITheClixs/crypto-predictor/actions/workflows/ci.yml)
-![python](https://img.shields.io/badge/python-3.10%2B-blue)
+![python](https://img.shields.io/badge/python-3.12%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
 Most "crypto price predictor" projects report impressive accuracy because they leak the
