@@ -75,6 +75,9 @@ ignore_missing_imports = true  # yfinance / xgboost / matplotlib ship no stubs
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+# `app` is the demo server, deliberately not part of the installed distribution.
+# Without this, `pytest` (console script) cannot import it while `python -m pytest` can.
+pythonpath = ["."]
 markers = [
     "unit: fast isolated tests",
     "integration: touches the network or the full pipeline",
