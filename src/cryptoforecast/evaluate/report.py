@@ -191,8 +191,9 @@ def _headline(table: pd.DataFrame) -> str:
         f"- **{len(timing)}** showed significant sign-timing skill at p<0.05 "
         f"(Pesaran-Timmermann) — the property a directional strategy actually trades on.",
         f"- After costs, **{len(ci_pos)}** ML strategies had a net Sharpe whose 95% "
-        f"bootstrap CI excluded zero, and **{beat_bnh}** beat simply holding the asset "
-        f"on the same schedule and costs.",
+        f"bootstrap CI excluded zero, and **{beat_bnh}** out-Sharpe simply holding the "
+        f"asset on the same schedule and costs — on the point estimate, which is the "
+        f"weakest form of that claim.",
     ]
     if table["dsr"].notna().any():
         best = table.loc[table["dsr"].idxmax()]
@@ -374,8 +375,11 @@ def write_markdown(
         "- `Sharpe` is annualized at 365/h with a 95% circular-block-bootstrap CI.\n"
         "- `Phases` spans the h possible start offsets of the sampling schedule; a "
         "signal that only works on one offset is an artifact.\n"
-        "- `PSR`/`DSR` are the probabilistic and deflated Sharpe ratios; DSR deflates "
-        "for the models raced within each asset-horizon.\n"
+        "- `PSR`/`DSR` are the probabilistic and deflated Sharpe ratios. DSR deflates "
+        "for the models raced *within* each asset-horizon, which understates the real "
+        "search: a reader picking the best cell in this document is choosing among all "
+        f"{len(table)} rows, plus the feature set, horizons, and cost level that were "
+        "fixed before any of it ran. Treat DSR here as an upper bound.\n"
         "- Drawdowns are deep across the board because a unit-leverage daily-flipping "
         "position on ~70% annualized volatility carries a large variance drag; that is "
         "a property of the position sizing, not of any one model.\n"

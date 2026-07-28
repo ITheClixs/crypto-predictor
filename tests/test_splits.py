@@ -63,6 +63,44 @@ def test_returns_empty_when_too_short() -> None:
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"mode": "shuffled"}, "mode must be"),
+        ({"horizon": 0}, "horizon must be >= 1"),
+        ({"embargo": -1}, "embargo must be non-negative"),
+    ],
+)
+def test_invalid_geometry_is_rejected(kwargs: dict, message: str) -> None:
+    """A silently-accepted bad split would invalidate every number downstream."""
+    with pytest.raises(ValueError, match=message):
+        walk_forward_splits(500, train_size=100, test_size=50, **kwargs)
+
+
+@pytest.mark.unit
+def test_early_folds_are_skipped_rather_than_trained_on_too_little_history() -> None:
+    """An expanding window starts below min_train; those folds are dropped, not shrunk."""
+    splits = walk_forward_splits(
+        500, train_size=100, test_size=50, min_train=150, mode="expanding", horizon=7, embargo=5
+    )
+    assert splits
+    assert all(len(train) >= 150 for train, _ in splits)
+    # The first accepted test block starts later than an unconstrained run would.
+    unconstrained = walk_forward_splits(
+        500, train_size=100, test_size=50, min_train=100, mode="expanding", horizon=7, embargo=5
+    )
+    assert splits[0].test.min() > unconstrained[0].test.min()
+
+
+@pytest.mark.unit
+def test_rolling_mode_cannot_satisfy_a_min_train_above_its_window() -> None:
+    """A rolling window is capped at train_size, so an impossible floor yields no folds."""
+    assert (
+        walk_forward_splits(400, train_size=100, test_size=50, min_train=150, mode="rolling") == []
+    )
+
+
+@pytest.mark.unit
 @pytest.mark.parametrize("horizon", [1, 7])
 def test_purging_by_position_still_holds_in_calendar_time_when_bars_are_missing(
     horizon: int,
