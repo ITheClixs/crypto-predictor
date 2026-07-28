@@ -197,6 +197,22 @@ def pesaran_timmermann(y_true: pd.Series, y_pred: np.ndarray) -> TestResult:
     return TestResult(float(pt), float(p_value))
 
 
+def is_degenerate(returns: np.ndarray) -> bool:
+    """True when a return series carries no usable variation.
+
+    Testing ``std == 0`` exactly is not enough. Twenty copies of 0.01 have a
+    sample standard deviation of ~1.8e-18 rather than 0, because 0.01 is not
+    representable in binary; dividing by that produces a Sharpe of ~1e17 instead
+    of an honest "undefined". The threshold is relative to the size of the
+    returns, so it catches float residue while staying far below any real
+    strategy's volatility.
+    """
+    if returns.size < 2:
+        return True
+    scale = max(1.0, float(np.abs(returns).max()))
+    return bool(returns.std(ddof=1) <= 1e-12 * scale)
+
+
 def holm_adjusted(p_values: np.ndarray) -> np.ndarray:
     """Holm-Bonferroni adjusted p-values: control the family-wise error rate.
 
@@ -256,10 +272,10 @@ def sharpe_ratio(returns: pd.Series | np.ndarray, periods_per_year: float) -> fl
     """
     r = np.asarray(returns, dtype=float)
     r = r[np.isfinite(r)]
-    sd = r.std(ddof=1) if r.size > 1 else 0.0
-    if sd == 0:
-        return 0.0 if r.size == 0 or r.mean() == 0.0 else float("nan")
-    return float(math.sqrt(periods_per_year) * r.mean() / sd)
+    if is_degenerate(r):
+        # A never-traded strategy is flat, not brilliant; a constant gain is undefined.
+        return 0.0 if r.size == 0 or np.allclose(r, 0.0) else float("nan")
+    return float(math.sqrt(periods_per_year) * r.mean() / r.std(ddof=1))
 
 
 def max_drawdown(equity: pd.Series | np.ndarray, initial: float | None = 1.0) -> float:
@@ -284,7 +300,7 @@ def probabilistic_sharpe_ratio(returns: pd.Series | np.ndarray, benchmark_sr: fl
     r = np.asarray(returns, dtype=float)
     r = r[np.isfinite(r)]
     n = r.size
-    if n < 8 or r.std(ddof=1) == 0:
+    if n < 8 or is_degenerate(r):
         return float("nan")
     sr = r.mean() / r.std(ddof=1)  # per-period, non-annualized
     skew = float(stats.skew(r))

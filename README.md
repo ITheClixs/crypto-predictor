@@ -132,7 +132,7 @@ distinguish a model that beat the benchmark from one that lost to it.
 ```bash
 make setup      # install cryptoforecast + dev extras into ./venv
 make backtest   # download data, run the study, regenerate reports/
-make test       # 122 tests, incl. the no-lookahead and purge guarantees
+make test       # 136 tests, incl. the no-lookahead and purge guarantees
 make check      # lint + type-check + test (the CI gate)
 ```
 

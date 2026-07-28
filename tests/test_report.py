@@ -105,6 +105,22 @@ def test_interpretation_flags_when_the_significant_and_the_profitable_differ(
 
 
 @pytest.mark.unit
+def test_interpretation_explains_a_survivor_with_negative_out_of_sample_r2(
+    tmp_path: Path,
+) -> None:
+    """Clark-West can reject while the realized forecast still loses to a constant."""
+    study = make_study()
+    table = results_table(study)
+    ridge = table["model"] == "ridge"
+    table.loc[ridge, "cw_p_bh"] = 0.01
+    table.loc[ridge, "r2_oos"] = -0.01
+    write_markdown(study.config, table, [], tmp_path / "results.md")
+    md = (tmp_path / "results.md").read_text()
+    assert "one of these has a *negative* out-of-sample" in md
+    assert "not of a usable forecast" in md
+
+
+@pytest.mark.unit
 def test_markdown_documents_every_sign_convention(tmp_path: Path) -> None:
     study = make_study()
     write_markdown(study.config, results_table(study), [], tmp_path / "results.md")

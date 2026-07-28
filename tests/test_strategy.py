@@ -72,6 +72,12 @@ def test_non_overlapping_sampling() -> None:
 
 
 @pytest.mark.unit
+def test_long_flat_never_shorts() -> None:
+    positions = build_positions(pd.Series([0.1, -0.1, 0.0, 0.2]), kind="long_flat")
+    np.testing.assert_allclose(positions.to_numpy(), [1.0, 0.0, 0.0, 1.0])
+
+
+@pytest.mark.unit
 def test_build_positions_rejects_unknown_kind() -> None:
     with pytest.raises(ValueError, match="unknown strategy kind"):
         build_positions(pd.Series([0.1, -0.1]), kind="martingale")

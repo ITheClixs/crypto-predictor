@@ -15,6 +15,7 @@ from cryptoforecast.evaluate.stats import (
     diebold_mariano,
     expected_max_sharpe,
     holm_adjusted,
+    is_degenerate,
     max_drawdown,
     newey_west_lrv,
     pesaran_timmermann,
@@ -134,6 +135,76 @@ def test_dm_is_biased_against_a_useless_nested_model_and_clark_west_is_not() -> 
 def test_clark_west_identical_forecasts_is_nan(returns: pd.Series) -> None:
     same = np.zeros(len(returns))
     assert np.isnan(clark_west(returns, same, same).statistic)
+
+
+@pytest.mark.unit
+def test_dm_supports_absolute_error_loss(returns: pd.Series) -> None:
+    model = returns.to_numpy() * 0.5
+    bench = np.zeros(len(returns))
+    assert diebold_mariano(returns, model, bench, loss="mae").statistic < 0
+
+
+@pytest.mark.unit
+def test_dm_rejects_an_unknown_loss(returns: pd.Series) -> None:
+    with pytest.raises(ValueError, match="loss must be"):
+        diebold_mariano(returns, returns.to_numpy(), np.zeros(len(returns)), loss="huber")
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("test", [diebold_mariano, clark_west])
+def test_tests_refuse_to_report_on_a_sample_too_short_to_mean_anything(test) -> None:
+    y = pd.Series([0.01, -0.02, 0.03, -0.01])  # 4 points
+    result = test(y, y.to_numpy(), np.zeros(4))
+    assert np.isnan(result.statistic) and np.isnan(result.p_value)
+
+
+@pytest.mark.unit
+def test_pt_and_bootstrap_and_psr_refuse_a_sample_too_short() -> None:
+    short = pd.Series([0.01, -0.02, 0.03, -0.01])
+    assert np.isnan(pesaran_timmermann(short, short.to_numpy()).statistic)
+    assert np.isnan(probabilistic_sharpe_ratio(short))
+    assert all(np.isnan(v) for v in block_bootstrap_ci(short, lambda a: float(a.mean())))
+
+
+@pytest.mark.unit
+def test_degenerate_inputs_return_neutral_values_rather_than_raising() -> None:
+    assert sharpe_ratio(pd.Series([], dtype=float), 365) == 0.0
+    assert max_drawdown(pd.Series([], dtype=float)) == 0.0
+    assert expected_max_sharpe(1, 0.05) == 0.0  # a single trial is not a search
+    assert expected_max_sharpe(20, 0.0) == 0.0  # identical trials cannot be deflated
+    assert np.isnan(probabilistic_sharpe_ratio(pd.Series([0.01] * 20)))  # zero variance
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("value", [0.01, 0.1, 0.07, -0.03])
+def test_a_constant_return_series_is_undefined_not_astronomically_good(value: float) -> None:
+    """The `== 0` variance check these guards used to do is not float-safe.
+
+    Twenty copies of 0.01 have a sample standard deviation of ~1.8e-18, not 0,
+    because 0.01 has no exact binary representation. Dividing by that produced a
+    Sharpe of ~1e17 — a number that would sail straight into a results table.
+    """
+    r = pd.Series([value] * 20)
+    assert r.std(ddof=1) != 0.0  # the residue the old guard missed
+    assert is_degenerate(r.to_numpy())
+    assert np.isnan(sharpe_ratio(r, 365))
+    assert np.isnan(probabilistic_sharpe_ratio(r))
+
+
+@pytest.mark.unit
+def test_a_genuinely_low_volatility_series_is_not_treated_as_degenerate() -> None:
+    """The tolerance must sit far below any real strategy's volatility."""
+    rng = np.random.default_rng(21)
+    r = rng.normal(0.0001, 1e-6, 200)  # tiny but real variation
+    assert not is_degenerate(r)
+    assert np.isfinite(sharpe_ratio(pd.Series(r), 365))
+
+
+@pytest.mark.unit
+def test_multiple_testing_on_an_empty_family_returns_nothing_to_reject() -> None:
+    for adjust in (holm_adjusted, benjamini_hochberg_adjusted):
+        assert adjust(np.array([])).size == 0
+        assert np.isnan(adjust(np.array([np.nan, np.nan]))).all()
 
 
 @pytest.mark.unit

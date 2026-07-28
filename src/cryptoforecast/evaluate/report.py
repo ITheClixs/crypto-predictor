@@ -22,6 +22,7 @@ from .stats import (
     block_bootstrap_ci,
     deflated_sharpe_ratio,
     holm_adjusted,
+    is_degenerate,
     max_drawdown,
     probabilistic_sharpe_ratio,
     sharpe_ratio,
@@ -35,9 +36,9 @@ _MODEL_ORDER = [*default_models(), BUY_AND_HOLD]
 
 
 def _per_period_sharpe(net: pd.Series) -> float:
+    """Non-annualized Sharpe, the unit the deflation benchmark is expressed in."""
     r = net.to_numpy(dtype=float)
-    sd = r.std(ddof=1) if r.size > 1 else 0.0
-    return float(r.mean() / sd) if sd > 0 else 0.0
+    return 0.0 if is_degenerate(r) else float(r.mean() / r.std(ddof=1))
 
 
 def _pnl_fields(strategy: StrategyResult) -> dict[str, object]:
