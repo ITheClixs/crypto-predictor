@@ -1,6 +1,6 @@
 """Leak-free feature engineering.
 
-Every feature at row ``t`` is a function of OHLCV data on ``[..., t]`` only —
+Every feature at row ``t`` is a function of OHLCV data on ``[..., t]`` only, and
 never of a future bar. That property is what makes the downstream backtest an
 honest forecast rather than an in-sample fit, and it is enforced by
 ``tests/test_features.py::test_no_lookahead`` (perturbing future bars must not

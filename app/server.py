@@ -81,7 +81,7 @@ def _equity_png(strategy: StrategyResult) -> str:
 
 
 def _stat(statistic: float, p_value: float) -> str:
-    """Render a test as ``statistic (p)`` — the sign is what says who won."""
+    """Render a test as ``statistic (p)``. The sign is what says who won."""
     if statistic != statistic:  # NaN
         return "—"
     return f"{statistic:+.2f} (p = {p_value:.3f})"
@@ -162,7 +162,7 @@ def index() -> str:
             result = evaluate(asset, model_name, horizon)
         except Exception:  # surface a failure to the user, never a 500 or a stack trace
             app.logger.exception("evaluation failed for %s/%s/%sd", asset, model_name, horizon)
-            error = "Could not evaluate that combination — see the server log for details."
+            error = "Could not evaluate that combination; see the server log for details."
 
     return render_template(
         "index.html",

@@ -1,4 +1,4 @@
-"""Feature correctness — above all, the no-lookahead guarantee."""
+"""Feature correctness, above all the no-lookahead guarantee."""
 
 from __future__ import annotations
 

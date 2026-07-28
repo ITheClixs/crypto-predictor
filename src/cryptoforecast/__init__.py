@@ -1,4 +1,4 @@
-"""cryptoforecast — a leak-free walk-forward study of crypto return predictability.
+"""cryptoforecast: a leak-free walk-forward study of crypto return predictability.
 
 The public surface is intentionally small; import submodules directly, e.g.::
 

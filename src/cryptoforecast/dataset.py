@@ -2,7 +2,7 @@
 
 Glues :mod:`cryptoforecast.features` and :mod:`cryptoforecast.targets` together on
 a single index. Warmup rows (any NaN feature) are dropped. Trailing rows whose
-label is not yet observable are *kept* — they carry valid features and no target,
+label is not yet observable are *kept*, since they carry valid features and no target,
 which is precisely the state a live forecaster is in on the most recent bar.
 """
 

@@ -1,12 +1,12 @@
-"""Benchmark forecasters — the bar every ML model must clear to be interesting.
+"""Benchmark forecasters: the bar every ML model must clear to be interesting.
 
 - ``RandomWalkForecaster``: predicts zero forward return. Under the efficient-market
-  / martingale hypothesis this is the honest null, and it is notoriously hard to
+  or martingale hypothesis this is the honest null, and it is notoriously hard to
   beat out of sample.
 - ``HistoricalMeanForecaster``: predicts the in-sample average forward return
   (unconditional drift).
-- ``AR1Forecaster``: OLS of the forward return on the most recent daily return —
-  the simplest conditional (momentum/reversal) model.
+- ``AR1Forecaster``: OLS of the forward return on the most recent daily return.
+  The simplest conditional (momentum/reversal) model.
 """
 
 from __future__ import annotations

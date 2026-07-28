@@ -109,7 +109,7 @@ def test_purging_by_position_still_holds_in_calendar_time_when_bars_are_missing(
 
     A label at row ``i`` is realized ``horizon`` *bars* later, and with bars
     missing that lands at least ``horizon`` calendar days later. Since gaps only
-    stretch the timeline, purging ``h`` positions purges at least ``h`` days —
+    stretch the timeline, purging ``h`` positions purges at least ``h`` days, so
     the position rule is conservative, never optimistic. This checks that on an
     index with holes punched in it.
     """

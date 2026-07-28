@@ -1,7 +1,7 @@
 """Regularized linear forecasters.
 
 Standardization lives *inside* the fit so the scaler only ever sees training rows
-— fitting a scaler on the full sample is a classic and easy-to-miss leak. Ridge
+Fitting a scaler on the full sample is a classic and easy-to-miss leak. Ridge
 and elastic-net shrink coefficients, which matters because the features are
 correlated and the signal-to-noise ratio of return prediction is tiny.
 """

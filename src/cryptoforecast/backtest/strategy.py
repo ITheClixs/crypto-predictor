@@ -3,7 +3,7 @@
 To avoid double-counting overlapping ``h``-day forecasts, trades are taken on a
 non-overlapping schedule: one decision every ``horizon`` bars, held to the next.
 Positions are unit-sized (``sign`` = long/short, ``long_flat`` = long/flat), which
-keeps the mapping transparent — the point of the study is whether the *signal*
+keeps the mapping transparent. The point of the study is whether the *signal*
 survives costs, not leverage engineering.
 
 Sampling every ``h``-th bar leaves ``h`` possible starting offsets, and nothing

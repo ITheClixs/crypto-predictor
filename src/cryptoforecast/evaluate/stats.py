@@ -5,7 +5,7 @@ provides the standard toolkit for forecast and strategy evaluation:
 
 - Diebold-Mariano (1995) with the Harvey-Leybourne-Newbold small-sample
   correction and a Newey-West long-run variance for overlapping h-step forecasts.
-- Clark-West (2007), because DM is *not* valid when the models are nested — and a
+- Clark-West (2007), because DM is *not* valid when the models are nested, and a
   random walk is nested inside every conditional model here (set the slopes to
   zero and you get it back). Under the null, the larger model estimates
   coefficients that are truly zero, which inflates its sample MSPE; DM therefore
@@ -17,8 +17,8 @@ provides the standard toolkit for forecast and strategy evaluation:
 - A circular block bootstrap for confidence intervals that respects serial
   dependence.
 
-**Sign conventions** (deliberately spelled out — a p-value without a direction is
-worse than no p-value, since a model that is significantly *worse* than the
+**Sign conventions** (deliberately spelled out, because a p-value without a direction is
+worse than no p-value, because a model that is significantly *worse* than the
 benchmark produces exactly the same small number as one that is better):
 
 ======================  ===========================================
@@ -166,7 +166,7 @@ def pesaran_timmermann(y_true: pd.Series, y_pred: np.ndarray) -> TestResult:
     A **positive** statistic means the hit rate beats what independence between
     forecast sign and outcome sign would produce; a negative one means the
     forecast is systematically *anti*-predictive. The p-value is two-sided, so a
-    small p on its own says only "not independent" — read it with the statistic.
+    small p on its own says only "not independent"; read it with the statistic.
     """
     yt = np.asarray(y_true, dtype=float)
     yp = np.asarray(y_pred, dtype=float)
@@ -216,7 +216,7 @@ def is_degenerate(returns: np.ndarray) -> bool:
 def holm_adjusted(p_values: np.ndarray) -> np.ndarray:
     """Holm-Bonferroni adjusted p-values: control the family-wise error rate.
 
-    The strict correction. Testing 18 settings at 5% each is not a 5% test — it
+    The strict correction. Testing 18 settings at 5% each is not a 5% test; it
     is roughly one expected false positive per study. Holm asks the demanding
     question: is *any* of these real? NaNs pass through unchanged.
     """
