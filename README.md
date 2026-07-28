@@ -1,37 +1,53 @@
 # cryptoforecast
 
 **Are short-horizon cryptocurrency returns predictable out-of-sample, after costs?**
-A small, leak-free walk-forward study that tries to beat a random walk — and reports,
-honestly, that it does not.
+A leak-free walk-forward study that tries to beat a random walk. The answer is a
+qualified no — and the qualification is the interesting part.
 
-[![ci](https://github.com/ITheClixs/crypto-predictor/actions/workflows/ci.yml/badge.svg)](https://github.com/ITheClixs/crypto-predictor/actions/workflows/ci.yml)
+[![ci](https://github.com/ITheClixs/CryptoCurrency-Prediction-System-XGBoostregression/actions/workflows/ci.yml/badge.svg)](https://github.com/ITheClixs/CryptoCurrency-Prediction-System-XGBoostregression/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.12%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
 Most "crypto price predictor" projects report impressive accuracy because they leak the
 future into the past (same-period targets, a scaler fit on the whole sample, no proper
 out-of-sample split) and never compare against a trivial benchmark. This repository is
-built the other way around: the methodology is designed to be *falsifiable*, and the
-result is a negative one, which is exactly what an efficient market predicts.
+built the other way around: the methodology is designed to be *falsifiable*, and it is
+allowed to return an uncomfortable answer.
 
 ## The result
 
-Across **18** settings (3 assets × 2 horizons × 3 ML models), evaluated by purged
-walk-forward cross-validation from 2019 to today:
+**18** settings (3 assets × 2 horizons × 3 ML models), purged walk-forward, evaluated
+out-of-sample over **2020-07-23 → 2026-07-17**, net of 17 bps per side.
 
-- **Zero** models beat the random walk on squared error at *p* < 0.05
-  (Diebold–Mariano). Several are significantly *worse*.
-- **Zero** models show significant sign-timing skill (Pesaran–Timmermann).
-- Out-of-sample R² is **negative almost everywhere** — the models predict the next
-  return worse than just guessing its historical mean.
-- Directional accuracy hugs 50% (a coin flip).
-- The only strategies with a high Sharpe are the always-long `historical_mean` /
-  drift models — i.e. **buy-and-hold in disguise** (one trade, ~−76% max drawdown),
-  whose bootstrap confidence intervals still graze zero.
-- Exactly **1 of 18** ML strategies had a net Sharpe whose 95% CI excluded zero
-  (`gbm`, ETH, 7-day: 0.96, CI [0.06, 1.78]) — about the **0.9 false positives you
-  would expect by chance** at the 5% level across 18 trials, and its deflated Sharpe
-  (0.78) does not survive that scrutiny.
+**There is a faint statistical signal. There is no tradeable one.**
+
+- Diebold–Mariano finds **0 of 18** models beating the random walk, and **7**
+  significantly worse. But DM is the *wrong test here*: the random walk is nested
+  inside every one of these models (set the slopes to zero and you recover it), and
+  under the null the larger model still pays sample MSPE to estimate coefficients that
+  are truly zero. DM reads that cost as evidence for the benchmark.
+- **Clark–West**, which removes exactly that bias, rejects the no-predictability null
+  in **5 of 18** settings at an uncorrected *p* < 0.05 — against **0.9** expected by
+  chance at that threshold. Correcting for the size of the search: **0 survive
+  Holm–Bonferroni**, **2 survive Benjamini–Hochberg** (both BTC 1-day, *p*<sub>BH</sub>
+  = 0.046).
+- Those 2 survivors are not usable forecasts. Their out-of-sample R² against a drift
+  benchmark is **−0.0079** and **+0.0031**; their net Sharpes are 0.51 and 0.33 with
+  95% bootstrap CIs of [−0.18, 1.23] and [−0.35, 1.02] — both straddling zero.
+- **0 of 18** show significant sign-timing skill (Pesaran–Timmermann), which is the
+  property a directional strategy actually trades on. Directional accuracy spans
+  0.471–0.528.
+- **2 of 18** have a net Sharpe whose 95% CI excludes zero — and they are **different
+  settings** from the two that survive statistical correction. Two disjoint sets of
+  winners drawn from one search is the signature of noise, not of an edge.
+- Every high-Sharpe "strategy" in the study is long-only exposure. `historical_mean`
+  predicts a positive drift, so it is always long, and its PnL is **numerically
+  identical** to buy-and-hold — one position change, and a −76% to −96% max drawdown
+  depending on the asset. The report carries buy-and-hold as an explicit row so this
+  cannot be quietly claimed as model performance.
+- At *h* = 7 the trading schedule has 7 possible start offsets. For SOL, `ridge` shows
+  a net Sharpe of 0.45 that spans **[−0.83, 0.57]** across those offsets. The headline
+  number was an artifact of where the sampling happened to begin.
 
 ![Out-of-sample equity vs buy & hold](reports/figures/fig_equity.png)
 
@@ -42,16 +58,23 @@ Full tables (every asset, horizon, and model) live in
 
 ### Representative slice — BTC, 1-day horizon
 
-| model            | RMSE   | R²_oos  | Dir. acc | Rank IC | DM p vs RW |
-| ---------------- | ------ | ------- | -------- | ------- | ---------- |
-| random_walk      | 0.0301 | −0.0008 | —        | —       | —          |
-| historical_mean  | 0.0301 | −0.0014 | 0.506    | 0.002   | 0.860      |
-| ar1              | 0.0301 | −0.0026 | 0.513    | 0.033   | 0.737      |
-| ridge            | 0.0302 | −0.0093 | 0.506    | 0.049   | 0.447      |
-| elastic_net      | 0.0301 | +0.0017 | 0.505    | 0.046   | 0.644      |
-| gbm              | 0.0301 | −0.0015 | 0.501    | 0.028   | 0.904      |
+Each test is shown as *statistic (p)*: **DM negative** favours the model, **CW
+positive** favours the model. A bare p-value cannot tell a win from a loss.
 
-No forecast is distinguishable from the random walk.
+| model            | RMSE   | R²_oos  | Dir. acc | Rank IC | DM (p)        | CW (p)        | CW p holm / BH |
+| ---------------- | ------ | ------- | -------- | ------- | ------------- | ------------- | -------------- |
+| random_walk      | 0.0301 | +0.0005 | —        | —       | —             | —             | —              |
+| historical_mean  | 0.0301 | 0.0000  | 0.506    | 0.002   | +0.18 (0.860) | +1.03 (0.152) | —              |
+| ar1              | 0.0301 | −0.0013 | 0.513    | 0.033   | +0.34 (0.737) | +1.24 (0.107) | —              |
+| ridge            | 0.0302 | −0.0079 | 0.506    | 0.049   | +0.76 (0.447) | +2.62 (0.004) | 0.079 / 0.046  |
+| elastic_net      | 0.0301 | +0.0031 | 0.505    | 0.046   | −0.46 (0.644) | +2.57 (0.005) | 0.087 / 0.046  |
+| gbm              | 0.0301 | +0.0007 | 0.501    | 0.019   | −0.04 (0.970) | +2.02 (0.022) | 0.350 / 0.131  |
+
+`R²_oos` is the Campbell–Thompson statistic against the `historical_mean` forecast, so
+that benchmark scores exactly 0.000 by construction — a built-in sanity check on the
+metric. Ridge rejects under Clark–West while posting a *negative* R²; that combination
+is the literature's standard warning that a detectable population effect need not
+survive its own estimation noise.
 
 ## Method
 
@@ -73,27 +96,43 @@ embargo — are purged from training, so no training label overlaps the test win
 (López de Prado, *Advances in Financial Machine Learning*, ch. 7). Every split satisfies
 `max(train) + h + embargo < min(test)`.
 
+**Purging inside the models too** ([`models/trees.py`](src/cryptoforecast/models/trees.py)).
+The gradient booster early-stops on the tail of its training window. Without a gap, the
+last *h* rows it fits on carry labels realized inside that validation slice, so early
+stopping is tuned on partly-seen outcomes. The same purge is applied one level down, and
+tested by corrupting exactly those rows and asserting the fitted model is unchanged.
+
 **Benchmarks first** ([`models/baselines.py`](src/cryptoforecast/models/baselines.py)).
-Random walk (the martingale null), historical-mean drift, and AR(1). Models are reported
-*relative to the random walk*, not in isolation.
+Random walk (the martingale null), historical-mean drift, AR(1), and an always-long
+buy-and-hold reference on the same schedule and cost model. Models are reported *relative
+to* those, never in isolation.
 
 **Cost-aware strategy** ([`backtest/`](src/cryptoforecast/backtest)). Forecasts become
-unit long/short positions on a non-overlapping *h*-day schedule; PnL is charged 17 bps per
-side (fees + slippage + half-spread) on turnover, and reported as net Sharpe, max
-drawdown, and turnover.
+unit long/short positions on a non-overlapping *h*-day schedule (so *h*-day forecasts are
+never double-counted, and the Sharpe annualizes at 365/*h*, not 365); PnL is charged 17 bps
+per side on turnover, where flipping long→short costs two sides. Because the schedule has
+*h* possible start offsets and none is privileged, every strategy is also run on all of
+them and the spread is reported.
 
-**Statistics that account for luck** ([`evaluate/stats.py`](src/cryptoforecast/evaluate/stats.py)).
-Diebold–Mariano (with the Harvey–Leybourne–Newbold small-sample correction and a
-Newey–West long-run variance), Pesaran–Timmermann sign-timing test, the Probabilistic and
-Deflated Sharpe Ratios (which correct for short samples, non-normal returns, and the number
-of models tried), and circular block-bootstrap confidence intervals.
+**The right test for the comparison** ([`evaluate/stats.py`](src/cryptoforecast/evaluate/stats.py)).
+Diebold–Mariano (Harvey–Leybourne–Newbold correction, Newey–West long-run variance) for
+non-nested comparisons; **Clark–West** for the nested one against the random walk, which is
+the comparison this study actually makes. Pesaran–Timmermann for sign timing. The
+Probabilistic and Deflated Sharpe Ratios for short samples, non-normal returns, and the
+number of models raced. Circular block-bootstrap CIs for serially dependent returns.
+
+**Multiple testing taken seriously.** 18 settings tested at the 5% level yields ~0.9
+findings from noise alone, so raw counts are reported alongside Holm–Bonferroni
+(family-wise) and Benjamini–Hochberg (false-discovery) adjusted *p*-values. Every test
+in the report is printed as *statistic (p)*, because a p-value without a sign cannot
+distinguish a model that beat the benchmark from one that lost to it.
 
 ## Reproduce
 
 ```bash
 make setup      # install cryptoforecast + dev extras into ./venv
 make backtest   # download data, run the study, regenerate reports/
-make test       # 78 tests, incl. the no-lookahead guarantees
+make test       # 113 tests, incl. the no-lookahead and purge guarantees
 make check      # lint + type-check + test (the CI gate)
 ```
 
@@ -133,24 +172,46 @@ tests/                 unit tests incl. no-lookahead and purge guarantees
 
 ## Limitations
 
-This is intentionally small and does not claim to be the last word:
+Stated plainly, because they bound what the result means:
 
+- **Asset selection is not survivorship-free.** BTC, ETH, and SOL were picked in 2026
+  knowing they survived. Hundreds of 2019-era tokens did not. This biases the study
+  *toward* finding profitable long exposure, which makes the absence of a tradeable
+  signal a stronger result — but it would invalidate any cross-sectional claim.
+- **Deep drawdowns are a sizing artifact.** Unit leverage flipping daily on ~70%
+  annualized volatility carries heavy variance drag; the −90%-plus figures describe
+  the position sizing, not a bug and not a specific model.
+- **Short positions are modelled as fully collateralized** (return = −*r*), with no
+  borrow cost, margin, or liquidation. Realistic for a study of signal quality;
+  optimistic as an execution model.
+- **Confidence intervals are percentile bootstrap**, not BCa — adequate for a
+  reject/don't-reject read, mildly biased for an asymmetric statistic like the Sharpe.
 - Daily spot bars only — no order-book microstructure, funding, or intraday signal.
+- Costs are a flat per-side estimate, not a queue-level execution model.
 - A compact feature set and three model families; richer features or sequence models
   might change the picture (though the leakage discipline should not).
-- Costs are a flat per-side estimate, not a queue-level execution model.
-- A negative out-of-sample result is evidence about *this* design, not a proof that no
-  crypto signal exists anywhere.
+- **`end` is unpinned**, so `make backtest` extends the sample as time passes and the
+  numbers here will drift. The evaluated window is stamped into
+  [`reports/results.md`](reports/results.md) on every run so any table can be tied to
+  the data that produced it.
+- A near-null out-of-sample result is evidence about *this* design over *this* window,
+  not a proof that no crypto signal exists anywhere.
 
 ## References
 
 1. M. López de Prado, *Advances in Financial Machine Learning*, Wiley, 2018 — purged/embargoed CV, deflated Sharpe.
 2. F. X. Diebold and R. S. Mariano, "Comparing Predictive Accuracy," *JBES*, 1995.
 3. D. Harvey, S. Leybourne, P. Newbold, "Testing the equality of prediction mean squared errors," *IJF*, 1997.
-4. M. H. Pesaran and A. Timmermann, "A Simple Nonparametric Test of Predictive Performance," *JBES*, 1992.
-5. D. Bailey and M. López de Prado, "The Deflated Sharpe Ratio," *Journal of Portfolio Management*, 2014.
-6. E. F. Fama, "Efficient Capital Markets," *Journal of Finance*, 1970.
-7. T. Chen and C. Guestrin, "XGBoost: A Scalable Tree Boosting System," *KDD*, 2016.
+4. T. E. Clark and K. D. West, "Approximately normal tests for equal predictive accuracy in nested models," *Journal of Econometrics*, 2007.
+5. J. Y. Campbell and S. B. Thompson, "Predicting Excess Stock Returns Out of Sample," *RFS*, 2008 — the out-of-sample R² used here.
+6. M. H. Pesaran and A. Timmermann, "A Simple Nonparametric Test of Predictive Performance," *JBES*, 1992.
+7. D. Bailey and M. López de Prado, "The Deflated Sharpe Ratio," *Journal of Portfolio Management*, 2014.
+8. Y. Benjamini and Y. Hochberg, "Controlling the False Discovery Rate," *JRSS-B*, 1995.
+9. S. Holm, "A Simple Sequentially Rejective Multiple Test Procedure," *Scandinavian Journal of Statistics*, 1979.
+10. W. K. Newey and K. D. West, "A Simple, Positive Semi-Definite, Heteroskedasticity and Autocorrelation Consistent Covariance Matrix," *Econometrica*, 1987.
+11. D. N. Politis and J. P. Romano, "The Stationary Bootstrap," *JASA*, 1994 — block bootstrap for dependent data.
+12. E. F. Fama, "Efficient Capital Markets," *Journal of Finance*, 1970.
+13. T. Chen and C. Guestrin, "XGBoost: A Scalable Tree Boosting System," *KDD*, 2016.
 
 ## License
 
