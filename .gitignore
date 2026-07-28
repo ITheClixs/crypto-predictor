@@ -58,5 +58,16 @@ env/
 # macOS
 .DS_Store
 
-# Data files
+# Linters / type checkers
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+
+# Serialized model artifacts (regenerable via `make backtest`)
 *.pkl
+*.joblib
+
+# Local market-data cache (regenerable via `make data`)
+data/cache/
+
+# Note: reports/ (results.md + figures/) IS committed — it is the paper's evidence.

@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+    branches: [main, research/rebuild]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: pip install -e ".[dev,demo]"
+      - name: Lint
+        run: ruff check src tests app
+      - name: Format check
+        run: black --check src tests app
+      - name: Type check
+        run: mypy
+      - name: Test
+        # Unit tests only in CI: the network-backed study runs offline via `make backtest`.
+        run: pytest -m "not integration" --cov=cryptoforecast --cov-report=term-missing --cov-fail-under=80
