@@ -4,7 +4,7 @@
 A leak-free walk-forward study that tries to beat a random walk. The answer is a
 qualified no — and the qualification is the interesting part.
 
-[![ci](https://github.com/ITheClixs/CryptoCurrency-Prediction-System-XGBoostregression/actions/workflows/ci.yml/badge.svg)](https://github.com/ITheClixs/CryptoCurrency-Prediction-System-XGBoostregression/actions/workflows/ci.yml)
+[![ci](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml/badge.svg)](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.12%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
