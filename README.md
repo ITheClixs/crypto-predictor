@@ -111,39 +111,34 @@ Let $C_t, H_t, L_t, V_t$ denote close, high, low, and volume at bar $t$. Every f
 a function of information available at or before $t$. All twelve are scale-free, so a
 single model can pool across assets trading at very different price levels.
 
-Cumulative log returns over $k \in \{1, 5, 10, 21\}$:
+Cumulative log returns over $k \in \lbrace 1, 5, 10, 21 \rbrace$:
 
 $$r_t^{(k)} = \log \frac{C_t}{C_{t-k}}$$
 
-Realized volatility over $w \in \{10, 21\}$, the rolling standard deviation of daily log
+Realized volatility over $w \in \lbrace 10, 21 \rbrace$, the rolling standard deviation of daily log
 returns:
 
-$$\sigma_t^{(w)} = \operatorname{sd}\left(r_{t-w+1}^{(1)}, \dots, r_t^{(1)}\right)$$
+$$\sigma_t^{(w)} = \mathrm{sd}\left(r_{t-w+1}^{(1)}, \dots, r_t^{(1)}\right)$$
 
 Wilder's RSI over 14 bars, recentred to roughly $[-1, 1]$. With
 $U_t = \max(C_t - C_{t-1}, 0)$ and $D_t = \max(C_{t-1} - C_t, 0)$ smoothed by an
 exponential moving average with $\alpha = 1/14$:
 
-$$\mathrm{RSI}_t = 100 - \frac{100}{1 + \bar{U}_t / \bar{D}_t}, \qquad
-\text{feature} = \frac{\mathrm{RSI}_t - 50}{50}$$
+$$\mathrm{RSI}_t = 100 - \frac{100}{1 + \bar{U}_t / \bar{D}_t}, \qquad \text{feature} = \frac{\mathrm{RSI}_t - 50}{50}$$
 
 MACD histogram, normalized by price so it is comparable across assets, where
 $\mathrm{EMA}_n$ is the $n$-span exponential moving average:
 
-$$M_t = \mathrm{EMA}_{12}(C)_t - \mathrm{EMA}_{26}(C)_t, \qquad S_t = \mathrm{EMA}_9(M)_t,
-\qquad \mathrm{macd}_t = \frac{M_t - S_t}{C_t}$$
+$$M_t = \mathrm{EMA}_{12}(C)_t - \mathrm{EMA}_{26}(C)_t, \qquad S_t = \mathrm{EMA}_9(M)_t, \qquad \mathrm{macd}_t = \frac{M_t - S_t}{C_t}$$
 
 Moving-average ratio and distance, with $\mathrm{SMA}_n$ the $n$-bar simple moving
 average:
 
-$$\log \frac{\mathrm{SMA}_7(C)_t}{\mathrm{SMA}_{21}(C)_t}, \qquad
-\log \frac{C_t}{\mathrm{SMA}_{50}(C)_t}$$
+$$\log \frac{\mathrm{SMA}_7(C)_t}{\mathrm{SMA}_{21}(C)_t}, \qquad \log \frac{C_t}{\mathrm{SMA}_{50}(C)_t}$$
 
 Mean normalized range over 14 bars, and a 21-bar volume z-score on $\log(1 + V_t)$:
 
-$$\mathrm{range}_t = \frac{1}{14}\sum_{i=0}^{13} \frac{H_{t-i} - L_{t-i}}{C_{t-i}},
-\qquad
-z_t = \frac{\log(1+V_t) - \mu_t^{(21)}}{s_t^{(21)}}$$
+$$\mathrm{range}_t = \frac{1}{14}\sum_{i=0}^{13} \frac{H_{t-i} - L_{t-i}}{C_{t-i}}, \qquad z_t = \frac{\log(1+V_t) - \mu_t^{(21)}}{s_t^{(21)}}$$
 
 The longest warm-up is 50 bars, and rows with any undefined feature are dropped.
 
@@ -216,12 +211,11 @@ Three benchmarks and three machine-learning models, all refit from scratch on ev
 
 Ridge solves
 
-$$\hat{\beta} = \arg\min_{\beta} \; \lVert y - X\beta \rVert_2^2 + \alpha \lVert \beta \rVert_2^2$$
+$$\hat{\beta} = \arg\min_{\beta} \lVert y - X\beta \rVert_2^2 + \alpha \lVert \beta \rVert_2^2$$
 
 and elastic net
 
-$$\hat{\beta} = \arg\min_{\beta} \; \frac{1}{2n}\lVert y - X\beta \rVert_2^2
-+ \alpha \rho \lVert \beta \rVert_1 + \frac{\alpha(1-\rho)}{2} \lVert \beta \rVert_2^2$$
+$$\hat{\beta} = \arg\min_{\beta} \frac{1}{2n}\lVert y - X\beta \rVert_2^2 + \alpha \rho \lVert \beta \rVert_1 + \frac{\alpha(1-\rho)}{2} \lVert \beta \rVert_2^2$$
 
 The models are deliberately shrunk. The signal-to-noise ratio in return prediction is
 small enough that an unregularized learner will fit noise, and a study whose null result
@@ -237,12 +231,11 @@ Forecasts become unit positions on a non-overlapping schedule: one decision ever
 bars, held to the next. Sampling every $h$-th bar avoids counting the same $h$-day return
 $h$ times.
 
-$$w_t = \operatorname{sign}(\hat{y}_t) \in \{-1, 0, +1\}$$
+$$w_t = \mathrm{sign}(\hat{y}_t) \in \lbrace -1, 0, +1 \rbrace$$
 
 Costs are charged on turnover, so reversing a position pays for two sides:
 
-$$\tau_t = |w_t - w_{t-1}|, \qquad
-\pi_t = w_t \left(e^{y_t^{(h)}} - 1\right) - \tau_t \cdot c$$
+$$\tau_t = |w_t - w_{t-1}|, \qquad \pi_t = w_t \left(e^{y_t^{(h)}} - 1\right) - \tau_t \cdot c$$
 
 with $c = 17$ bps per side (10 bps taker fee, 5 bps slippage, 2 bps half-spread). Equity
 compounds as $E_T = \prod_{t \le T}(1 + \pi_t)$, starting from 1.
@@ -264,9 +257,9 @@ a forecaster whose only achievement is holding the asset can be recognized as su
 Reported in the Campbell–Thompson (2008) form, against a genuine ex-ante benchmark
 forecast rather than the realized mean of the evaluation window:
 
-$$R^2_{OS} = 1 - \frac{\sum_t (y_t - \hat{y}_t)^2}{\sum_t (y_t - \hat{y}^{\,b}_t)^2}$$
+$$R^2_{OS} = 1 - \frac{\sum_t (y_t - \hat{y}_t)^2}{\sum_t (y_t - \hat{y}^{b}_t)^2}$$
 
-where $\hat{y}^{\,b}$ is the recursively estimated historical mean. This benchmark scores
+where $\hat{y}^{b}$ is the recursively estimated historical mean. This benchmark scores
 exactly $0.0000$ against itself, which is a built-in check that the metric is wired
 correctly. The alternative denominator $\sum_t (y_t - \bar{y})^2$ uses the realized mean
 of the test window, which is not knowable in advance and flatters the benchmark; it is
@@ -283,8 +276,7 @@ $$\mathrm{DM} = \frac{\bar{d}}{\sqrt{\hat{V}/n}}$$
 where $\hat{V}$ is a Newey–West long-run variance with $h-1$ Bartlett lags, appropriate
 because $h$-step forecast errors follow an MA($h-1$):
 
-$$\hat{V} = \hat{\gamma}_0 + 2\sum_{k=1}^{h-1}\left(1 - \frac{k}{h}\right)\hat{\gamma}_k,
-\qquad \hat{\gamma}_k = \frac{1}{n}\sum_{t=k+1}^{n}(d_t - \bar{d})(d_{t-k} - \bar{d})$$
+$$\hat{V} = \hat{\gamma}_0 + 2\sum_{k=1}^{h-1}\left(1 - \frac{k}{h}\right)\hat{\gamma}_k, \qquad \hat{\gamma}_k = \frac{1}{n}\sum_{t=k+1}^{n}(d_t - \bar{d})(d_{t-k} - \bar{d})$$
 
 Note the $1/n$ normalization on every autocovariance, including the lagged ones. The
 Bartlett weights guarantee $\hat{V} \ge 0$ only under that normalization; the more
@@ -293,7 +285,7 @@ intuitive $1/(n-k)$ can drive a weighted sum negative in small samples.
 The Harvey–Leybourne–Newbold (1997) small-sample correction and a $t_{n-1}$ reference
 distribution complete the test:
 
-$$\mathrm{DM}^* = \mathrm{DM}\sqrt{\frac{n + 1 - 2h + h(h-1)/n}{n}}$$
+$$\mathrm{DM}^{\ast} = \mathrm{DM}\sqrt{\frac{n + 1 - 2h + h(h-1)/n}{n}}$$
 
 **A negative statistic favours the model.** The test is two-sided, because the null is
 equal accuracy and a model can be significantly worse.
@@ -310,8 +302,7 @@ noise as evidence for the benchmark and is undersized as a test of predictabilit
 Clark and West (2007) subtract the estimation-noise term explicitly. With $\hat{y}^b$ the
 nested benchmark and $\hat{y}^m$ the larger model,
 
-$$\hat{f}_t = \left(y_t - \hat{y}^{\,b}_t\right)^2
-- \left[\left(y_t - \hat{y}^{\,m}_t\right)^2 - \left(\hat{y}^{\,b}_t - \hat{y}^{\,m}_t\right)^2\right]$$
+$$\hat{f}_t = \left(y_t - \hat{y}^{b}_t\right)^2 - \left[\left(y_t - \hat{y}^{m}_t\right)^2 - \left(\hat{y}^{b}_t - \hat{y}^{m}_t\right)^2\right]$$
 
 and the statistic $\bar{f}/\sqrt{\hat{V}_f/n}$ is compared against a standard normal,
 one-sided. **A positive statistic favours the model.** The sign convention is opposite to
@@ -330,16 +321,13 @@ and holds its size.
 A model can be poor at magnitude and useful at direction, which is all a sign strategy
 needs. Pesaran and Timmermann (1992) test independence between the sign of the forecast
 and the sign of the outcome. With $P$ the hit rate, $P_y$ and $P_x$ the proportions of
-positive outcomes and forecasts, and $P_* = P_y P_x + (1-P_y)(1-P_x)$:
+positive outcomes and forecasts, and $P_{\ast} = P_y P_x + (1-P_y)(1-P_x)$:
 
-$$S = \frac{P - P_*}{\sqrt{\widehat{\operatorname{var}}(P) - \widehat{\operatorname{var}}(P_*)}}
-\;\xrightarrow{d}\; \mathcal{N}(0,1)$$
+$$S = \frac{P - P_{\ast}}{\sqrt{\widehat{\mathrm{var}}(P) - \widehat{\mathrm{var}}(P_{\ast})}}  \xrightarrow{d} \mathcal{N}(0,1)$$
 
-$$\widehat{\operatorname{var}}(P) = \frac{P_*(1 - P_*)}{n}$$
+$$\widehat{\mathrm{var}}(P) = \frac{P_{\ast}(1 - P_{\ast})}{n}$$
 
-$$\widehat{\operatorname{var}}(P_*) = \frac{(2P_y-1)^2 P_x (1-P_x)}{n}
-+ \frac{(2P_x-1)^2 P_y (1-P_y)}{n}
-+ \frac{4 P_y P_x (1-P_y)(1-P_x)}{n^2}$$
+$$\widehat{\mathrm{var}}(P_{\ast}) = \frac{(2P_y-1)^2 P_x (1-P_x)}{n} + \frac{(2P_x-1)^2 P_y (1-P_y)}{n} + \frac{4 P_y P_x (1-P_y)(1-P_x)}{n^2}$$
 
 **A positive statistic means sign-timing skill**; a negative one means the forecast is
 reliably wrong-way. The statistic is undefined when the forecast never changes sign, which
@@ -348,24 +336,19 @@ rather than as a number.
 
 #### 3.6.5 Sharpe ratio, PSR, and DSR
 
-$$\mathrm{SR} = \sqrt{365/h}\;\frac{\bar{\pi}}{s_\pi}$$
+$$\mathrm{SR} = \sqrt{365/h} \cdot \frac{\bar{\pi}}{s_\pi}$$
 
 Sharpe ratios are noisy in short samples and inflated by selection. The Probabilistic
 Sharpe Ratio (Bailey and López de Prado, 2014) gives the probability that the true Sharpe
-exceeds a benchmark $\mathrm{SR}^*$, correcting for sample length, skewness $\gamma_3$,
+exceeds a benchmark $\mathrm{SR}^{\ast}$, correcting for sample length, skewness $\gamma_3$,
 and kurtosis $\gamma_4$:
 
-$$\widehat{\mathrm{PSR}}(\mathrm{SR}^*) = \Phi\!\left[
-\frac{(\widehat{\mathrm{SR}} - \mathrm{SR}^*)\sqrt{n-1}}
-{\sqrt{1 - \gamma_3 \widehat{\mathrm{SR}} + \frac{\gamma_4 - 1}{4}\widehat{\mathrm{SR}}^2}}
-\right]$$
+$$\widehat{\mathrm{PSR}}(\mathrm{SR}^{\ast}) = \Phi\left[ \frac{(\widehat{\mathrm{SR}} - \mathrm{SR}^{\ast})\sqrt{n-1}} {\sqrt{1 - \gamma_3 \widehat{\mathrm{SR}} + \frac{\gamma_4 - 1}{4}\widehat{\mathrm{SR}}^2}} \right]$$
 
-The Deflated Sharpe Ratio sets $\mathrm{SR}^*$ to the expected maximum across $N$ trials,
+The Deflated Sharpe Ratio sets $\mathrm{SR}^{\ast}$ to the expected maximum across $N$ trials,
 so that the bar rises with the size of the search:
 
-$$\mathbb{E}\left[\max_{i \le N} \mathrm{SR}_i\right] \approx
-\sigma_{\mathrm{SR}}\left[(1-\gamma)\,\Phi^{-1}\!\left(1 - \tfrac{1}{N}\right)
-+ \gamma\,\Phi^{-1}\!\left(1 - \tfrac{1}{Ne}\right)\right]$$
+$$\mathbb{E}\left[\max_{i \le N} \mathrm{SR}_i\right] \approx \sigma_{\mathrm{SR}}\left[(1-\gamma) \Phi^{-1}\left(1 - \tfrac{1}{N}\right) + \gamma \Phi^{-1}\left(1 - \tfrac{1}{Ne}\right)\right]$$
 
 with $\gamma$ the Euler–Mascheroni constant. Here $N$ is the number of models raced within
 one asset-horizon, which is a floor on the true search; the reported DSR is therefore an
@@ -384,11 +367,11 @@ noise alone. Raw counts are therefore reported alongside two adjustments of the
 Clark–West p-values over the family of 18. Holm–Bonferroni controls the family-wise error
 rate,
 
-$$p^{\text{Holm}}_{(i)} = \max_{j \le i} \; \min\left\{(m - j + 1)\,p_{(j)},\; 1\right\}$$
+$$p^{\text{Holm}}_{(i)} = \max_{j \le i} \min\left\lbrace (m - j + 1) p_{(j)}, 1 \right\rbrace$$
 
 and Benjamini–Hochberg controls the false discovery rate,
 
-$$p^{\text{BH}}_{(i)} = \min_{j \ge i} \; \min\left\{\frac{m}{j}\,p_{(j)},\; 1\right\}$$
+$$p^{\text{BH}}_{(i)} = \min_{j \ge i} \min\left\lbrace \frac{m}{j} p_{(j)}, 1 \right\rbrace$$
 
 Benchmarks are excluded from the family. They are the null being tested against, not
 candidates in the search.
