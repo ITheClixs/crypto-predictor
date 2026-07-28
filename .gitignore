@@ -71,3 +71,11 @@ env/
 data/cache/
 
 # Note: reports/ (results.md + figures/) IS committed — it is the paper's evidence.
+
+# LaTeX build intermediates (paper.pdf itself IS committed)
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.synctex.gz

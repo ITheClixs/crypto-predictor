@@ -1,4 +1,4 @@
-.PHONY: help setup data backtest report test lint format typecheck check app clean
+.PHONY: help setup data backtest report tables paper test lint format typecheck check app clean
 
 PY := ./venv/bin/python
 PIP := ./venv/bin/pip
@@ -9,6 +9,8 @@ help:
 	@echo "  data       Download & cache market data"
 	@echo "  backtest   Run the full walk-forward study (writes reports/)"
 	@echo "  report     Rebuild reports/results.md + figures from cached runs"
+	@echo "  tables     Emit the manuscript's LaTeX tables from reports/results.csv"
+	@echo "  paper      Typeset paper/paper.pdf (needs tectonic)"
 	@echo "  test       Run the test suite with coverage"
 	@echo "  lint       Ruff lint"
 	@echo "  format     Black + ruff --fix"
@@ -27,6 +29,14 @@ backtest:
 
 report:
 	$(PY) -m cryptoforecast.cli report
+
+tables:
+	$(PY) -m cryptoforecast.cli tables --out paper/tables
+
+# Tables come from the committed results, so the manuscript cannot quote a number
+# the study does not produce.
+paper: tables
+	cd paper && tectonic -X compile paper.tex
 
 test:
 	$(PY) -m pytest --cov=cryptoforecast --cov-report=term-missing

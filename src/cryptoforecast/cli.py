@@ -15,6 +15,7 @@ import pandas as pd
 
 from .config import DEFAULT_CONFIG, StudyConfig
 from .data.loaders import load_ohlcv
+from .evaluate.latex import all_tables
 from .evaluate.report import results_table, write_markdown
 from .plots import generate_figures
 from .study import run_study
@@ -63,6 +64,16 @@ def _cmd_report(args: argparse.Namespace) -> None:
     print(f"Re-rendered {REPORTS_DIR}/results.md from results.csv.")
 
 
+def _cmd_tables(args: argparse.Namespace) -> None:
+    """Emit the manuscript's result tables as LaTeX, from the committed results."""
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    table = pd.read_csv(REPORTS_DIR / "results.csv")
+    for stem, body in all_tables(table).items():
+        (out_dir / f"{stem}.tex").write_text(body + "\n")
+    print(f"Wrote {len(all_tables(table))} LaTeX tables to {out_dir}/.")
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="cryptoforecast", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -71,12 +82,15 @@ def main(argv: list[str] | None = None) -> None:
         ("data", _cmd_data, True),
         ("backtest", _cmd_backtest, True),
         ("report", _cmd_report, False),
+        ("tables", _cmd_tables, False),
     ):
         p = sub.add_parser(name)
         p.add_argument("--assets", help="comma-separated symbols, e.g. BTC,ETH")
         p.add_argument("--start", help="start date YYYY-MM-DD")
         if needs_run:
             p.add_argument("--horizons", help="comma-separated horizons in days, e.g. 1,7")
+        if name == "tables":
+            p.add_argument("--out", default="paper/tables", help="directory for the .tex files")
         p.set_defaults(func=handler)
 
     args = parser.parse_args(argv)

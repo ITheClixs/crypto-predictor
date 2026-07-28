@@ -83,8 +83,17 @@ def color(model: str) -> str:
 
 
 def finish(fig: Figure, out_path: Path, caption: str | None = None) -> None:
-    """Add an optional caption beneath the axes, save, and close the figure."""
+    """Add an optional caption beneath the axes, save, and close the figure.
+
+    Writes a PNG for the rendered report and a vector PDF beside it for the
+    typeset paper, where a 130 dpi raster would be visibly soft. The caption is
+    baked into the PNG only: LaTeX sets its own captions, and having both would
+    print the text twice.
+    """
     if caption:
         fig.supxlabel(caption, fontsize=7.5, color="#555555", y=-0.01)
     fig.savefig(out_path)
+    if caption:
+        fig.texts[-1].set_visible(False)
+    fig.savefig(out_path.with_suffix(".pdf"))
     plt.close(fig)
