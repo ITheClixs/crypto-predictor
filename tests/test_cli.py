@@ -18,7 +18,7 @@ def test_backtest_then_report(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -
     cli.main(["backtest", "--assets", "BTC", "--horizons", "1"])
     assert (tmp_path / "results.md").exists()
     assert (tmp_path / "results.csv").exists()
-    assert (tmp_path / "figures" / "fig_equity.png").exists()
+    assert sorted((tmp_path / "figures").glob("*.png"))
 
     # report re-renders markdown from the saved csv without re-running the study.
     (tmp_path / "results.md").unlink()

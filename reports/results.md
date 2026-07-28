@@ -181,9 +181,35 @@ Sign strategy on a non-overlapping h-day schedule, after 17 bps/side, against an
 
 ## Figures
 
-![fig_equity](figures/fig_equity.png)
+**Figure 1.** Purged, embargoed walk-forward design.
 
-![fig_sharpe](figures/fig_sharpe.png)
+![Figure 1](figures/fig1_design.png)
 
-![fig_diracc](figures/fig_diracc.png)
+**Figure 2.** Out-of-sample $R^2$ against the drift benchmark.
+
+![Figure 2](figures/fig2_r2.png)
+
+**Figure 3.** Directional accuracy against a coin flip.
+
+![Figure 3](figures/fig3_diracc.png)
+
+**Figure 4.** Diebold-Mariano against Clark-West.
+
+![Figure 4](figures/fig4_dm_vs_cw.png)
+
+**Figure 5.** Clark-West p-values under multiple-testing correction.
+
+![Figure 5](figures/fig5_multiple_testing.png)
+
+**Figure 6.** Out-of-sample equity, net of costs.
+
+![Figure 6](figures/fig6_equity.png)
+
+**Figure 7.** Net Sharpe with bootstrap intervals.
+
+![Figure 7](figures/fig7_sharpe.png)
+
+**Figure 8.** Sensitivity to the trading schedule's start offset.
+
+![Figure 8](figures/fig8_phase.png)
 

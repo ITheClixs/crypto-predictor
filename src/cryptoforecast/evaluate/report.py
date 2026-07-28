@@ -16,6 +16,7 @@ import pandas as pd
 from ..backtest.strategy import StrategyResult
 from ..config import StudyConfig
 from ..models.registry import ML_NAMES, default_models
+from ..plots import FIGURES
 from ..study import R2_BENCHMARK, StudyResults
 from .stats import (
     benjamini_hochberg_adjusted,
@@ -77,6 +78,7 @@ def results_table(study: StudyResults) -> pd.DataFrame:
                 "model": run.model,
                 "oos_start": run.oos.index.min().date().isoformat(),
                 "oos_end": run.oos.index.max().date().isoformat(),
+                "n_oos": len(run.oos),
                 "rmse": run.metrics["rmse"],
                 "r2_oos": run.metrics["r2_oos"],
                 "r2_vs_sample_mean": run.metrics["r2_vs_sample_mean"],
@@ -414,8 +416,11 @@ def write_markdown(
 
     if figures:
         parts.append("\n\n## Figures\n")
-        for fig in figures:
-            parts.append(f"![{Path(fig).stem}]({fig})\n")
+        captions = dict(FIGURES)
+        for number, fig in enumerate(figures, start=1):
+            caption = captions.get(Path(fig).name, Path(fig).stem)
+            parts.append(f"**Figure {number}.** {caption}\n")
+            parts.append(f"![Figure {number}]({fig})\n")
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(parts) + "\n")

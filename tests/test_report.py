@@ -9,7 +9,7 @@ import pytest
 
 from conftest import make_study
 from cryptoforecast.evaluate.report import BUY_AND_HOLD, results_table, write_markdown
-from cryptoforecast.plots import generate_figures
+from cryptoforecast.plots import FIGURES, generate_figures
 
 
 @pytest.mark.unit
@@ -132,10 +132,24 @@ def test_markdown_documents_every_sign_convention(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
-def test_generate_figures_writes_pngs(tmp_path: Path) -> None:
+def test_generate_figures_writes_every_declared_figure(tmp_path: Path) -> None:
     study = make_study()
     table = results_table(study)
     figures = generate_figures(study, table, tmp_path / "figures")
-    assert len(figures) == 3
+    assert len(figures) == len(FIGURES)
+    assert [Path(f).name for f in figures] == [name for name, _ in FIGURES]
     for fig in figures:
         assert (tmp_path / fig).exists()
+        assert (tmp_path / fig).stat().st_size > 0
+
+
+@pytest.mark.unit
+def test_every_figure_is_captioned_and_numbered_in_the_report(tmp_path: Path) -> None:
+    """The report references figures by number, so the caption table must be complete."""
+    study = make_study()
+    table = results_table(study)
+    figures = [f"figures/{name}" for name, _ in FIGURES]
+    write_markdown(study.config, table, figures, tmp_path / "results.md")
+    md = (tmp_path / "results.md").read_text()
+    for number, (_, caption) in enumerate(FIGURES, start=1):
+        assert f"**Figure {number}.** {caption}" in md
