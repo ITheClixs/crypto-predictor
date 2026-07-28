@@ -4,7 +4,7 @@
 
 [![ci](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml/badge.svg)](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.12%2B-blue)
-![tests](https://img.shields.io/badge/tests-136-informational)
+![tests](https://img.shields.io/badge/tests-144-informational)
 ![coverage](https://img.shields.io/badge/coverage-96%25-informational)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
@@ -620,7 +620,7 @@ detected a positive one, and with the corrections that would have removed a spur
 ```bash
 make setup      # install the package and dev extras into ./venv
 make backtest   # download data, run the study, regenerate reports/ and figures
-make test       # 136 tests, including the no-lookahead and purge guarantees
+make test       # 144 tests, including the no-lookahead and purge guarantees
 make check      # lint, type-check, test (the CI gate)
 make app        # a small local viewer on http://127.0.0.1:8000
 ```
@@ -653,7 +653,7 @@ src/cryptoforecast/
   cli.py               cryptoforecast {data,backtest,report}
 app/                   a small Flask viewer over the same evaluation
 reports/               generated results.md, results.csv, figures
-tests/                 136 tests, including the leakage guarantees
+tests/                 144 tests, including the leakage guarantees
 ```
 
 ---
