@@ -36,7 +36,7 @@ def test_end_to_end_no_lookahead(synthetic_ohlcv: pd.DataFrame) -> None:
     """Perturbing future bars must not change any past OOS *prediction*.
 
     ``y_true`` is deliberately excluded: the realized label at date ``t`` is the
-    return over ``(t, t+h]`` and so legitimately reads the (perturbed) future — that
+    return over ``(t, t+h]`` and so legitimately reads the (perturbed) future, and that
     is the target, not a leak. The leak-free claim is about ``y_pred`` and the
     decision-time ``close``, both of which must be untouched for every past date.
     """

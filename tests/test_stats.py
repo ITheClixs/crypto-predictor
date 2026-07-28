@@ -104,7 +104,7 @@ def test_dm_is_biased_against_a_useless_nested_model_and_clark_west_is_not() -> 
     """The reason Clark-West exists, demonstrated by simulation.
 
     The larger model forecasts pure noise, unrelated to the outcome, so its
-    *population* MSPE equals the benchmark's — the null is true. But estimating
+    *population* MSPE equals the benchmark's, so the null is true. But estimating
     coefficients that are really zero costs it sample MSPE, so the DM statistic
     is systematically positive (it reads that cost as evidence the benchmark
     wins). Clark-West subtracts exactly that term, and its statistic is centered
@@ -182,7 +182,7 @@ def test_a_constant_return_series_is_undefined_not_astronomically_good(value: fl
 
     Twenty copies of 0.01 have a sample standard deviation of ~1.8e-18, not 0,
     because 0.01 has no exact binary representation. Dividing by that produced a
-    Sharpe of ~1e17 — a number that would sail straight into a results table.
+    Sharpe of ~1e17, a number that would sail straight into a results table.
     """
     r = pd.Series([value] * 20)
     assert r.std(ddof=1) != 0.0  # the residue the old guard missed

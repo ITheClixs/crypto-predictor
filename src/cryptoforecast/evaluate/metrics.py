@@ -3,8 +3,8 @@
 MAPE is deliberately absent: the target is a return centered near zero, so
 percentage error explodes and is meaningless. The honest metrics for this problem
 are error magnitude (RMSE/MAE), out-of-sample R^2 (which can and often should go
-negative — worse than predicting the mean), and — because a trader only needs the
-sign — directional accuracy and rank information coefficient.
+negative, meaning worse than predicting the mean), and, because a trader only needs
+the sign, directional accuracy and rank information coefficient.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ def r2_oos(y_true: pd.Series, y_pred: np.ndarray, y_bench: np.ndarray | None = N
     With ``y_bench=None`` the denominator falls back to the variance around the
     realized mean of the evaluation window. That mean is not knowable in advance,
     so the fallback flatters the benchmark and is reported only as a
-    cross-check — never as "the" out-of-sample R^2.
+    cross-check, never as "the" out-of-sample R^2.
     """
     if y_bench is None:
         yt, yp = _clean(y_true, y_pred)

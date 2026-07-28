@@ -15,7 +15,7 @@ PRIMARY_BENCHMARK = "random_walk"
 #: All benchmark names (non-ML reference points).
 BENCHMARK_NAMES: tuple[str, ...] = ("random_walk", "historical_mean", "ar1")
 
-#: Names of the models that are *not* benchmarks — the ones the study is testing.
+#: Names of the models that are *not* benchmarks: the ones the study is testing.
 ML_NAMES: tuple[str, ...] = ("ridge", "elastic_net", "gbm")
 
 

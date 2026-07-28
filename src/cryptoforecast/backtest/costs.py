@@ -1,7 +1,7 @@
 """Turnover-based trading frictions.
 
 A signal can be right about direction and still lose money once you pay to trade
-it. Costs here are charged on turnover — the absolute change in position — so a
+it. Costs here are charged on turnover, the absolute change in position, so a
 strategy that flips between long and short every period pays twice as much as one
 that holds.
 """

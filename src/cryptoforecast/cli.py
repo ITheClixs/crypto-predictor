@@ -1,6 +1,6 @@
 """Command-line entry point: ``cryptoforecast {data,backtest,report}``.
 
-``backtest`` is the one that matters — it runs the whole study on real data and
+``backtest`` is the one that matters: it runs the whole study on real data and
 writes reports/results.md, results.csv, and figures. ``data`` just warms the
 cache; ``report`` re-renders the markdown from a saved results.csv.
 """

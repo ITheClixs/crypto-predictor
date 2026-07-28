@@ -72,7 +72,7 @@ def load_ohlcv(
         ticker, start=start, end=end, interval=interval, auto_adjust=True, progress=False
     )
     if raw is None or raw.empty:
-        raise ValueError(f"no data returned for {ticker!r} — check the symbol/date range")
+        raise ValueError(f"no data returned for {ticker!r}; check the symbol and date range")
 
     data = normalize_ohlcv(raw)
     if use_cache:

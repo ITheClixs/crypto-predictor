@@ -3,14 +3,14 @@
 The model is deliberately shrunk (shallow trees, low learning rate, subsampling,
 L2 penalty) because return prediction is close to noise and boosting will happily
 memorize it. Early stopping uses the *last* slice of the training window as
-validation, never a random slice — a random split would let the model peek across
-time.
+validation, never a random slice, since a random split would let the model peek
+across time.
 
 The gap between the two slices matters as much as their order. A fit row at
 position ``i`` carries a label realized at ``i + h``, so without a gap the final
 ``h`` fit rows have labels that reach into the validation slice and early stopping
-is chosen on partly-seen outcomes. ``purge`` drops those rows — the same argument
-that motivates purging in :mod:`cryptoforecast.splits`, applied one level down.
+is chosen on partly-seen outcomes. ``purge`` drops those rows, applying the argument
+that motivates purging in :mod:`cryptoforecast.splits` one level down.
 """
 
 from __future__ import annotations
