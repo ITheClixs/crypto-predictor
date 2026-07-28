@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from itertools import pairwise
 
+import numpy as np
+import pandas as pd
 import pytest
 
 from cryptoforecast.splits import walk_forward_splits
@@ -58,3 +60,33 @@ def test_min_train_enforced() -> None:
 @pytest.mark.unit
 def test_returns_empty_when_too_short() -> None:
     assert walk_forward_splits(50, train_size=300, test_size=50) == []
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("horizon", [1, 7])
+def test_purging_by_position_still_holds_in_calendar_time_when_bars_are_missing(
+    horizon: int,
+) -> None:
+    """Rows are purged by position, but the leak they prevent is a calendar one.
+
+    A label at row ``i`` is realized ``horizon`` *bars* later, and with bars
+    missing that lands at least ``horizon`` calendar days later. Since gaps only
+    stretch the timeline, purging ``h`` positions purges at least ``h`` days —
+    the position rule is conservative, never optimistic. This checks that on an
+    index with holes punched in it.
+    """
+    rng = np.random.default_rng(0)
+    calendar = pd.date_range("2020-01-01", periods=1200, freq="D")
+    keep = np.sort(rng.choice(1200, size=900, replace=False))  # 25% of bars missing
+    index = calendar[keep]
+
+    splits = walk_forward_splits(
+        len(index), train_size=300, test_size=50, horizon=horizon, embargo=5
+    )
+    assert splits
+    for train, test in splits:
+        last_label_date = index[min(train.max() + horizon, len(index) - 1)]
+        # The realized date of the last training label precedes the test block.
+        assert last_label_date < index[test.min()]
+        # And the gap is at least the horizon in calendar days, not just in rows.
+        assert (index[test.min()] - index[train.max()]).days >= horizon

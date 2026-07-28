@@ -5,6 +5,12 @@ L2 penalty) because return prediction is close to noise and boosting will happil
 memorize it. Early stopping uses the *last* slice of the training window as
 validation, never a random slice — a random split would let the model peek across
 time.
+
+The gap between the two slices matters as much as their order. A fit row at
+position ``i`` carries a label realized at ``i + h``, so without a gap the final
+``h`` fit rows have labels that reach into the validation slice and early stopping
+is chosen on partly-seen outcomes. ``purge`` drops those rows — the same argument
+that motivates purging in :mod:`cryptoforecast.splits`, applied one level down.
 """
 
 from __future__ import annotations
@@ -28,6 +34,7 @@ class GBMForecaster:
         min_child_weight: float = 5.0,
         val_fraction: float = 0.15,
         early_stopping_rounds: int = 30,
+        purge: int = 0,
         random_state: int = 7,
     ) -> None:
         self.params = {
@@ -45,6 +52,7 @@ class GBMForecaster:
         }
         self.val_fraction = val_fraction
         self.early_stopping_rounds = early_stopping_rounds
+        self.purge = max(0, purge)
         self._model: XGBRegressor | None = None
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> GBMForecaster:
@@ -52,11 +60,14 @@ class GBMForecaster:
         ys = y.to_numpy(dtype=float)
         n = len(xs)
         k = int(n * self.val_fraction)
+        fit_end = n - k - self.purge  # purged gap between the fit and validation slices
 
-        if k >= 10 and n - k >= 30:
+        if k >= 10 and fit_end >= 30:
             model = XGBRegressor(early_stopping_rounds=self.early_stopping_rounds, **self.params)
-            model.fit(xs[:-k], ys[:-k], eval_set=[(xs[-k:], ys[-k:])], verbose=False)
-        else:  # too little data to hold out a temporal validation slice
+            model.fit(
+                xs[:fit_end], ys[:fit_end], eval_set=[(xs[n - k :], ys[n - k :])], verbose=False
+            )
+        else:  # too little data to hold out a purged temporal validation slice
             model = XGBRegressor(**self.params)
             model.fit(xs, ys, verbose=False)
 

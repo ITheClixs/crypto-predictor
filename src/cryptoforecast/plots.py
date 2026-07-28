@@ -22,12 +22,6 @@ def _by_key(study: StudyResults) -> dict[tuple[str, int, str], ModelRun]:
     return {(r.asset, r.horizon, r.model): r for r in study.runs}
 
 
-def _buy_and_hold(run: ModelRun) -> pd.Series:
-    decisions = run.oos.iloc[:: run.horizon]
-    close = decisions["close"]
-    return close / close.iloc[0]
-
-
 def plot_equity(study: StudyResults, horizon: int, out_path: Path) -> None:
     runs = _by_key(study)
     assets = study.config.assets
@@ -39,8 +33,12 @@ def plot_equity(study: StudyResults, horizon: int, out_path: Path) -> None:
                 continue
             eq = run.strategy.equity
             ax.plot(eq.index, eq.to_numpy(), label=model, color=_COLORS[model], lw=1.3)
-        bh = _buy_and_hold(runs[(asset, horizon, _MODELS[0])])
-        ax.plot(bh.index, bh.to_numpy(), label="buy & hold", color="black", ls="--", lw=1.0)
+        # The same cost-charged always-long reference the results table reports,
+        # not a raw price ratio — otherwise the comparison flatters buy & hold.
+        reference = study.buy_and_hold.get((asset, horizon))
+        if reference is not None:
+            bh = reference.equity
+            ax.plot(bh.index, bh.to_numpy(), label="buy & hold", color="black", ls="--", lw=1.0)
         ax.set_yscale("log")
         ax.set_title(f"{asset} · h={horizon}d")
         ax.set_ylabel("net equity (log)")

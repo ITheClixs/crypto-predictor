@@ -31,11 +31,31 @@ def rmse(y_true: pd.Series, y_pred: np.ndarray) -> float:
     return float(np.sqrt(np.mean((yt - yp) ** 2)))
 
 
-def r2_oos(y_true: pd.Series, y_pred: np.ndarray) -> float:
-    """Out-of-sample R^2 against the in-sample mean; negative = worse than the mean."""
-    yt, yp = _clean(y_true, y_pred)
+def r2_oos(y_true: pd.Series, y_pred: np.ndarray, y_bench: np.ndarray | None = None) -> float:
+    """Out-of-sample R^2; negative means the forecast is worse than the benchmark.
+
+    With ``y_bench`` this is the Campbell-Thompson (2008) statistic used throughout
+    the return-predictability literature: the denominator is the squared error of a
+    genuine *ex ante* benchmark forecast, here the recursively-estimated historical
+    mean. That is the number worth quoting.
+
+    With ``y_bench=None`` the denominator falls back to the variance around the
+    realized mean of the evaluation window. That mean is not knowable in advance,
+    so the fallback flatters the benchmark and is reported only as a
+    cross-check — never as "the" out-of-sample R^2.
+    """
+    if y_bench is None:
+        yt, yp = _clean(y_true, y_pred)
+        reference = np.full_like(yt, yt.mean())
+    else:
+        # One joint mask, so model and benchmark are scored on identical rows.
+        yt = np.asarray(y_true, dtype=float)
+        yp = np.asarray(y_pred, dtype=float)
+        yb = np.asarray(y_bench, dtype=float)
+        keep = np.isfinite(yt) & np.isfinite(yp) & np.isfinite(yb)
+        yt, yp, reference = yt[keep], yp[keep], yb[keep]
     sse = float(np.sum((yt - yp) ** 2))
-    sst = float(np.sum((yt - yt.mean()) ** 2))
+    sst = float(np.sum((yt - reference) ** 2))
     return 1.0 - sse / sst if sst > 0 else float("nan")
 
 
@@ -56,11 +76,15 @@ def rank_ic(y_true: pd.Series, y_pred: np.ndarray) -> float:
     return float(spearmanr(yp, yt).statistic)
 
 
-def regression_metrics(y_true: pd.Series, y_pred: np.ndarray) -> dict[str, float]:
+def regression_metrics(
+    y_true: pd.Series, y_pred: np.ndarray, y_bench: np.ndarray | None = None
+) -> dict[str, float]:
+    """Standard forecast metrics; ``y_bench`` supplies the R^2 reference forecast."""
     return {
         "rmse": rmse(y_true, y_pred),
         "mae": mae(y_true, y_pred),
-        "r2_oos": r2_oos(y_true, y_pred),
+        "r2_oos": r2_oos(y_true, y_pred, y_bench),
+        "r2_vs_sample_mean": r2_oos(y_true, y_pred),
         "dir_acc": directional_accuracy(y_true, y_pred),
         "rank_ic": rank_ic(y_true, y_pred),
     }

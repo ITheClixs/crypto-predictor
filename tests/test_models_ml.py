@@ -10,6 +10,7 @@ from cryptoforecast.models.base import Forecaster
 from cryptoforecast.models.linear import ElasticNetForecaster, RidgeForecaster
 from cryptoforecast.models.registry import (
     BENCHMARK_NAMES,
+    ML_NAMES,
     PRIMARY_BENCHMARK,
     default_models,
 )
@@ -57,9 +58,49 @@ def test_gbm_small_data_fallback() -> None:
 
 
 @pytest.mark.unit
+def test_gbm_never_sees_the_rows_it_purges() -> None:
+    """The purged gap must reach neither the fit slice nor the validation slice.
+
+    Corrupting exactly those rows is the direct test: if the model is genuinely
+    blind to them, its predictions are bit-identical either way. A leaky
+    implementation would train or early-stop on the garbage and diverge.
+    """
+    rng = np.random.default_rng(3)
+    n, purge = 300, 10
+    f = rng.normal(0, 1, n)
+    X = pd.DataFrame({"ret_1": f})
+    y = pd.Series(0.5 * f + rng.normal(0, 0.5, n))
+
+    val = int(n * 0.15)
+    gap = slice(n - val - purge, n - val)  # the rows the purge is meant to drop
+    corrupted_X = X.copy()
+    corrupted_y = y.copy()
+    corrupted_X.iloc[gap, 0] = 1e6
+    corrupted_y.iloc[gap] = -1e6
+
+    clean = GBMForecaster(n_estimators=40, purge=purge).fit(X, y).predict(X)
+    dirty = GBMForecaster(n_estimators=40, purge=purge).fit(corrupted_X, corrupted_y).predict(X)
+    np.testing.assert_array_equal(clean, dirty)
+
+    # Sanity: without the purge those same rows *do* reach the model.
+    leaky = GBMForecaster(n_estimators=40, purge=0).fit(corrupted_X, corrupted_y).predict(X)
+    assert not np.array_equal(clean, leaky)
+
+
+@pytest.mark.unit
 def test_registry_wiring() -> None:
     models = default_models()
     assert PRIMARY_BENCHMARK in models
     assert set(BENCHMARK_NAMES) <= set(models)
+    assert set(ML_NAMES) <= set(models)
+    assert set(BENCHMARK_NAMES).isdisjoint(ML_NAMES)
+    assert set(BENCHMARK_NAMES) | set(ML_NAMES) == set(models)
     for factory in models.values():
         assert isinstance(factory(), Forecaster)
+
+
+@pytest.mark.unit
+def test_registry_passes_the_horizon_to_models_with_an_internal_holdout() -> None:
+    gbm = default_models(horizon=7)["gbm"]()
+    assert gbm.purge == 7
+    assert default_models()["gbm"]().purge == 1

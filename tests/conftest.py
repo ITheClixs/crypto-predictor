@@ -35,7 +35,7 @@ def make_study(n: int = 300):
     and CLI code can be exercised fast. The ``ridge`` run is a near-perfect sign
     predictor; the ``random_walk`` run predicts zero.
     """
-    from cryptoforecast.backtest.strategy import backtest_strategy
+    from cryptoforecast.backtest.strategy import backtest_strategy, buy_and_hold, phase_sharpes
     from cryptoforecast.config import CostModel, StudyConfig
     from cryptoforecast.evaluate.metrics import regression_metrics
     from cryptoforecast.study import ModelRun, StudyResults
@@ -44,8 +44,18 @@ def make_study(n: int = 300):
     index = pd.date_range("2021-01-01", periods=n, freq="D")
     y_true = pd.Series(rng.normal(0.0, 0.03, n), index=index)
     close = pd.Series(100.0 * np.exp(np.cumsum(rng.normal(0.0, 0.03, n))), index=index)
+    costs = CostModel()
 
-    def _run(model: str, y_pred: pd.Series, dm_stat: float, dm_p: float, pt_s: float, pt_p: float):
+    def _run(
+        model: str,
+        y_pred: pd.Series,
+        dm_stat: float,
+        dm_p: float,
+        cw_stat: float,
+        cw_p: float,
+        pt_s: float,
+        pt_p: float,
+    ):
         oos = pd.DataFrame({"y_true": y_true, "y_pred": y_pred, "close": close, "fold": 0})
         return ModelRun(
             asset="BTC",
@@ -53,23 +63,21 @@ def make_study(n: int = 300):
             model=model,
             oos=oos,
             metrics=regression_metrics(y_true, y_pred.to_numpy()),
-            strategy=backtest_strategy(oos, 1, CostModel()),
+            strategy=backtest_strategy(oos, 1, costs),
             dm_stat_vs_rw=dm_stat,
             dm_p_vs_rw=dm_p,
+            cw_stat_vs_rw=cw_stat,
+            cw_p_vs_rw=cw_p,
             pt_stat=pt_s,
             pt_p=pt_p,
+            phase_sharpes=phase_sharpes(oos, 1, costs),
         )
 
+    nan = float("nan")
     runs = [
-        _run(
-            "random_walk",
-            pd.Series(0.0, index=index),
-            float("nan"),
-            float("nan"),
-            float("nan"),
-            float("nan"),
-        ),
-        _run("ridge", y_true * 0.5, -2.5, 0.01, 2.1, 0.02),
+        _run("random_walk", pd.Series(0.0, index=index), nan, nan, nan, nan, nan, nan),
+        _run("ridge", y_true * 0.5, -2.5, 0.01, 2.4, 0.008, 2.1, 0.02),
     ]
     config = StudyConfig(assets=("BTC",), horizons=(1,))
-    return StudyResults(config=config, runs=runs)
+    reference = buy_and_hold(runs[0].oos, 1, costs)
+    return StudyResults(config=config, runs=runs, buy_and_hold={("BTC", 1): reference})
