@@ -28,6 +28,7 @@ from cryptoforecast.dataset import build_supervised
 from cryptoforecast.evaluate.metrics import regression_metrics
 from cryptoforecast.evaluate.stats import (
     block_bootstrap_ci,
+    clark_west,
     diebold_mariano,
     max_drawdown,
     sharpe_ratio,
@@ -39,6 +40,29 @@ app = Flask(__name__)
 ASSETS = ["BTC", "ETH", "SOL"]
 HORIZONS = [1, 7]
 MODELS = [name for name in default_models() if name != PRIMARY_BENCHMARK]
+
+
+def _validated_selection(form: dict[str, str]) -> tuple[str, str, int]:
+    """Resolve the form into a known asset/model/horizon.
+
+    Everything reaching this endpoint is untrusted, and `asset` ends up in an
+    outbound market-data request, so it is matched against the allow-list rather
+    than passed through.
+    """
+    asset = form.get("asset", ASSETS[0])
+    model_name = form.get("model", MODELS[0])
+    raw_horizon = form.get("horizon", str(HORIZONS[0]))
+    if asset not in ASSETS:
+        raise ValueError(f"unknown asset; choose one of {', '.join(ASSETS)}")
+    if model_name not in MODELS:
+        raise ValueError(f"unknown model; choose one of {', '.join(MODELS)}")
+    try:
+        horizon = int(raw_horizon)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("horizon must be a whole number of days") from exc
+    if horizon not in HORIZONS:
+        raise ValueError(f"unsupported horizon; choose one of {HORIZONS}")
+    return asset, model_name, horizon
 
 
 def _equity_png(strategy: StrategyResult) -> str:
@@ -56,17 +80,27 @@ def _equity_png(strategy: StrategyResult) -> str:
     return base64.b64encode(buffer.getvalue()).decode("ascii")
 
 
+def _stat(statistic: float, p_value: float) -> str:
+    """Render a test as ``statistic (p)`` — the sign is what says who won."""
+    if statistic != statistic:  # NaN
+        return "—"
+    return f"{statistic:+.2f} (p = {p_value:.3f})"
+
+
 def evaluate(asset: str, model_name: str, horizon: int) -> dict[str, object]:
     """Run the leak-free walk-forward evaluation for one asset/model/horizon."""
     cfg = DEFAULT_CONFIG
     ohlcv = load_ohlcv(asset, cfg.start, cfg.end, cfg.interval)
     ds = build_supervised(ohlcv, horizon)
-    models = default_models()
+    models = default_models(horizon)
 
     oos = walk_forward(ds, models[model_name], cfg.wf, horizon)
     rw = walk_forward(ds, models[PRIMARY_BENCHMARK], cfg.wf, horizon)
     metrics = regression_metrics(oos["y_true"], oos["y_pred"].to_numpy())
     dm = diebold_mariano(oos["y_true"], oos["y_pred"].to_numpy(), rw["y_pred"].to_numpy(), horizon)
+    # The random walk is nested in every model offered here, so Clark-West is the
+    # valid comparison; DM is shown alongside it because it is the familiar one.
+    cw = clark_west(oos["y_true"], oos["y_pred"].to_numpy(), rw["y_pred"].to_numpy(), horizon)
 
     strategy = backtest_strategy(oos, horizon, cfg.costs)
     ppy = strategy.periods_per_year
@@ -80,7 +114,10 @@ def evaluate(asset: str, model_name: str, horizon: int) -> dict[str, object]:
     live_model = models[model_name]().fit(labeled.X, labeled.y)
     latest_pred = float(live_model.predict(ds.X.iloc[[-1]])[0])
 
+    # A win needs the right direction, not merely a small p: DM is negative and
+    # Clark-West positive when the model genuinely has the lower loss.
     beats_rw = dm.statistic < 0 and dm.p_value < 0.05
+    beats_rw_cw = cw.statistic > 0 and cw.p_value < 0.05
     return {
         "asset": asset,
         "model": model_name,
@@ -90,8 +127,10 @@ def evaluate(asset: str, model_name: str, horizon: int) -> dict[str, object]:
         "rmse": f"{metrics['rmse']:.4f}",
         "rmse_rw": f"{regression_metrics(rw['y_true'], rw['y_pred'].to_numpy())['rmse']:.4f}",
         "dir_acc": f"{metrics['dir_acc']:.1%}",
-        "dm_p": "—" if dm.p_value != dm.p_value else f"{dm.p_value:.3f}",
+        "dm": _stat(dm.statistic, dm.p_value),
+        "cw": _stat(cw.statistic, cw.p_value),
         "beats_rw": beats_rw,
+        "beats_rw_cw": beats_rw_cw,
         "sharpe": f"{sr:.2f}",
         "sharpe_ci": f"[{lo:.2f}, {hi:.2f}]",
         "max_dd": f"{max_drawdown(strategy.equity):.1%}",
@@ -107,13 +146,23 @@ def index() -> str:
     asset, model_name, horizon = ASSETS[0], MODELS[0], HORIZONS[0]
 
     if request.method == "POST":
-        asset = request.form.get("asset", ASSETS[0])
-        model_name = request.form.get("model", MODELS[0])
         try:
-            horizon = int(request.form.get("horizon", HORIZONS[0]))
+            asset, model_name, horizon = _validated_selection(request.form)
+        except ValueError as exc:
+            return render_template(
+                "index.html",
+                assets=ASSETS,
+                models=MODELS,
+                horizons=HORIZONS,
+                selected={"asset": asset, "model": model_name, "horizon": horizon},
+                result=None,
+                error=str(exc),
+            )
+        try:
             result = evaluate(asset, model_name, horizon)
-        except Exception as exc:  # surface any failure to the user, never a 500
-            error = str(exc)
+        except Exception:  # surface a failure to the user, never a 500 or a stack trace
+            app.logger.exception("evaluation failed for %s/%s/%sd", asset, model_name, horizon)
+            error = "Could not evaluate that combination — see the server log for details."
 
     return render_template(
         "index.html",

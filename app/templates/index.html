@@ -89,23 +89,31 @@
     <div class="panel">
         <p class="verdict">
             {{ result.model }} on {{ result.asset }}, {{ result.horizon }}-day horizon:
-            {% if result.beats_rw %}
-                <span class="up">beats the random walk (p = {{ result.dm_p }})</span>
+            {% if result.beats_rw_cw %}
+                <span class="up">beats the random walk</span> on the nested-model test
             {% else %}
-                <span class="down">does not beat the random walk</span> (Diebold–Mariano p = {{ result.dm_p }})
+                <span class="down">does not beat the random walk</span>
             {% endif %}
         </p>
         <p class="sub" style="margin:0">
             Evaluated on {{ result.n_oos }} out-of-sample days. Current price {{ result.current_price }};
             the model currently leans
             <strong class="{{ 'up' if result.lean_up else 'down' }}">{{ 'up' if result.lean_up else 'down' }}</strong>
-            — but note the edge above is not statistically significant.
+            —
+            {% if result.beats_rw_cw %}
+                and while that lean clears the statistical bar on this single test, it has
+                not been corrected for the many combinations selectable on this page.
+            {% else %}
+                and that lean carries no statistically significant edge.
+            {% endif %}
         </p>
 
         <div class="grid">
             <div class="metric"><div class="k">RMSE</div><div class="v">{{ result.rmse }}</div></div>
             <div class="metric"><div class="k">RMSE (random walk)</div><div class="v">{{ result.rmse_rw }}</div></div>
             <div class="metric"><div class="k">Directional acc.</div><div class="v">{{ result.dir_acc }}</div></div>
+            <div class="metric"><div class="k">Diebold–Mariano<br><span class="k">negative = model wins</span></div><div class="v">{{ result.dm }}</div></div>
+            <div class="metric"><div class="k">Clark–West<br><span class="k">positive = model wins</span></div><div class="v">{{ result.cw }}</div></div>
             <div class="metric"><div class="k">Net Sharpe</div><div class="v">{{ result.sharpe }}</div></div>
             <div class="metric"><div class="k">Sharpe 95% CI</div><div class="v">{{ result.sharpe_ci }}</div></div>
             <div class="metric"><div class="k">Max drawdown</div><div class="v">{{ result.max_dd }}</div></div>
