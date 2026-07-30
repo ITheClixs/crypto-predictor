@@ -119,7 +119,103 @@ Assessed on scope fit, not prestige.
 | NeurIPS / ICML / ICLR main track | **no** | No general ML contribution. Would be desk-rejected or scored low on originality regardless of execution quality. |
 | KDD applied track | marginal | Possible, but the contribution is inferential rather than algorithmic or scale-driven. |
 
-## The gap I did not close
+---
+
+# GATE RESULT (2026-07-30): Pivot A as framed does not clear the novelty bar
+
+The literature review below was run after the sections above were written. It changes the
+recommendation. Evidence: `LITERATURE_AND_NOVELTY_MATRIX.csv`.
+
+**Three of Pivot A's four claimed contributions are already in the literature.**
+
+1. **"The zero benchmark makes the test oversized" — not an econometric finding.**
+   Clark & West (2006) state the null explicitly as a **zero mean** martingale difference, with the
+   "no change" (zero) forecast as the benchmark. Under a nonzero drift that null is *false*, so the
+   test rejecting 14–22 % of the time is the test behaving correctly against a null the applied user
+   did not intend. Our result is real and worth stating, but it is an **interpretive error in applied
+   practice**, not a defect in the test. The framing "the standard test is not correctly sized" is
+   wrong and must be dropped; the correct framing is "applied papers test a null they do not mean".
+
+2. **"Use the recursively estimated mean instead" — standard practice since 2008.**
+   Goyal & Welch and Campbell & Thompson established the recursive historical mean as *the* benchmark
+   for out-of-sample return predictability. This codebase already uses it for `R²_OS`
+   (`study.py:28`). The prescription is not new; the project simply failed to apply its own benchmark
+   consistently.
+
+3. **"CW is oversized at long horizons and needs a dependence-robust alternative" — solved in 2021.**
+   Pincheira, Hardy & Muñoz, *"Go Wild for a While!"* (Mathematics 9(18):2254) document that CW
+   "may present severe size distortions at long horizons" and propose the **Wild Clark–West (WCW)**
+   statistic, which is well-sized at long horizons. Our h = 7 finding (≈10 % at nominal 5 %)
+   replicates theirs. Our recommendation to build a bootstrap on `f_t` should be replaced with:
+   *adopt WCW*.
+
+4. **Benchmark choice changes conclusions — published in 2016.**
+   Moosa & Burns, *"The random walk as a forecasting benchmark: drift or no drift?"* (Applied
+   Economics 48(43)). Different question — point-forecast accuracy, not test size — so this is
+   partial overlap, not a kill.
+
+**And there is a same-asset-class, same-test-family competitor.** Magner & Hardy (2022, Mathematics
+10(13):2338) test the random-walk hypothesis on 13 cryptocurrencies over 2018–2022 using WCW/ENC-t
+with rolling windows, and report that models *do* significantly outperform the random-walk benchmark.
+MDPI returns HTTP 403, so **their benchmark specification was not verified**. This is the single
+highest-priority read:
+
+- If they use a **drift-inclusive** benchmark, our central point is already standard in crypto and
+  Pivot A is finished.
+- If they use a **zero** benchmark, their positive result is a direct target for our critique, and
+  that re-opens a narrow but real contribution.
+
+## What actually survives
+
+Only one item found no prior art, and the search was not exhaustive so this is weak evidence of
+absence:
+
+- **Size calibration of Clark–West-family tests for adaptive ML learners** — greedy split selection,
+  subsampling, early stopping, data-dependent model complexity. Our measurement (5.3 % for
+  early-stopped XGBoost against the recursive mean, versus 22.0 % against zero, h = 1) appears to be
+  new. It is also *small*: one estimator, one configuration, one null, one asset's return
+  distribution.
+
+Plus one thing that is not novel but is useful: the **joint demonstration** that four routine choices
+— benchmark, HAC bandwidth, label overlap, execution timing — each independently flipped a headline
+result in a real, competently engineered study. That is a cautionary-tale contribution, and its value
+depends on the honesty of the worked example rather than on methodological originality.
+
+## Revised recommendation
+
+**Pivot A is dead as a methods paper.** Two live options:
+
+**A′ — Calibration of nested predictive-accuracy tests for machine-learning forecasters.**
+Narrow the claim to the one thing with no found prior art. Required work: extend the size/power
+surface across estimators (ridge, elastic net, random forest, boosting with and without early
+stopping, and a small neural model), horizons, dependence structures, and refit schemes; include WCW
+alongside CW as the incumbent; replicate on the Goyal–Welch equity premium data for external
+validity. Honest ceiling: a solid ICAIF or *Journal of Forecasting* paper. **Not** a strong accept,
+and the contribution is "we measured whether an existing test survives modern learners", which is
+useful and unglamorous.
+
+**B′ — The leakage-and-false-predictability benchmark suite** (Pivot B, promoted).
+The novelty gate that killed A′'s bigger claims does not apply here, because a benchmark's
+contribution is the artifact, not the theorem. The repo already contains three working probes
+(look-ahead perturbation, purged early-stopping corruption, missing-bar purge), and this audit
+produced four more that generalise (intercept/benchmark mismatch, label-overlap inflation,
+execution-timing sensitivity, calibrated-size-under-resampled-null). That is seven, and each is a
+concrete failure a real published pipeline can be tested against. Target: NeurIPS Datasets &
+Benchmarks. Risk: adoption, which no first paper controls.
+
+**Recommended: B′, with A′'s calibration harness as one component of the suite.**
+The audit's most transferable output is not the crypto result and not the CW size number — it is the
+set of cheap checks that caught them. That is a benchmark, not a theorem, and it is the one framing
+where "we found our own paper's four errors" is a strength rather than an embarrassment.
+
+**Before committing:** read Magner & Hardy (2022) and Pincheira & Hardy (2022, Mathematics 10(2):228)
+in full. Both were blocked by HTTP 403 in this pass. Neither is cited anywhere in this project's
+`references.bib`, and the second's title —*"A Simple Out-of-Sample Test of Predictability against the
+Random Walk Benchmark"* — is close enough to the topic that it could moot A′ entirely.
+
+---
+
+## The gap as it stood before the gate was run
 
 **No literature review was performed in this audit, and none should be fabricated.** Novelty for
 Pivot A is *unverified*. The size distortion of MSPE-based nested tests is a studied problem — Clark

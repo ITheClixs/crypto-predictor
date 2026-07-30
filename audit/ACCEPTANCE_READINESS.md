@@ -71,7 +71,7 @@ to be dismissed as taste; A, B, C and E each independently identify a different 
 | gate | status | blocker |
 |---|---|---|
 | Scientific validity | **FAIL** | Wrong estimand (Issue 1); false simulation claim (2); uncalibrated test (3); invalid sign inference (4) |
-| Novelty | **FAIL** | Contribution is an assembly of standard procedures. And unverified — no literature review was done |
+| Novelty | **FAIL** | Literature gate run 2026-07-30: three of the four proposed contributions are already published (Clark & West 2006 on the zero-mean null; Goyal–Welch / Campbell–Thompson on the recursive-mean benchmark; Pincheira, Hardy & Muñoz 2021 on CW's long-horizon size distortion and the Wild CW fix). See `LITERATURE_AND_NOVELTY_MATRIX.csv` |
 | Empirical breadth | **FAIL** | 3 assets, 2 horizons, 1 vendor, 1 frequency, untuned hyperparameters, no ablations, no controls, no power analysis |
 | Reproducibility | **PASS with defects** | Unpinned end date; forecasts not persisted |
 | Economic realism | **FAIL** | Same-close execution; single cost scenario; frictionless shorts |
@@ -86,9 +86,15 @@ Zero of seven gates pass cleanly.
    audit's own measurements: the rejection set of the standard nested OOS predictability test is
    determined jointly by benchmark, bandwidth and execution convention, and one widely used
    configuration is 3–4× oversized. See `RESEARCH_PIVOT_MEMO.md`.
-2. **Why novel?** *Unverified.* No literature review was performed and none was invented. This is the
-   first gating task, not a formality — the result may be known in the econometrics literature even
-   though applied ML papers keep making the error.
+2. **Why novel?** **Largely not, as of the 2026-07-30 gate.** Clark & West (2006) define their null as
+   a *zero mean* martingale difference, so a test against the zero forecast rejecting under drift is
+   the test working correctly against a null the applied user did not intend — an interpretive error,
+   not an econometric one. The recursive-mean benchmark has been standard since Goyal–Welch and
+   Campbell–Thompson (2008). CW's long-horizon size distortion, and a well-sized replacement (Wild
+   Clark–West), were published by Pincheira, Hardy & Muñoz in 2021. The only element with no prior art
+   found is **size calibration of CW-family tests for adaptive ML learners** (early-stopped boosting),
+   and the search was not exhaustive. Two papers that could moot even that were blocked by HTTP 403
+   and must be read: Magner & Hardy (2022) and Pincheira & Hardy (2022).
 3. **Why important?** If it holds, it applies to every paper that races a conditional model against a
    random walk, which is most of the return-predictability literature.
 4. **Evidence?** Measured: intercept identity to machine precision; closed-form drift contamination
@@ -98,9 +104,11 @@ Zero of seven gates pass cleanly.
 5. **Assumptions remaining?** The Monte Carlo null is a bootstrap of one asset's returns; size is not
    established for other assets, other frequencies, other estimators, or genuine
    volatility-clustering nulls (where the corrected test rejects 28–43 %).
-6. **What could falsify it?** A dependence-robust test that is correctly sized *and* still yields the
-   paper's rejections. A literature finding that the benchmark distinction is already settled. Size
-   results that do not replicate on the Goyal–Welch equity data.
+6. **What could falsify it?** Two of the three candidate falsifiers have now fired. The benchmark
+   distinction *is* already settled in econometrics (Clark & West 2006), and a dependence-robust,
+   correctly sized alternative *does* already exist (Wild Clark–West, 2021). What remains: whether the
+   ML-learner calibration result replicates on the Goyal–Welch equity data and across estimators, and
+   whether Magner & Hardy (2022) already used a drift-inclusive benchmark on crypto.
 7. **Why would ICAIF reviewers care?** They referee papers using this exact test every cycle, and a
    calibrated recipe plus a released harness is directly usable.
 8. **Three strongest remaining rejection arguments?** (i) novelty unverified and plausibly thin; (ii)
@@ -111,9 +119,12 @@ Zero of seven gates pass cleanly.
    nothing in `src/`, `paper/`, `tests/` or `reports/` has been changed. All four remain live in the
    committed artifacts.
 10. **Caliber?** **Not yet publishable** in its current form — strong reject at any venue that reviews
-    competently. With Tier-1 repairs only: workshop-level. With Pivot A fully executed, including the
-    dependence-robust test, the size/power surface and the equity-premium replication: a plausible
-    ICAIF accept. **Not** strong-accept caliber on any current evidence, and I will not claim it is.
+    competently. With Tier-1 repairs only: workshop-level. Pivot A, which was the recommendation before
+    the literature gate, is now dead as a methods paper. The two live routes are A′ (narrow the claim to
+    ML-learner calibration, add WCW as the incumbent, replicate on Goyal–Welch) — ceiling a solid ICAIF
+    or *Journal of Forecasting* paper — and B′ (promote the leakage/false-predictability benchmark
+    suite, for which the audit produced four new generalisable probes on top of the repo's three).
+    **Not** strong-accept caliber on any current evidence, and I will not claim it is.
 
 ## Next actions, in order
 

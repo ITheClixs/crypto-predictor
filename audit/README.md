@@ -11,7 +11,8 @@ computed by a script here, not read off the manuscript. **Nothing in `src/`, `pa
 | `FORENSIC_REVIEW.md` | The audit. Ten issues, four CRITICAL, each with the code path, the derivation, the measured consequence, and the repair. |
 | `CLAIM_EVIDENCE_LEDGER.csv` | The paper's 15 headline claims, each traced to evidence and marked TRUE / FALSE / UNSUPPORTED. |
 | `ACCEPTANCE_READINESS.md` | Reproduction status, five simulated referee reports, gate table, honest caliber assessment, ordered next actions. |
-| `RESEARCH_PIVOT_MEMO.md` | Seven candidate directions, scored; recommended pivot and target venue; the literature gate that has **not** been cleared. |
+| `RESEARCH_PIVOT_MEMO.md` | Seven candidate directions, scored; **the literature gate result**, which killed the original recommendation; two revised routes. |
+| `LITERATURE_AND_NOVELTY_MATRIX.csv` | Closest prior work, with per-row verification level. Two decisive papers were blocked by HTTP 403 and are marked unread. |
 | `AI_SLOP_AUDIT.md` | Passages where claimed rigour substitutes for demonstrated rigour, with replacements. |
 | `CHANGELOG_RESEARCH.md` | What was retracted from `paper/` and `README.md` on 2026-07-30, why, and what replaced it. |
 
