@@ -5,11 +5,24 @@ provides the standard toolkit for forecast and strategy evaluation:
 
 - Diebold-Mariano (1995) with the Harvey-Leybourne-Newbold small-sample
   correction and a Newey-West long-run variance for overlapping h-step forecasts.
-- Clark-West (2007), because DM is *not* valid when the models are nested, and a
-  random walk is nested inside every conditional model here (set the slopes to
-  zero and you get it back). Under the null, the larger model estimates
-  coefficients that are truly zero, which inflates its sample MSPE; DM therefore
-  under-rejects and is biased toward the benchmark. Clark-West removes that term.
+- Clark-West (2007), because DM is *not* valid when the models are nested. Under a
+  nested null the larger model still estimates coefficients that are truly zero,
+  which inflates its sample MSPE; DM reads that cost as evidence for the benchmark.
+  Clark-West removes that term.
+
+  **Read the caveat before using this against the zero-forecast benchmark.** The
+  models in this package fit an unpenalized intercept, which equals the training-window
+  mean of the target. Setting their slopes to zero therefore returns that mean, *not*
+  zero. The zero forecast is the restriction "intercept and slopes are all zero", so
+  Clark-West against it tests the joint martingale-difference null -- no drift *and* no
+  conditional predictability -- rather than "the features add nothing beyond drift".
+  With a nonzero drift in the data the two are materially different: the adjusted
+  differential reduces to ``f_t = 2 (y_t - b_t)(m_t - b_t)``, which with ``b = 0``
+  has expectation ``2 (E[y] E[m] + Cov(y, m))``, and the first term is nonzero
+  whatever the features do. To test feature predictability, pass the recursively
+  estimated mean as ``pred_bench``. Measured size at a nominal 5% under an estimated
+  nested null: 14-22% against the zero forecast, 5-6% against the recursive mean at
+  h=1. See ``audit/FORENSIC_REVIEW.md`` and ``audit/scripts/mc_null.py``.
 - Pesaran-Timmermann (1992) market-timing / sign-predictability test.
 - Sharpe ratio, max drawdown, and the Probabilistic Sharpe Ratio and Deflated
   Sharpe Ratio (Bailey & Lopez de Prado) which correct for short samples,
@@ -124,23 +137,34 @@ def clark_west(
     pred_bench: np.ndarray,
     horizon: int = 1,
 ) -> TestResult:
-    """MSPE-adjusted test of a model against the benchmark it *nests* (Clark-West 2007).
+    """MSPE-adjusted test of a model against a benchmark it *nests* (Clark-West 2007).
 
-    Every conditional model in this study collapses to the random walk when its
-    slopes are zero, so the two are nested. Under the null that the extra
-    coefficients are zero, the larger model still has to estimate them; the noise
-    in those estimates raises its sample MSPE even though its population MSPE is
-    identical. Diebold-Mariano reads that pure estimation noise as evidence *for*
-    the benchmark. Clark-West subtracts it off:
+    Under the null that the extra coefficients are zero, the larger model still has to
+    estimate them; the noise in those estimates raises its sample MSPE even though its
+    population MSPE is identical. Diebold-Mariano reads that pure estimation noise as
+    evidence *for* the benchmark. Clark-West subtracts it off:
 
     .. math::
         \\hat f_t = (y_t - \\hat y_{b,t})^2
                    - \\left[(y_t - \\hat y_{m,t})^2 - (\\hat y_{b,t} - \\hat y_{m,t})^2\\right]
 
+    which is algebraically ``f_t = 2 (y_t - \\hat y_{b,t})(\\hat y_{m,t} - \\hat y_{b,t})``.
+    The statistic is therefore a t-test of whether the model's *deviation from the
+    benchmark* covaries positively with the outcome's -- which is why the choice of
+    ``pred_bench`` defines the hypothesis, not merely the baseline. See the module
+    docstring for what the zero-forecast benchmark tests and does not test.
+
     A **positive** statistic favours the model. The test is one-sided against a
     standard normal, as Clark and West recommend: the alternative of interest is
     "the model predicts", and their adjusted statistic is not asymptotically
     normal under a two-sided reading.
+
+    ``horizon - 1`` Bartlett lags is the mechanical MA(h-1) bandwidth for overlapping
+    h-step errors, and is *zero* lags at ``horizon = 1``. That is only defensible when
+    ``f_t`` is serially uncorrelated, which fails once a persistent component enters
+    through drift. Measured size under an estimated nested null is 10% at h=7 even
+    against the recursive mean, and 28-43% when the resampling scheme preserves
+    volatility clustering; dependence-robust inference on ``f_t`` is needed there.
     """
     yt = np.asarray(y_true, dtype=float)
     pm = np.asarray(pred_model, dtype=float)
@@ -167,6 +191,14 @@ def pesaran_timmermann(y_true: pd.Series, y_pred: np.ndarray) -> TestResult:
     forecast sign and outcome sign would produce; a negative one means the
     forecast is systematically *anti*-predictive. The p-value is two-sided, so a
     small p on its own says only "not independent"; read it with the statistic.
+
+    **Every variance term below divides by ``n``, so the caller must pass
+    non-overlapping observations.** Feeding it all ``n`` rows of an ``h``-step forecast
+    whose labels overlap ``h - 1`` times inflates the statistic by roughly
+    ``sqrt(h)``. On this study's own forecasts that turned two ETH settings at h=7 from
+    ``p = 0.001`` into ``p = 0.24-0.27`` once the labels were made non-overlapping
+    (``audit/scripts/pt_and_exec.py``). Slice to ``y[k::h]`` for each phase ``k`` and
+    aggregate across phases; do not pass the full overlapping series.
     """
     yt = np.asarray(y_true, dtype=float)
     yp = np.asarray(y_pred, dtype=float)

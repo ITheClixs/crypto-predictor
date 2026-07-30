@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -91,7 +93,11 @@ def test_newey_west_stays_non_negative_on_strongly_negatively_autocorrelated_dat
 
 
 @pytest.mark.unit
-def test_clark_west_favours_a_model_that_nests_the_benchmark(returns: pd.Series) -> None:
+def test_clark_west_is_positive_when_the_forecast_covaries_with_the_outcome(
+    returns: pd.Series,
+) -> None:
+    """CW reduces to a t-test on ``2 (y - b)(m - b)``, so it is positive iff the
+    forecast's deviation from the benchmark covaries positively with the outcome's."""
     signal = returns.to_numpy() * 0.5
     bench = np.zeros(len(returns))
     result = clark_west(returns, signal, bench)
@@ -100,35 +106,75 @@ def test_clark_west_favours_a_model_that_nests_the_benchmark(returns: pd.Series)
 
 
 @pytest.mark.unit
-def test_dm_is_biased_against_a_useless_nested_model_and_clark_west_is_not() -> None:
-    """The reason Clark-West exists, demonstrated by simulation.
+def test_exogenous_noise_forecast_is_genuinely_worse_and_dm_detects_it() -> None:
+    """What an independent-noise forecast actually shows, which is not what we once claimed.
 
-    The larger model forecasts pure noise, unrelated to the outcome, so its
-    *population* MSPE equals the benchmark's, so the null is true. But estimating
-    coefficients that are really zero costs it sample MSPE, so the DM statistic
-    is systematically positive (it reads that cost as evidence the benchmark
-    wins). Clark-West subtracts exactly that term, and its statistic is centered
-    on zero as a test statistic under the null should be.
+    An earlier version of this test drew ``y ~ N(0, 0.03)`` and an independent
+    ``u ~ N(0, 0.01)`` as the larger model's forecast against a zero benchmark, and
+    asserted that the null of equal predictive accuracy "holds by construction". It
+    does not:
 
-    Note the opposite sign conventions: DM positive means the model looks worse,
-    Clark-West positive means it looks better.
+        MSPE_bench = E[(y - 0)^2] = sy^2
+        MSPE_model = E[(y - u)^2] = sy^2 + su^2 > sy^2
+
+    The population MSPEs differ by ``su^2``, so the null is *false* by construction and
+    DM's high rejection rate is power, not size distortion. Nor does the setup exercise
+    the mechanism Clark-West exists to correct: ``u`` is exogenous noise, not an
+    estimated forecast, so no coefficient is estimated anywhere and the
+    estimation-noise term is absent. Finally, CW appears centered here for an
+    algebraic reason that carries no information about its size: the adjusted
+    differential reduces to ``f_t = 2 (y_t - b_t)(m_t - b_t)``, which with ``b = 0`` is
+    ``2 y_t u_t``, and ``E[2 y u] = 0`` for *any* independent ``u`` however bad a
+    forecast it is.
+
+    So this test now asserts only what the construction supports. Size and power of
+    either statistic under a nested-*estimation* null require estimated forecasts; see
+    ``audit/scripts/mc_null.py``.
     """
     rng = np.random.default_rng(4)
-    dm_stats, cw_stats = [], []
+    sy, su, n = 0.03, 0.01, 250
+    gaps, dm_stats, cw_stats = [], [], []
     for _ in range(200):
-        y = pd.Series(rng.normal(0.0, 0.03, 250))
-        useless = rng.normal(0.0, 0.01, 250)  # independent of y
-        bench = np.zeros(250)
+        y = pd.Series(rng.normal(0.0, sy, n))
+        useless = rng.normal(0.0, su, n)  # independent of y
+        bench = np.zeros(n)
+        yt = y.to_numpy()
+        gaps.append(np.mean((yt - useless) ** 2) - np.mean((yt - bench) ** 2))
         dm_stats.append(diebold_mariano(y, useless, bench).statistic)
         cw_stats.append(clark_west(y, useless, bench).statistic)
 
-    assert np.mean(dm_stats) > 1.0  # DM leans hard toward the benchmark
-    assert abs(np.mean(cw_stats)) < 0.2  # CW is centered under the null
-    # DM "significantly worse" far more often than CW claims significant skill.
-    dm_rejects = np.mean([s > 1.96 for s in dm_stats])
-    cw_rejects = np.mean([s > 1.645 for s in cw_stats])  # one-sided 5%
-    assert dm_rejects > 0.25
-    assert cw_rejects < 0.10
+    # The model is worse in population by exactly su^2, and the sample gap recovers it.
+    assert np.mean(gaps) == pytest.approx(su**2, rel=0.15)
+    # DM therefore has power against a false null. This is not evidence of size distortion.
+    assert np.mean(dm_stats) > 1.0
+    # CW centres by the algebraic cancellation above, not by holding size.
+    assert abs(np.mean(cw_stats)) < 0.2
+
+
+@pytest.mark.unit
+def test_pesaran_timmermann_is_inflated_by_overlapping_labels() -> None:
+    """Feeding overlapping h-step labels to a test that divides by ``n`` inflates it.
+
+    Each observation is repeated ``h`` times here, which adds no information but
+    multiplies the nominal sample size by ``h``. The statistic grows by roughly
+    ``sqrt(h)`` while the underlying hit rate is unchanged. This is the defect behind
+    the two ``p = 0.001`` sign results in the original write-up; on non-overlapping
+    subsamples they are ``p = 0.24-0.27`` (``audit/scripts/pt_and_exec.py``).
+    """
+    rng = np.random.default_rng(3)
+    h, n = 7, 300
+    y = rng.normal(0.0, 0.03, n)
+    pred = -0.3 * y + rng.normal(0.0, 0.03, n)  # mildly anti-predictive
+
+    independent = pesaran_timmermann(pd.Series(y), pred)
+    overlapping = pesaran_timmermann(pd.Series(np.repeat(y, h)), np.repeat(pred, h))
+
+    assert abs(overlapping.statistic) == pytest.approx(
+        abs(independent.statistic) * math.sqrt(h), rel=0.05
+    )
+    # Same hit rate, no extra information -- yet only the overlapping version "rejects".
+    assert independent.p_value > 0.05
+    assert overlapping.p_value < 0.01
 
 
 @pytest.mark.unit

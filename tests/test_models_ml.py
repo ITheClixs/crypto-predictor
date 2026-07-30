@@ -104,3 +104,26 @@ def test_registry_passes_the_horizon_to_models_with_an_internal_holdout() -> Non
     gbm = default_models(horizon=7)["gbm"]()
     assert gbm.purge == 7
     assert default_models()["gbm"]().purge == 1
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("ctor", [RidgeForecaster, ElasticNetForecaster])
+def test_zeroing_the_slopes_returns_the_training_mean_not_zero(ctor: type) -> None:
+    """The linear models do **not** nest the zero forecast, and this pins down why.
+
+    Both fit an unpenalized intercept on standardized features, so the intercept is the
+    training-window mean of the target and the slopes-zero restriction of the estimator
+    is the historical-mean forecaster -- never the random walk. Clark-West against a
+    zero benchmark therefore tests the joint null "no drift and no conditional
+    predictability", not "the features add nothing beyond drift". See
+    ``audit/FORENSIC_REVIEW.md`` Issue 1.
+    """
+    rng = np.random.default_rng(11)
+    n, drift = 300, 0.002
+    X = pd.DataFrame({c: rng.normal(0, 1, n) for c in ("ret_1", "vol_10", "rsi_14")})
+    y = pd.Series(drift + rng.normal(0, 0.03, n))  # pure drift, no conditional signal
+
+    estimator = ctor().fit(X, y)._pipe.named_steps["model"]
+    assert estimator.fit_intercept is True
+    assert float(estimator.intercept_) == pytest.approx(float(y.mean()), rel=1e-9)
+    assert abs(float(estimator.intercept_)) > 1e-4  # emphatically not the zero forecast

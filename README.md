@@ -4,8 +4,8 @@
 
 [![ci](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml/badge.svg)](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.12%2B-blue)
-![tests](https://img.shields.io/badge/tests-154-informational)
-![coverage](https://img.shields.io/badge/coverage-96%25-informational)
+![tests](https://img.shields.io/badge/tests-157-informational)
+![coverage](https://img.shields.io/badge/coverage-97%25-informational)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
@@ -18,29 +18,49 @@ forecasters (random walk, historical mean, AR(1), ridge, elastic net, gradient-b
 trees) are evaluated by purged and embargoed walk-forward cross-validation over
 2020-07-23 to 2026-07-17, giving 18 machine-learning settings against a martingale null.
 
-The headline result depends entirely on which test is used, and that is the point of the
-paper. Diebold–Mariano rejects in favour of the random walk in 7 of 18 settings and never
-in favour of a model. But the random walk is *nested* inside every model considered here,
-and under nesting the Diebold–Mariano statistic is biased toward the smaller model.
-Applying the Clark–West correction, 5 of 18 settings reject the no-predictability null at
-an uncorrected 5% level, against 0.9 expected from a search that size. After controlling
-the false discovery rate, 2 survive; after controlling the family-wise error rate, none do.
+The headline result depends entirely on which test is used, and on whether that test has
+the size it claims. Diebold–Mariano rejects in favour of the random walk in 7 of 18
+settings and never in favour of a model; the Clark–West correction for nesting turns that
+into 5 of 18 rejecting the no-predictability null at an uncorrected 5%. Neither number is
+the answer.
 
-The two survivors are not usable forecasts. Their out-of-sample $R^2$ against a
-recursively estimated drift benchmark is $-0.0079$ and $+0.0031$, and their net Sharpe
-ratios of 0.51 and 0.33 carry bootstrap intervals of $[-0.18, 1.23]$ and $[-0.35, 1.02]$.
-No setting shows significant sign-timing skill, which is the property a directional
-strategy actually trades. The two settings whose Sharpe interval excludes zero are
-different settings from the two that survive statistical correction: the statistical and
-the economic winners do not coincide, which is what one expects from noise rather than
-from an edge.
+**The test in standard use is not correctly sized here.** Under a nested-estimation null
+built by resampling the return series — retaining the drift, the tails, the feature
+persistence, the sample length and the estimators, while removing conditional
+predictability — Clark–West against a zero-return benchmark rejects **14–22%** of the time
+at a nominal 5%. So the relevant comparison for 5 observed rejections is 2.6–4.0 expected,
+not 0.9. The cause is identifiable: ridge, elastic net and the booster all fit an
+unpenalised intercept, which equals the training-window mean, so the zero forecast is *not*
+their slopes-zero restriction. The adjusted differential is
+$\hat f_t = 2(y_t - \hat y^b_t)(\hat y^m_t - \hat y^b_t)$, and with $\hat y^b = 0$ its
+expectation is $2(\mathbb{E}[y]\mathbb{E}[\hat y^m] + \mathrm{Cov}(y, \hat y^m))$ — the
+first term is drift, nonzero whatever the features do.
 
-Every high-Sharpe result in the study is long-only exposure in disguise. The
-historical-mean forecaster is always long, and its profit and loss is numerically
-identical to buy-and-hold on the same schedule and cost model.
+Against the **recursively estimated mean** instead, measured size is 5–6% at $h=1$
+(including for early-stopped XGBoost) and about 10% at $h=7$. Substituting it moves the raw
+count from 5 of 18 to 7 of 18 and changes *which* settings reject: BTC survives at $h=1$,
+BTC drops out at $h=7$, and SOL — which shows nothing against the zero benchmark — becomes
+the strongest rejecter ($p = 0.011$ at $h=7$). Against calibrated size, neither pattern is
+distinguishable from noise.
 
-**Conclusion.** Over this sample, with this feature set, there is a faint and fragile
-statistical signal in BTC at the one-day horizon and no tradeable one anywhere.
+Three supporting results correct in the same direction. The only significant sign-timing
+findings ($p \approx 0.001$ for two ETH settings at $h=7$) come from treating overlapping
+7-day labels as independent, and are $p \approx 0.24$–$0.27$ on non-overlapping subsamples.
+The two settings whose Sharpe interval excludes zero carry $\beta = 0.76$ and $0.89$ to
+buy-and-hold with alpha *t*-statistics of 1.07 and 1.15 — that is the "long-only exposure"
+claim, measured rather than asserted. And a one-bar execution delay takes the $h=1$ winner
+from 0.91 to 0.21, because the backtest enters at the same close its features are computed
+from.
+
+**Conclusion.** Over this sample, with this feature set, no predictability claim survives a
+correctly benchmarked and size-calibrated test. We do *not* claim the absence of
+predictability: no minimum detectable effect is established, so this design is not powered
+to exclude an economically relevant one. The transferable finding is that four routine
+choices — which benchmark, which HAC bandwidth, whether labels overlap, and when execution
+is assumed — determined every apparent result in the first version of this study.
+
+> The full audit, including the reproduction scripts for every number above and a record of
+> which earlier claims they overturn, is in [`audit/`](audit/README.md).
 
 ---
 
@@ -60,17 +80,27 @@ regularity. The reported accuracy is usually an artifact of one of four errors:
 4. **Silent multiple testing.** Trying many model, asset, and horizon combinations and
    reporting the best one without adjusting the significance threshold.
 
-This study is constructed so that each of these is either impossible by design or
-measured and reported. The contribution is not a model. It is a falsifiable evaluation
-protocol, applied honestly, that returns an uncomfortable answer and reports it.
+Preprocessing leakage is impossible by design here (standardization is a pipeline step fit
+inside each fold). Target leakage is prevented by a test that perturbs future bars and
+asserts no feature at or before $t$ changes. Multiple testing is reported over an explicit
+family. **Benchmarking is the one item on this list the first version of this study got
+wrong, and correcting it is the main contribution.**
 
-A secondary contribution is methodological. The most common test for comparing forecast
-accuracy, Diebold–Mariano, is invalid for the comparison this literature actually makes:
-a conditional model against a random walk that the model nests. Section 3.6.2 sets out
-why, and Section 4.2 shows that in this data the correction changes the conclusion from
-"nothing predicts, several are significantly worse" to "five settings reject, two survive
-false-discovery control, none is tradeable." Both statements are defensible. Only the
-second is correct.
+Diebold–Mariano is indeed invalid for the comparison this literature makes, and Clark–West
+is the standard correction. The question that goes unasked is what the corrected test is
+*testing*. A regression with a fitted intercept does not reduce to the zero-return forecast
+when its slopes are set to zero — it reduces to the training-window mean. Testing against
+zero therefore tests a joint hypothesis: no drift **and** no conditional predictability.
+Where the drift is large, as it is for these assets over this window, that difference is not
+academic: Section 3.6.3 derives the contaminating term, Section 3.6.4 measures the resulting
+size distortion at 14–22% against a nominal 5%, and Section 4.2 shows that repairing the
+benchmark changes *which* settings reject rather than how many.
+
+The first version of this README reported "five of 18 settings reject, against 0.9 expected
+from a search that size." That comparison assumed the test was correctly sized. It is not,
+and the corrected expectation is 2.6–4.0. The earlier claim is stated here rather than
+quietly removed, because the error is easy to make, invisible in code review, and undetected
+by a test suite that checks every formula against hand-computed values — as this one does.
 
 ---
 
@@ -221,9 +251,13 @@ The models are deliberately shrunk. The signal-to-noise ratio in return predicti
 small enough that an unregularized learner will fit noise, and a study whose null result
 came from an overfit model would be uninformative.
 
-Note that setting all slopes to zero recovers the random walk from any of the three
-machine-learning models. They are *nested* extensions of the benchmark, which Section
-3.6.2 shows is not a detail.
+All three fit an intercept: the linear models fit an unpenalized one on standardized
+features, and XGBoost estimates its own `base_score` from the training labels. Setting the
+slopes to zero therefore returns the **training-window mean**, not zero — measured on BTC at
+$h=1$, the ridge and elastic-net intercepts equal $\bar{y}_{\mathcal{T}}$ to machine
+precision. The forecaster these models nest is the historical mean; the random walk is the
+further restriction that the intercept is also zero. Section 3.6.3 shows what that
+distinction does to the test.
 
 ### 3.5 Trading rule and costs
 
@@ -290,12 +324,19 @@ $$\mathrm{DM}^{\ast} = \mathrm{DM}\sqrt{\frac{n + 1 - 2h + h(h-1)/n}{n}}$$
 **A negative statistic favours the model.** The test is two-sided, because the null is
 equal accuracy and a model can be significantly worse.
 
-The difficulty is that Diebold–Mariano assumes the two forecasts are non-nested. Here they
-are not: the random walk is the point in the model's parameter space where every slope is
-zero. Under the null of no predictability the larger model must still *estimate* those
-zero coefficients, and the resulting estimation noise inflates its sample mean squared
-prediction error even though its population MSPE is identical. Diebold–Mariano reads that
-noise as evidence for the benchmark and is undersized as a test of predictability.
+The difficulty is that Diebold–Mariano assumes the two forecasts are non-nested. Under a
+nested null the larger model must still *estimate* coefficients that are truly zero, and
+the resulting estimation noise inflates its sample mean squared prediction error even
+though its population MSPE is identical. Diebold–Mariano reads that noise as evidence for
+the benchmark and is undersized as a test of predictability.
+
+The bandwidth deserves a warning. The MA($h-1$) argument justifies $h-1$ lags for the
+*forecast error*; it does not carry over to the Clark–West adjusted differential once a
+drift component enters (below). At $h=1$ it is **zero** lags, so no autocovariance enters
+at all, and four of the five settings that reject are at $h=1$. The Newey–West plug-in
+bandwidth $\lfloor 4(n/100)^{2/9}\rfloor$ = 8 lags gives *smaller* p-values here, so $h-1$
+is the conservative choice at $h=1$ — but the count of surviving settings changes with the
+bandwidth, and neither bandwidth is adequate at $h=7$.
 
 #### 3.6.3 Clark–West
 
@@ -309,14 +350,70 @@ one-sided. **A positive statistic favours the model.** The sign convention is op
 Diebold–Mariano, which is a good reason to never report either p-value without its
 statistic.
 
-The bias this corrects is demonstrated rather than asserted:
-`tests/test_stats.py::test_dm_is_biased_against_a_useless_nested_model_and_clark_west_is_not`
-simulates 200 replications in which the larger model forecasts pure noise, so the null is
-true by construction. The mean Diebold–Mariano statistic is positive and it rejects in
-favour of the benchmark far above the nominal rate, while Clark–West stays centred on zero
-and holds its size.
+The right-hand side has a closed form that matters more than the left:
 
-#### 3.6.4 Pesaran–Timmermann
+$$\hat{f}_t = 2\left(y_t - \hat{y}^{b}_t\right)\left(\hat{y}^{m}_t - \hat{y}^{b}_t\right)$$
+
+So Clark–West is a *t*-test of whether the model's deviation **from the benchmark** covaries
+with the outcome's. **The benchmark defines the hypothesis, not just the baseline.** With
+$\hat{y}^b = 0$ this becomes $2 y_t \hat{y}^m_t$, whose expectation is
+
+$$\mathbb{E}[\hat{f}_t] = 2\left(\mathbb{E}[y] \cdot \mathbb{E}[\hat{y}^m] + \mathrm{Cov}(y, \hat{y}^m)\right)$$
+
+Only the second term is predictability. The first is drift times the average forecast, and
+through the fitted intercept the models are always on average long. BTC's realized drift
+here is +0.00102/day, 37% annualized. Measured drift share of the numerator: 9% at BTC
+$h=1$, 33% for the booster at $h=1$, 41–61% across BTC $h=7$. The clearest evidence is that
+the **historical-mean forecaster, which uses no features at all, scores CW = +1.03 against
+the zero benchmark on BTC at $h=1$**.
+
+#### 3.6.4 Calibrating the test instead of assuming it
+
+An earlier version of this README claimed the nesting bias was "demonstrated rather than
+asserted" by a simulation drawing $y \sim N(0, 0.03)$ and an independent
+$u \sim N(0, 0.01)$ as the larger model's forecast. That claim was wrong:
+
+$$\mathrm{MSPE}_{\text{bench}} = \sigma_y^2, \qquad \mathrm{MSPE}_{\text{model}} = \sigma_y^2 + \sigma_u^2$$
+
+The population MSPEs differ by $\sigma_u^2$, so the null of equal accuracy is **false** by
+construction and DM's high rejection rate is *power*, not size distortion. Nor is anything
+estimated in that setup, so the estimation-noise term Clark–West removes is absent. And CW's
+apparent centring is algebra: $\hat{f}_t = 2 y_t u_t$ and $\mathbb{E}[2yu] = 0$ for *any*
+independent $u$, however bad a forecast.
+
+The replacement (`audit/scripts/mc_null.py`) resamples the daily return series into a
+synthetic price path, so future returns are independent of every feature by construction
+while drift, tails, feature persistence, sample length, the purged walk-forward geometry and
+the actual estimators are retained — and forecasts are genuinely estimated at every origin.
+Rejection rate at a nominal 5%, 400 replications per cell (150 for the booster):
+
+| statistic | model | $h{=}1$ iid | $h{=}1$ block-21 | $h{=}7$ iid | $h{=}7$ block-21 |
+|---|---|---|---|---|---|
+| CW vs zero forecast | ridge | 14.2% | 53.8% | 23.5% | 28.2% |
+| CW vs zero forecast | elastic net | 22.0% | 43.0% | 26.2% | 27.8% |
+| CW vs zero forecast | GBM | 22.0% | — | — | — |
+| **CW vs recursive mean** | ridge | **6.2%** | 42.8% | 10.2% | 11.2% |
+| **CW vs recursive mean** | elastic net | **6.2%** | 28.2% | 9.8% | 10.8% |
+| **CW vs recursive mean** | GBM | **5.3%** | — | — | — |
+| CW vs zero, drift-only model | — | 27.3% | 27.0% | 39.0% | 34.0% |
+| DM vs zero (two-sided) | ridge | 57.5% | 15.2% | 50.0% | 46.5% |
+
+The iid columns resample returns independently and so measure **size**. The block columns
+resample 21-day blocks, preserving volatility clustering but possibly carrying genuine
+within-block dependence, so they bound the test's *sensitivity to dependence* rather than
+measuring size.
+
+Reading: the standard configuration is oversized by 3–4×, and the drift-only row — 27%
+rejection with zero feature information — locates the cause. Repairing the benchmark fixes
+most of it at $h=1$, and does so for early-stopped gradient boosting as readily as for
+ridge, which is a useful negative result about a live worry: greedy splits, subsampling and
+a data-dependent tree count do not visibly break the approximation. It is calibration
+evidence for this estimator and this null, not a theorem. The repair is also incomplete —
+$h=7$ stays at ~10%, and under dependence-preserving resampling nothing we tested is usable,
+so a definitive count needs bootstrap inference on $\hat{f}_t$, which this study does not
+have.
+
+#### 3.6.5 Pesaran–Timmermann
 
 A model can be poor at magnitude and useful at direction, which is all a sign strategy
 needs. Pesaran and Timmermann (1992) test independence between the sign of the forecast
@@ -334,7 +431,7 @@ reliably wrong-way. The statistic is undefined when the forecast never changes s
 is precisely the case for the always-long drift models, and it is reported as missing
 rather than as a number.
 
-#### 3.6.5 Sharpe ratio, PSR, and DSR
+#### 3.6.6 Sharpe ratio, PSR, and DSR
 
 $$\mathrm{SR} = \sqrt{365/h} \cdot \frac{\bar{\pi}}{s_\pi}$$
 
@@ -354,13 +451,13 @@ with $\gamma$ the Euler–Mascheroni constant. Here $N$ is the number of models 
 one asset-horizon, which is a floor on the true search; the reported DSR is therefore an
 upper bound and is labelled as such in the generated report.
 
-#### 3.6.6 Confidence intervals
+#### 3.6.7 Confidence intervals
 
 Strategy returns are serially dependent, so intervals come from a circular block bootstrap
 (Politis and Romano, 1994) with block length $\lfloor n^{1/3} \rceil$ and 500 resamples,
 reported as percentile intervals.
 
-#### 3.6.7 Multiple testing
+#### 3.6.8 Multiple testing
 
 Eighteen settings tested at the 5% level produce $0.05 \times 18 = 0.9$ rejections from
 noise alone. Raw counts are therefore reported alongside two adjustments of the
@@ -432,16 +529,40 @@ green band is where Clark–West rejects no-predictability.
 | Diebold–Mariano ($p<0.05$, two-sided) | **0** of 18 | 7 of 18 |
 | Clark–West ($p<0.05$, one-sided) | **5** of 18 | — |
 
-The disagreement is the finding. Under Diebold–Mariano the conclusion would be that
-machine learning is actively harmful for this problem: no setting beats the random walk
-and seven lose to it significantly. Under the test that is valid for nested models, five
-settings reject the null of no predictability. Both numbers come from the same forecasts.
+Under Diebold–Mariano the conclusion would be that machine learning is actively harmful for
+this problem: no setting beats the random walk and seven lose to it significantly. Under
+Clark–West against the same zero benchmark, five settings reject at an uncorrected 5%. Both
+numbers come from the same forecasts, and **neither is the answer**, because the second test
+rejects 14–22% of the time when nothing is predictable (Section 3.6.4).
 
 The five, ordered by p-value, are BTC ridge ($p = 0.004$), BTC elastic net ($0.005$), BTC
 gbm ($0.022$), ETH ridge ($0.031$), all at $h=1$, and BTC elastic net at $h=7$ ($0.039$).
-Four of the five are BTC and four are at the one-day horizon. That concentration is
-consistent with a weak short-horizon effect in the most liquid asset, and equally
-consistent with chance across a search of this size. Section 4.3 settles which.
+The sixth, BTC ridge at $h=7$, misses at $p = 0.05004$ — a count that turns on four parts in
+$10^5$ should not be reported as five without saying so.
+
+**The benchmark changes which settings reject, not how many.** Substituting the recursively
+estimated mean — the actual slopes-zero restriction of these estimators, and the benchmark
+already used for $R^2_{OS}$ — moves the raw count from 5 of 18 to 7 of 18 at the same
+bandwidth, and relocates it:
+
+| Setting | CW vs zero | $p$ | CW vs recursive mean | $p$ |
+| --- | ---: | ---: | ---: | ---: |
+| BTC ridge, $h=1$ | 2.62 | 0.004 | 2.66 | **0.004** |
+| BTC elastic net, $h=1$ | 2.57 | 0.005 | 2.67 | **0.004** |
+| BTC gbm, $h=1$ | 2.02 | **0.022** | 1.75 | **0.040** |
+| BTC ridge, $h=7$ | 1.64 | 0.050 | 1.36 | 0.086 |
+| BTC elastic net, $h=7$ | 1.76 | **0.039** | 1.54 | 0.061 |
+| ETH ridge, $h=1$ | 1.86 | **0.031** | 1.76 | **0.039** |
+| ETH ridge, $h=7$ | −0.79 | 0.785 | −1.62 | 0.948 |
+| SOL gbm, $h=1$ | 0.82 | 0.207 | 1.87 | **0.031** |
+| SOL ridge, $h=7$ | −1.43 | 0.923 | 2.01 | **0.022** |
+| SOL elastic net, $h=7$ | −1.41 | 0.921 | 2.28 | **0.011** |
+
+SOL, which shows nothing at either horizon against the zero benchmark, becomes the strongest
+rejecter. The earlier reading — four of five rejections in BTC, "consistent with a weak
+short-horizon effect in the most liquid asset" — was an artifact of the benchmark. Under the
+corrected benchmark the geography reverses; under calibrated size neither pattern is
+distinguishable from noise.
 
 ### 4.3 Multiple testing
 
@@ -457,14 +578,23 @@ procedure.
 | Benjamini–Hochberg, FDR 5% | **2** |
 | Holm–Bonferroni, FWER 5% | **0** |
 
-Five raw rejections against 0.9 expected by chance is more than noise would comfortably
-produce, but it is not many. Controlling the false discovery rate leaves BTC ridge and BTC
-elastic net at $h=1$, both with $p^{\text{BH}} = 0.046$, which is a hair under the line.
-Controlling the family-wise error rate leaves nothing: the smallest raw p-value, 0.0044,
-does not clear the Holm threshold of $0.05/18 = 0.0028$.
+Controlling the false discovery rate leaves BTC ridge and BTC elastic net at $h=1$, both with
+$p^{\text{BH}} = 0.046$, a hair under the line. Controlling the family-wise error rate leaves
+nothing: the smallest raw p-value, 0.0044, does not clear the Holm threshold of
+$0.05/18 = 0.0028$.
 
-The honest summary is that the evidence for predictability is real but marginal, and would
-not survive a stricter reader.
+**But 0.9 is the wrong reference.** Five raw rejections would be surprising against a
+correctly sized test. At the measured size of the test that produced them (Section 3.6.4) the
+expectation is $18 \times 0.142 \dots 0.220 = 2.6$ to $4.0$; against the recursive-mean
+benchmark, using per-horizon sizes, it is $9 \times 0.062 + 9 \times 0.10 \approx 1.5$. Both
+corrections above are also applied to p-values from a test whose size is 14–22% rather than
+5%, so they do not control the error rates they name.
+
+The honest summary is that we cannot place a calibrated bound on the false-discovery rate over
+this family with the analytic test available here, and that the raw counts are within what the
+null produces. With the recursive-mean benchmark the surviving counts are additionally
+bandwidth-dependent: 2 survive FDR control at $h-1$ lags, 5 at the plug-in bandwidth, with 0
+and 1 surviving FWER control. A conclusion that depends on the bandwidth is not a conclusion.
 
 ### 4.4 Sign timing
 
@@ -476,14 +606,25 @@ built from overlapping windows and counting each as independent would shrink the
 $\sqrt{h}$ and manufacture significance.
 
 Directional accuracy spans 0.471 to 0.528 and every setting lies inside its coin-flip
-band. **Zero of 18** settings show significant sign-timing skill under
-Pesaran–Timmermann. Two are significantly *anti*-predictive: ETH ridge and ETH elastic net
-at $h=7$ post $S = -3.29$ and $S = -3.33$, both $p \approx 0.001$, with hit rates of 0.476
-and 0.479.
+band. **Zero of 18** settings show significant sign-timing skill under Pesaran–Timmermann.
 
-Those two are worth dwelling on, because they are the reason this report never prints a
-bare p-value. Reported as "$p = 0.001$" alone, they look like the strongest findings in
-the study. They are among the worst.
+**The two previously reported as significantly *anti*-predictive are not significant either.**
+Every variance term in the Pesaran–Timmermann statistic divides by $n$, so it requires
+non-overlapping observations, and the results table feeds it all $n$ rows of an $h$-step
+forecast whose labels overlap $h-1$ times. That inflates the statistic by roughly $\sqrt{h}$.
+Figure 3 above avoids exactly this error by drawing its band at $n/h$ — so the table and the
+figure disagreed by a factor of $\sqrt{7}$. Recomputed on non-overlapping subsamples,
+averaged over all $h$ phase offsets:
+
+| Setting | $S$ (all $n$) | $p$ | $S$ (non-overlapping) | $p$ |
+| --- | ---: | ---: | ---: | ---: |
+| ETH ridge, $h=7$ | −3.29 | 0.001 | −1.27 | 0.268 |
+| ETH elastic net, $h=7$ | −3.33 | 0.001 | −1.27 | 0.243 |
+| SOL ridge, $h=7$ | −1.73 | 0.083 | −0.66 | 0.597 |
+| BTC ridge, $h=7$ | +1.41 | 0.159 | +0.54 | 0.592 |
+
+The conclusion — no sign-timing skill in either direction — is unchanged. The evidence
+previously offered for its most striking part was invalid.
 
 ### 4.5 Economic performance
 
@@ -511,6 +652,38 @@ settings that profit from it should overlap.
 ![Figure 6](reports/figures/fig6_equity.png)
 
 **Figure 6.** Out-of-sample equity net of costs, against the always-long reference.
+
+**Both economic winners are market exposure, and here is the measurement.** Regressing each
+strategy's net return on buy-and-hold's, same schedule and cost model, Newey–West standard
+error on the intercept:
+
+| Setting | Sharpe | % long | $\beta$ to B&H | $\alpha$ (ann.) | $t(\alpha)$ |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| ETH gbm, $h=1$ | 0.91 | 94% | 0.76 | +0.236 | 1.07 |
+| ETH gbm, $h=7$ | 0.92 | 91% | 0.89 | +0.192 | 1.15 |
+| BTC gbm, $h=7$ | 0.82 | 90% | 0.82 | +0.097 | 0.66 |
+| SOL elastic net, $h=7$ | 0.60 | 56% | 0.43 | +0.499 | 1.23 |
+| `historical_mean` (all) | 0.23–0.84 | 100% | 1.00 | ≈0 | ≤\|1.6\| |
+
+Neither setting whose Sharpe interval excludes zero has an alpha distinguishable from zero
+once market exposure is removed.
+
+**And execution is assumed at a price the signal has not been computed from yet.** Every
+feature at bar $t$ uses the completed close $C_t$; the backtest enters at that same $C_t$.
+Delaying entry one bar, forecasts unchanged:
+
+| Setting | Sharpe (as reported) | Sharpe ($t+1$ entry) | Δ |
+| --- | ---: | ---: | ---: |
+| ETH gbm, $h=1$ | 0.91 | 0.21 | −0.70 |
+| BTC ridge, $h=1$ | 0.51 | −0.23 | −0.74 |
+| ETH elastic net, $h=1$ | −0.11 | −0.61 | −0.50 |
+| BTC elastic net, $h=1$ | 0.33 | 0.06 | −0.27 |
+| ETH gbm, $h=7$ | 0.92 | 0.98 | +0.06 |
+| all $h=7$ settings | — | — | \|Δ\| ≤ 0.20 |
+
+Every $h=1$ result is a property of the execution convention as much as of the forecasts.
+The one surviving economic result, ETH gbm at $h=7$, is the one shown above to be 91% long
+with $\beta = 0.89$.
 
 Six of 18 settings out-Sharpe buy-and-hold on the point estimate, which is the weakest
 form of that claim given that every interval contains zero. Meanwhile the
@@ -553,30 +726,34 @@ draw and calling it an estimate.
 
 ## 5. Discussion
 
-Three things are worth taking from this.
+**The benchmark defines the hypothesis, and the default one defines the wrong hypothesis.**
+Diebold–Mariano is the wrong default whenever the benchmark is nested. But swapping in
+Clark–West is not sufficient, because the correction inherits whatever null the benchmark
+encodes. Against a zero-return benchmark, an estimator with a fitted intercept is tested for
+drift and conditional predictability jointly. The measured consequence is a test that rejects
+3–4× too often, and a rejecting set whose membership changes completely — BTC to SOL — when
+the benchmark is repaired. This generalizes past this dataset: **a paper reporting Clark–West
+against a random walk has not stated its null until it says whether the larger model fits an
+intercept.**
 
-**The choice of test changed the answer.** Diebold–Mariano is the default in applied
-forecast comparison and it is the wrong default when the benchmark is nested, which it is
-in almost every return-predictability study that compares a model to a random walk. Here
-the difference is not cosmetic: "0 of 18, and 7 significantly worse" versus "5 of 18
-reject." A referee shown only the first would conclude that the models are harmful. A
-referee shown only the second, without Section 4.3, would conclude that something was
-found. Neither is the result.
+**Calibrate the test; do not assume it.** That distortion is invisible in code review, survives
+a 154-test suite that checks every formula against hand-computed values, and is *not* detected
+by simulating a forecast that is independent noise — a design that measures neither size nor
+bias, and which this project used. What detects it is a null built by resampling the data
+through the actual pipeline with actual estimated forecasts. It costs a few minutes of compute
+and should be standard practice.
 
-**Statistical significance and economic value came apart cleanly.** The settings that
-reject no-predictability have negative or near-zero out-of-sample $R^2$ and Sharpe
-intervals straddling zero. The settings that make money do not reject. This is what a
-correctly specified null looks like when it is true, and it is a more informative outcome
-than either group appearing alone.
+**Most of the apparent performance was exposure, and it can be measured.** The highest Sharpe
+ratios belong to a forecaster that never changes its mind; the two settings whose intervals
+exclude zero carry $\beta = 0.76$ and $0.89$ to buy-and-hold with insignificant alpha; and a
+one-bar execution delay removes most of the $h=1$ performance. Three cheap controls — a
+buy-and-hold row, an exposure regression, a delayed-entry variant — separate signal from
+exposure and from timing convention.
 
-**Most of the apparent performance was exposure.** The highest Sharpe ratios in the study
-belong to a forecaster that never changes its mind. Any evaluation that had omitted a
-buy-and-hold reference would have credited the drift model with skill it does not have.
-
-The result is consistent with weak-form efficiency at daily frequency for large-cap
-cryptocurrencies over this period, net of realistic costs. It does not say that no crypto
-signal exists. It says that this feature set, at these horizons, on these assets, does not
-produce one that survives its own error bars.
+**This is not evidence for weak-form efficiency.** An oversized test cannot bound
+predictability in either direction, and no minimum detectable effect is computed here, so this
+design is not powered to exclude an economically relevant effect. What it establishes is
+narrower and mostly methodological.
 
 ---
 
@@ -597,26 +774,48 @@ produce one that survives its own error bars.
   scale with size or volatility.
 - **Intervals are percentile bootstrap**, not BCa. Adequate for a reject / do-not-reject
   reading, mildly biased for a statistic as asymmetric as the Sharpe ratio.
-- **The deflated Sharpe understates the true search.** It deflates for the models raced
-  within one asset-horizon, not for the whole grid, nor for the feature set and horizons
-  fixed before the grid ran.
-- **The sample end date is unpinned**, so re-running extends the window and the numbers
-  drift. The evaluated window is stamped into `reports/results.md` on every run so any
-  table can be tied to the data that produced it.
+- **The deflated Sharpe understates the true search.** It deflates for the six models raced
+  within one asset-horizon — three of which are benchmarks — not for the whole grid, nor for
+  the feature set and horizons fixed before the grid ran. It should not be read as a corrected
+  number.
+- **The size calibration resamples one asset's returns.** Size is not established for other
+  assets, other frequencies, or nulls preserving volatility clustering — where the corrected
+  test rejects 28–43% and nothing tested here is usable. A definitive rejection count needs
+  bootstrap inference on $\hat{f}_t$, which this study does not have.
+- **No minimum detectable effect is computed**, so no statement here bounds predictability from
+  above.
+- **Hyperparameters were fixed by hand and never tuned.** No conclusion here is about a model
+  *family*; they are about `Ridge(alpha=1)`, `ElasticNet(1e-3, 0.5)`, and one booster config.
+- **The sample end date is unpinned.** `StudyConfig.end` defaults to `None`, which resolves to
+  today, and `DEFAULT_CACHE_DIR` is a *relative* path — so running from a different working
+  directory misses the cache and silently re-dates the study. The committed `data/cache/` pins
+  this study to 2026-07-18, and the evaluated window is stamped into `reports/results.md`, but
+  the pipeline as configured is not reproducible without that cache.
 
 ---
 
 ## 7. Conclusion
 
 Across 18 model, asset, and horizon combinations evaluated by purged walk-forward
-cross-validation from 2020 to 2026, there is a faint statistical signal in BTC at the
-one-day horizon that survives false-discovery control and does not survive family-wise
-control. It does not convert into a forecast that beats an ex-ante drift estimate, into
-sign-timing skill, or into a Sharpe ratio distinguishable from zero after costs. The
-strategies with the highest Sharpe ratios in the study are long-only exposure.
+cross-validation from 2020 to 2026, **no predictability claim survives a correctly benchmarked
+and size-calibrated test.** The test in standard use — Clark–West against a zero-return
+benchmark at an $h-1$ bandwidth — rejects 14–22% of the time on data constructed to contain no
+predictability, because a fitted intercept makes the zero forecast the wrong restriction and
+the sample drift enters the statistic directly. Repairing the benchmark brings measured size to
+5–6% at $h=1$, including for early-stopped gradient boosting, and *relocates* the rejections
+from BTC to SOL rather than removing them; against calibrated size, neither pattern is
+distinguishable from noise. The only significant sign-timing results were an overlapping-label
+artifact. The two settings with Sharpe intervals excluding zero carry $\beta = 0.76$ and $0.89$
+to buy-and-hold with insignificant alpha, and the one-day one loses three quarters of its
+Sharpe to a one-bar execution delay.
 
-The negative result is the deliverable. It is reported with the tests that would have
-detected a positive one, and with the corrections that would have removed a spurious one.
+I do not claim that no crypto signal exists at daily frequency; this design is not powered to
+support that claim. The transferable result is that four routine choices — **which benchmark,
+which HAC bandwidth, whether labels overlap, and when execution is assumed** — determined every
+apparent finding in the first version of this study, and that all four are cheap to check.
+
+The full audit, with reproduction scripts and a record of which earlier claims each number
+overturns, is in [`audit/`](audit/README.md).
 
 ---
 
@@ -625,7 +824,7 @@ detected a positive one, and with the corrections that would have removed a spur
 ```bash
 make setup      # install the package and dev extras into ./venv
 make backtest   # download data, run the study, regenerate reports/ and figures
-make test       # 154 tests, including the no-lookahead and purge guarantees
+make test       # 157 tests, including the no-lookahead and purge guarantees
 make check      # lint, type-check, test (the CI gate)
 make app        # a small local viewer on http://127.0.0.1:8000
 make paper      # typeset paper/paper.pdf (needs tectonic)
@@ -660,7 +859,7 @@ src/cryptoforecast/
 app/                   a small Flask viewer over the same evaluation
 paper/                 NeurIPS-format preprint; tables generated from the results
 reports/               generated results.md, results.csv, figures (PNG and PDF)
-tests/                 154 tests, including the leakage guarantees
+tests/                 157 tests, including the leakage guarantees
 ```
 
 ---
