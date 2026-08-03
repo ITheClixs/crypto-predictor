@@ -76,10 +76,16 @@ def data_summary_table(table: pd.DataFrame) -> str:
 
 
 def accuracy_table(table: pd.DataFrame) -> str:
-    """Point accuracy and the three predictive-accuracy tests, every setting."""
+    """Point accuracy and the predictive-accuracy tests, every setting.
+
+    Clark-West appears twice, against the zero forecast and against the recursively
+    estimated mean. They are different hypotheses, not a robustness check: only the
+    second is the slopes-zero restriction of an estimator that fits an intercept, and
+    on this data they disagree about which settings reject.
+    """
     body: list[str] = []
     for (asset, horizon), block in table.groupby(["asset", "horizon"]):
-        body.append(f"\\multicolumn{{8}}{{l}}{{\\emph{{{asset}, $h={int(horizon)}$}}}} \\\\")
+        body.append(f"\\multicolumn{{9}}{{l}}{{\\emph{{{asset}, $h={int(horizon)}$}}}} \\\\")
         for _, r in _rows_in_order(block[block["model"] != "buy_and_hold"]).iterrows():
             body.append(
                 f"\\quad {MODEL_LABELS.get(r['model'], r['model'])} & "
@@ -87,6 +93,7 @@ def accuracy_table(table: pd.DataFrame) -> str:
                 f"{_num(r['dir_acc'])} & {_num(r['rank_ic'])} & "
                 f"{_signed(r['dm_stat'], r['dm_p_vs_rw'])} & "
                 f"{_signed(r['cw_stat'], r['cw_p_vs_rw'])} & "
+                f"{_signed(r.get('cw_stat_vs_mean'), r.get('cw_p_vs_mean'))} & "
                 f"{_signed(r['pt_stat'], r['pt_p'])} \\\\"
             )
         body.append("\\addlinespace")
@@ -97,10 +104,11 @@ def accuracy_table(table: pd.DataFrame) -> str:
         "Dir.\\ acc.",
         "Rank IC",
         "DM $(p)$",
-        "CW $(p)$",
+        "CW vs.\\ 0 $(p)$",
+        "CW vs.\\ mean $(p)$",
         "PT $(p)$",
     ]
-    return _tabular(body[:-1], "lrrrrrrr", header)
+    return _tabular(body[:-1], "lrrrrrrrr", header)
 
 
 def performance_table(table: pd.DataFrame) -> str:

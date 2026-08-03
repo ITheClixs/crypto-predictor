@@ -8,6 +8,235 @@ reproduce from `audit/scripts/`.
 
 ---
 
+## 2026-08-03 — Literature gate applied to the manuscript; size study rebuilt
+
+Scope: the 2026-07-30 pass fixed the *claims*; this one fixes the *framing* and the
+*measurements the framing rests on*. Three of the four things the paper presented as its
+contribution turned out to be published already, the size numbers turned out to be
+under-replicated and computed against an unpinned sample, and the "no usable inference under
+dependence" conclusion turned out to be an artifact of the wrong dependence null.
+
+### R11 — The novelty framing (CRITICAL)
+
+**Was:** "Benchmarking is the one item on the list this study initially got wrong, and
+correcting it is the paper's main contribution." (`paper.tex` §Introduction, `README.md` §1.)
+
+**Why wrong:** the literature gate of 2026-07-30 had already found the opposite, and the
+manuscript had not been updated to reflect it. Two papers that the gate could not read were
+retrieved on 2026-08-03 via a text proxy (MDPI returns HTTP 403 to direct requests) and
+settle it:
+
+- **Clark & West (2006)** state the null of the MSPE-adjusted test as a *zero-mean* martingale
+  difference with the zero forecast as benchmark. A drift term entering the statistic is the
+  test behaving as specified. The error is interpretive, not econometric.
+- **Magner & Hardy (2022)**, *Mathematics* 10(13):2338, §2: "we compare the predictive ability
+  of our models against a simple naive random walk process (we consider the first difference
+  of the random walk, which is equivalent to a zero forecast (DRW) or constant forecast
+  (RW))." They report **both** benchmarks, on 13 cryptocurrencies over 2018–2022, using **Wild
+  Clark–West**. Reporting both benchmarks is established practice in this exact literature.
+- **Pincheira, Hardy & Muñoz (2021)** already documented CW's long-horizon size distortion and
+  published the fix.
+- **Goyal & Welch (2008)** / **Campbell & Thompson (2008)** established the recursive mean as
+  the standard benchmark ~20 years ago; **Moosa & Burns (2016)** argue the drift-vs-no-drift
+  question directly.
+
+**Now:** both documents carry an explicit "what is new here, and what is not" paragraph naming
+all five sources, and a Related Work paragraph on nested predictive-accuracy testing. The
+claimed contribution is narrowed to three things: a size calibration of the whole applied
+pipeline including an adaptive learner (no prior measurement found), a measurement of WCW in
+this regime (negative), and a worked account of four choices that each reversed a headline
+finding. The title changed from *On the Out-of-Sample Predictability of Short-Horizon
+Cryptocurrency Returns* to *Benchmark Choice and Measured Test Size in Nested Tests of
+Cryptocurrency Return Predictability*.
+
+**Verification levels** are recorded per row in `LITERATURE_AND_NOVELTY_MATRIX.csv`; the two
+rows previously marked "403, not read" are now marked full-text-read with the quoted
+benchmark specification.
+
+### R12 — Wild Clark–West implemented and measured (NEW RESULT, negative)
+
+**Was:** "a bootstrap on $\hat f_t$ rather than an analytic long-run variance is required for
+a definitive count. We do not have one." The paper asked for something that had existed since
+2021.
+
+**Now:** WCW is implemented (`audit/scripts/wcw.py`, `mc_null_wcw.py`) exactly as specified —
+$\hat f^W_t = \hat e^b_t(\hat e^b_t - \theta_t \hat e^m_t)$, $\theta_t \sim$ iid
+$N(1, \phi^2)$, $\phi = c\,\mathrm{sd}(\hat e^m)$ for $c \in \{0.01, 0.02, 0.04\}$, smoothed
+over $K = 2$ draws — and measured both on the study's forecasts and inside the Monte Carlo.
+
+**Result: it changes nothing here, for two separate reasons.**
+
+1. *Numerically.* Across all 36 setting–benchmark pairs the largest $|WCW - CW|$ is 0.0034 at
+   $c = 0.04$ and 0.0019 at $c = 0.02$; no 5% decision changes under any $c$. In the Monte
+   Carlo its rejection rate differs from CW's by ≤0.4 pp in every cell. The perturbation is
+   scaled to the forecast *error* while the core statistic is scaled by the forecast
+   *difference*; in this signal-to-noise regime the injected term is 0.5–5.1% of the core
+   statistic's standard deviation.
+2. *Structurally.* $\mathbb{E}[\theta_t] = 1$, so the drift term of the benchmark
+   misspecification passes through untouched. WCW repairs a degeneracy in the reference
+   distribution; it cannot repair a benchmark that encodes the wrong hypothesis.
+
+The one setting where the $\theta$ draw matters is BTC ridge at $h=7$, whose $p$-value is
+0.05004: the 5% decision goes to the model in 43% of draws.
+
+### R13 — The size table, rebuilt (CRITICAL — supersedes R3)
+
+**Was:** the table in R3 below: CW vs zero 14.2 / 22.0 / 22.0%, CW vs recursive mean
+6.2 / 6.2 / 5.3% at $h=1$, ~10% at $h=7$, from 400 replications (150 for the booster).
+
+**Why wrong:** two independent protocol failures.
+
+1. **Unpinned sample.** Those runs used a BTC return pool of 2,768 bars ending 2026-07-30 —
+   a cache miss from running in the wrong working directory, i.e. Issue 9 firing again. The
+   *identical* script run from the repository root against the committed cache (2,755 returns
+   ending 2026-07-18) gives materially different cells: CW vs recursive mean at $h=7$ moves
+   from 10.2% to 5.0%.
+2. **Too few replications.** At 400 replications, re-running with a different seed on the same
+   pinned pool moved cells by up to 3 pp (e.g. CW vs recursive mean, ridge, $h=1$: 3.2% vs
+   6.0%). The published numbers implied a precision the design did not have.
+
+**Now:** 2,000 replications per linear cell and 600 for the booster, against the pinned cache,
+with Monte Carlo standard errors reported in the table. Both retracted runs remain committed
+as `mc_null_h{1,7}_b1.csv` so the record is checkable; the seed replicates are
+`mc_null_wcw_h{1,7}_b1_s11.csv`.
+
+**Downstream:** every quoted size number, the expected-rejection arithmetic, and the abstract,
+discussion and conclusion of both documents.
+
+### R14 — The dependence null was the wrong null (CRITICAL — reverses a stated conclusion)
+
+**Was:** "under dependence-preserving resampling it is not trustworthy at any horizon", from
+block-21 resampling giving 28–43% rejection against the recursive mean.
+
+**Why wrong:** block resampling preserves volatility clustering *and* whatever genuine
+within-block predictability the real return series contains. Its rejection rate is an upper
+bound on size, not a measurement of it — the changelog entry for R3 said so, and the
+manuscript then read it as a size failure anyway.
+
+**New experiment** (`mc_null_wcw.py --signflip`): block-resample, then randomise the sign of
+each deviation from the sample mean, $r_t = \mu + s_t(r^*_t - \mu)$ with $s_t = \pm 1$
+independent. $|r_t - \mu|$ is untouched bar for bar, so the volatility path survives exactly;
+$\mathbb{E}[r_t \mid \mathcal{F}_{t-1}] = \mu$ by construction, so no conditional mean
+predictability remains. This is the null with realistic dependence *and* a true hypothesis.
+
+Rejection at nominal 5%, 2,000 replications, BTC pool:
+
+| statistic | h=1 indep | h=1 sign-flip | h=1 block | h=7 indep | h=7 sign-flip | h=7 block |
+|---|---|---|---|---|---|---|
+| CW vs zero, ridge / EN / GBM | 12.0 / 17.5 / 16.8 | 14.1 / 20.9 / 20.0 | 53.2 / 43.9 / — | 22.1 / 23.4 / — | 28.6 / 30.4 / — | 25.7 / 25.1 / — |
+| CW vs recursive mean, ridge / EN / GBM | 3.7 / 3.1 / 3.7 | 4.8 / 3.5 / 3.0 | 44.6 / 30.6 / — | 5.9 / 5.7 / — | 7.2 / 6.8 / — | 10.7 / 9.5 / — |
+| CW vs zero, drift-only model | 27.5 | 34.4 | 25.2 | 36.8 | 41.9 | 33.3 |
+
+**Now:** the corrected test *is* usable under realistic dependence — 3.0–4.8% at $h=1$ and
+6.8–7.2% at $h=7$. Almost all of the block column was genuine within-block predictability.
+The calibration transfers across assets: on a SOL return pool (shorter, ~2× the volatility
+and ~2× the drift) CW vs the recursive mean is 3.8/3.2% at $h=1$ and 7.5/7.3% at $h=7$.
+
+### R15 — The study's conclusion, revised in the other direction (CRITICAL)
+
+**Was:** "no predictability claim survives a correctly benchmarked and size-calibrated test";
+"against calibrated size the observed counts are within what the null produces."
+
+**Why wrong:** that was true when the recursive-mean benchmark was believed to have 6–10%
+size. It does not have. With calibrated size of 3–8%, the expected rejection count over the
+family of 18 is **about 1**, and 7 are observed. The excess is real and the previous framing
+buried it.
+
+**Now:** both documents state that the two benchmarks support opposite readings of identical
+forecasts — 5 of 18 against ~4 expected under the zero benchmark (uninformative), 7 of 18
+against ~1 expected under the recursive mean (a real excess) — and then bound how much the
+excess is worth: 2 settings survive FDR control and they are two parametrisations of one
+linear model on one asset at one horizon ($p_{BH} = 0.035$), none survives FWER control
+($p_{Holm} = 0.069$), the surviving set moves with the HAC bandwidth (2 vs 5), and the same
+settings have negative $R^2_{OS}$, no sign-timing skill and no alpha net of costs, execution
+timing and market exposure. The stated conclusion is now "one weak, uneconomic candidate",
+not "nothing".
+
+### R16 — The pipeline now produces the paper's headline (CRITICAL — was a contradiction)
+
+**Was:** `study.py` computed Clark–West against `PRIMARY_BENCHMARK = "random_walk"` only, and
+`pesaran_timmermann` on the full overlapping series. So the generated appendix table
+(`paper/tables/accuracy.tex`) carried a single CW column against the **zero** benchmark and the
+**inflated** PT statistic — both of which the manuscript retracts in the body. A referee turning
+to Table 3 would have found it contradicting the abstract, and every recursive-mean number in
+the paper came from `audit/` scripts rather than from the study.
+
+**Now:**
+
+- `ModelRun` carries `cw_stat_vs_mean` / `cw_p_vs_mean` alongside the zero-benchmark pair;
+  `accuracy_table` renders both columns, headed "CW vs. 0" and "CW vs. mean".
+- `pesaran_timmermann_non_overlapping(y, yhat, horizon)` slices to `y[k::h]` for each phase and
+  averages, matching `audit/scripts/pt_and_exec.py`; `study.py` calls it instead of the raw
+  version. Its docstring records that the averaged p-value is a cross-phase summary, not a
+  combined test.
+- `StudyConfig.end` is pinned to `2026-07-18` instead of `None` → today. This closes Issue 9 at
+  the source rather than relying on the cache being present.
+
+Regenerated end to end (`make backtest && make tables && make paper`) against the pinned
+sample. Every headline reproduces from the pipeline: R²_OS negative in 16 of 18, DM rejecting
+in favour of the benchmark in 7 of 18, CW vs zero 5 of 18, CW vs recursive mean 7 of 18 with
+p = 0.0038 / 0.0039 on the two BTC h=1 survivors. Point estimates moved by ≤6e-3 (Sharpe),
+≤2e-3 (CW), ≤3e-5 (R²_OS) against the previous `reports/results.csv`; `n_oos` moved by one bar
+from the explicit end date. The manuscript's sign-timing table was refreshed to the
+regenerated values (ETH elastic net −1.28 / 0.242, ETH ridge −1.28 / 0.265, SOL ridge −0.67 /
+0.604, BTC ridge +0.54 / 0.596).
+
+Test suite 157 → 164. New tests pin the phase-averaging behaviour, the presence of both CW
+columns in the rendered table, the two CW fields in `results.csv`, and the pinned end date.
+
+### R17 — The four disclosed gaps, closed (MAJOR)
+
+Every item the 2026-08-03 draft listed as "open, disclosed in the paper" was measured rather
+than left as a caveat.
+
+**Minimum detectable effect.** "Not powered to exclude an economically relevant effect" is not
+a statement until the effect is named. `mc_null_wcw.py --rho R` passes the sign-flipped
+deviations through an AR(1) filter, `r_t - mu = R (r_{t-1} - mu) + sqrt(1 - R^2) d_t`, which
+holds the unconditional variance fixed so the optimal one-step predictor's population `R^2` is
+exactly `R^2`; the one-bar return is already in the feature set. Power at h=1 against the
+recursive mean, 500 replications per cell:
+
+| rho | 0.02 | 0.04 | 0.06 | 0.08 | 0.10 | 0.11 | 0.12 |
+|---|---|---|---|---|---|---|---|
+| population R² | .0004 | .0016 | .0036 | .0064 | .0100 | .0121 | .0144 |
+| ridge | 5.2% | 11.4% | 24.0% | 42.8% | 66.2% | 75.0% | 83.6% |
+| elastic net | 4.8% | 14.0% | 31.4% | 55.2% | 75.8% | 83.8% | 90.4% |
+
+**MDE = population R² of 1.34% at 80% power** (rho = 0.116), about four times the largest
+`R²_OS` anywhere in the study. Both directions are now stated: the null result says nothing
+about effects below ~1% of return variance, and an effect that small would be eaten by the
+cost model anyway.
+
+**Cost curve.** `audit/scripts/cost_curve.py` sweeps the per-side charge over the saved
+forecasts (no refits). Settings with positive net Sharpe: 16/18 at 0 bp, 13/18 at 17 bp, 11/18
+at 25 bp, 9/18 at 40 bp, 6/18 at 100 bp. Median break-even 31 bp — roughly twice the assumed
+charge, so the economic conclusion is not delicate at the margin. The sweep also re-derives the
+exposure finding from a new direction: the settings tolerating the highest costs are the ones
+that barely trade (ETH GBM h=1 breaks even at 148 bp and is 94% long), so cost tolerance here
+tracks turnover rather than forecast quality.
+
+**ETH size.** Calibration now covers all three assets rather than BTC and SOL. CW against the
+recursive mean under the sign-flipped null: 3.5–4.8% (BTC), 3.7–4.5% (ETH), 3.2–3.8% (SOL) at
+h=1; 6.8–7.2 / 6.9–7.5 / 7.3–7.5% at h=7. The recursive-mean calibration is stable across
+assets whose daily volatilities differ by a factor of two. The zero-benchmark distortion is
+not, and Equation (drift) says it should not be: 14.1–20.9% on BTC against 9.7–12.1% on ETH
+and SOL, because it scales with drift relative to noise.
+
+**Figure.** The calibration was the paper's main contribution and had no figure.
+`audit/scripts/plot_size.py` draws Figure 9 from the Monte Carlo cells, so it cannot drift from
+Table 2.
+
+### R18 — Writing (MODERATE)
+
+Applied the outstanding items from `AI_SLOP_AUDIT.md`: the Pesaran–Timmermann, PSR and
+expected-maximum-Sharpe expressions moved to an appendix that also states WCW (§6 of that
+audit); the recurring setup–pivot–aphorism construction removed from six places (§3); the
+limitations section rewritten so every item states what would change if it were repaired
+(§7); "deliberately constrained gradient booster" and "not a formality" replaced by the
+hyperparameters and the measured spread (§4); title changed to name the contribution (§8).
+
+---
+
 ## 2026-07-30 — Retraction pass
 
 Scope: remove statements that are false or unsupported, and downgrade the conclusions that depended

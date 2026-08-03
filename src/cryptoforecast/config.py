@@ -56,7 +56,11 @@ class StudyConfig:
     assets: tuple[str, ...] = ("BTC", "ETH", "SOL")
     horizons: tuple[int, ...] = (1, 7)
     start: str = "2019-01-01"
-    end: str | None = None  # None => today
+    #: Pinned, not ``None``. Resolving the end date to "today" meant that any run
+    #: missing the committed cache silently re-dated the whole study, which is how
+    #: one Monte Carlo pass ended up measured on a sample twelve bars longer than
+    #: the manuscript's. Override explicitly to extend the window.
+    end: str | None = "2026-07-18"
     interval: str = "1d"
     seed: int = 7
     costs: CostModel = field(default_factory=CostModel)

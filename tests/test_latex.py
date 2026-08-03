@@ -114,6 +114,19 @@ def test_percentages_and_ampersands_are_escaped(table: pd.DataFrame) -> None:
 
 
 @pytest.mark.unit
+def test_accuracy_table_carries_both_clark_west_benchmarks(table: pd.DataFrame) -> None:
+    """The manuscript's headline count is against the recursive mean, so it must be shown.
+
+    Rendering only ``CW vs the zero forecast`` puts the appendix in contradiction with
+    the abstract: those two statistics test different nulls and disagree about which
+    settings reject.
+    """
+    rendered = all_tables(table)["accuracy"]
+    assert "CW vs.\\ 0 $(p)$" in rendered
+    assert "CW vs.\\ mean $(p)$" in rendered
+
+
+@pytest.mark.unit
 def test_tables_survive_a_row_with_missing_statistics(table: pd.DataFrame) -> None:
     """The random-walk row has no directional metrics; it must not crash rendering."""
     blanked = table.copy()

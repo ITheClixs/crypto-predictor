@@ -88,6 +88,8 @@ def results_table(study: StudyResults) -> pd.DataFrame:
                 "dm_p_vs_rw": run.dm_p_vs_rw,
                 "cw_stat": run.cw_stat_vs_rw,
                 "cw_p_vs_rw": run.cw_p_vs_rw,
+                "cw_stat_vs_mean": run.cw_stat_vs_mean,
+                "cw_p_vs_mean": run.cw_p_vs_mean,
                 "pt_stat": run.pt_stat,
                 "pt_p": run.pt_p,
                 "sharpe_phase_lo": min(phases) if phases else float("nan"),

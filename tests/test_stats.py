@@ -21,6 +21,7 @@ from cryptoforecast.evaluate.stats import (
     max_drawdown,
     newey_west_lrv,
     pesaran_timmermann,
+    pesaran_timmermann_non_overlapping,
     probabilistic_sharpe_ratio,
     sharpe_ratio,
 )
@@ -175,6 +176,56 @@ def test_pesaran_timmermann_is_inflated_by_overlapping_labels() -> None:
     # Same hit rate, no extra information -- yet only the overlapping version "rejects".
     assert independent.p_value > 0.05
     assert overlapping.p_value < 0.01
+
+
+@pytest.mark.unit
+def test_pesaran_timmermann_non_overlapping_averages_the_phases() -> None:
+    """The phase-averaged wrapper must equal the mean over the ``h`` disjoint subsamples.
+
+    ``audit/scripts/pt_and_exec.py`` produced the corrected sign-timing numbers this
+    way, and the manuscript quotes them; the pipeline must compute the same thing
+    rather than a second, subtly different aggregation.
+    """
+    rng = np.random.default_rng(11)
+    h, n = 7, 700
+    y = rng.normal(0.0, 0.03, n)
+    pred = -0.3 * y + rng.normal(0.0, 0.03, n)
+
+    phases = [pesaran_timmermann(pd.Series(y[k::h]), pred[k::h]) for k in range(h)]
+    combined = pesaran_timmermann_non_overlapping(pd.Series(y), pred, horizon=h)
+
+    assert combined.statistic == pytest.approx(np.mean([p.statistic for p in phases]))
+    assert combined.p_value == pytest.approx(np.mean([p.p_value for p in phases]))
+
+
+@pytest.mark.unit
+def test_pesaran_timmermann_non_overlapping_is_the_plain_test_at_h1() -> None:
+    """With one phase there is nothing to average, so the two must agree exactly."""
+    rng = np.random.default_rng(12)
+    y = rng.normal(0.0, 0.03, 400)
+    pred = 0.2 * y + rng.normal(0.0, 0.03, 400)
+
+    plain = pesaran_timmermann(pd.Series(y), pred)
+    combined = pesaran_timmermann_non_overlapping(pd.Series(y), pred, horizon=1)
+
+    assert combined.statistic == pytest.approx(plain.statistic)
+    assert combined.p_value == pytest.approx(plain.p_value)
+
+
+@pytest.mark.unit
+def test_pesaran_timmermann_non_overlapping_deflates_the_overlap_artifact() -> None:
+    """The whole point: the overlapping statistic rejects, the phase-averaged one does not."""
+    rng = np.random.default_rng(13)
+    h, n = 7, 300
+    y = rng.normal(0.0, 0.03, n)
+    pred = -0.3 * y + rng.normal(0.0, 0.03, n)
+    y_ovlp, p_ovlp = np.repeat(y, h), np.repeat(pred, h)
+
+    overlapping = pesaran_timmermann(pd.Series(y_ovlp), p_ovlp)
+    corrected = pesaran_timmermann_non_overlapping(pd.Series(y_ovlp), p_ovlp, horizon=h)
+
+    assert overlapping.p_value < 0.01
+    assert abs(corrected.statistic) < abs(overlapping.statistic)
 
 
 @pytest.mark.unit

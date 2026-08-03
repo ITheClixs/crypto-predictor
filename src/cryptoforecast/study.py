@@ -21,10 +21,14 @@ from .data.cache import DEFAULT_CACHE_DIR
 from .data.loaders import load_ohlcv
 from .dataset import build_supervised
 from .evaluate.metrics import regression_metrics
-from .evaluate.stats import clark_west, diebold_mariano, pesaran_timmermann
+from .evaluate.stats import clark_west, diebold_mariano, pesaran_timmermann_non_overlapping
 from .models.registry import PRIMARY_BENCHMARK, default_models
 
-#: The ex-ante reference forecast for the out-of-sample R^2 (Campbell-Thompson).
+#: The ex-ante reference forecast for the out-of-sample R^2 (Campbell-Thompson), and the
+#: forecaster the machine-learning models actually nest: setting their slopes to zero
+#: returns the training-window mean, not zero, because every one fits an unpenalised
+#: intercept. Clark-West is reported against both this and ``PRIMARY_BENCHMARK``; the
+#: latter adds "and the mean return is zero" to the null being tested.
 R2_BENCHMARK = "historical_mean"
 
 
@@ -38,10 +42,12 @@ class ModelRun:
     strategy: StrategyResult
     dm_stat_vs_rw: float  # negative => lower squared error than the random walk
     dm_p_vs_rw: float  # two-sided
-    cw_stat_vs_rw: float  # positive => beats the random walk it nests
+    cw_stat_vs_rw: float  # positive => beats the zero forecast; joint no-drift null
     cw_p_vs_rw: float  # one-sided
-    pt_stat: float  # positive => sign-timing skill
-    pt_p: float  # two-sided
+    cw_stat_vs_mean: float  # positive => beats the recursive mean it actually nests
+    cw_p_vs_mean: float  # one-sided
+    pt_stat: float  # positive => sign-timing skill; phase-averaged, non-overlapping
+    pt_p: float  # two-sided, mean over phases
     phase_sharpes: list[float]  # net Sharpe on each of the h start offsets
 
 
@@ -74,7 +80,8 @@ def run_asset_horizon(
         y_pred = oos["y_pred"].to_numpy()
         dm = diebold_mariano(y_true, y_pred, rw_pred, horizon=horizon)
         cw = clark_west(y_true, y_pred, rw_pred, horizon=horizon)
-        pt = pesaran_timmermann(y_true, y_pred)
+        cw_mean = clark_west(y_true, y_pred, r2_bench_pred, horizon=horizon)
+        pt = pesaran_timmermann_non_overlapping(y_true, y_pred, horizon=horizon)
         runs.append(
             ModelRun(
                 asset=asset,
@@ -87,6 +94,8 @@ def run_asset_horizon(
                 dm_p_vs_rw=dm.p_value,
                 cw_stat_vs_rw=cw.statistic,
                 cw_p_vs_rw=cw.p_value,
+                cw_stat_vs_mean=cw_mean.statistic,
+                cw_p_vs_mean=cw_mean.p_value,
                 pt_stat=pt.statistic,
                 pt_p=pt.p_value,
                 phase_sharpes=phase_sharpes(oos, horizon, cfg.costs),

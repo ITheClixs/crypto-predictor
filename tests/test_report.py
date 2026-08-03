@@ -15,7 +15,17 @@ from cryptoforecast.plots import FIGURES, generate_figures
 @pytest.mark.unit
 def test_results_table_columns_and_rw_trades() -> None:
     table = results_table(make_study())
-    expected = {"dm_stat", "cw_stat", "pt_stat", "sharpe_net", "dsr", "trades", "oos_start"}
+    expected = {
+        "dm_stat",
+        "cw_stat",
+        "cw_stat_vs_mean",
+        "cw_p_vs_mean",
+        "pt_stat",
+        "sharpe_net",
+        "dsr",
+        "trades",
+        "oos_start",
+    }
     assert expected <= set(table.columns)
     rw = table[table["model"] == "random_walk"].iloc[0]
     assert rw["trades"] == 0  # a zero forecast never actually trades

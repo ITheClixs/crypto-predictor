@@ -229,6 +229,35 @@ def pesaran_timmermann(y_true: pd.Series, y_pred: np.ndarray) -> TestResult:
     return TestResult(float(pt), float(p_value))
 
 
+def pesaran_timmermann_non_overlapping(
+    y_true: pd.Series, y_pred: np.ndarray, horizon: int
+) -> TestResult:
+    """Pesaran-Timmermann averaged over the ``horizon`` non-overlapping phase offsets.
+
+    :func:`pesaran_timmermann` divides every variance term by ``n`` and so requires
+    independent observations. An ``h``-step forecast series has labels overlapping
+    ``h - 1`` times, which inflates the statistic by roughly ``sqrt(h)``. Slicing to
+    ``y[k::h]`` fixes that, but each slice discards ``(h - 1) / h`` of the sample and
+    no offset ``k`` is privileged, so we run all ``h`` of them and average.
+
+    The returned p-value is the **mean of the per-phase p-values**, which is a summary
+    across phases and not a combined test of the joint null; it is reported because it
+    is the figure the manuscript quotes. Read it alongside the statistic.
+    """
+    if horizon < 1:
+        raise ValueError(f"horizon must be >= 1, got {horizon}")
+    yt = np.asarray(y_true, dtype=float)
+    yp = np.asarray(y_pred, dtype=float)
+    phases = [
+        pesaran_timmermann(pd.Series(yt[k::horizon]), yp[k::horizon]) for k in range(horizon)
+    ]
+    stat = [p.statistic for p in phases if math.isfinite(p.statistic)]
+    pval = [p.p_value for p in phases if math.isfinite(p.p_value)]
+    if not stat:
+        return TestResult(float("nan"), float("nan"))
+    return TestResult(float(np.mean(stat)), float(np.mean(pval)))
+
+
 def is_degenerate(returns: np.ndarray) -> bool:
     """True when a return series carries no usable variation.
 

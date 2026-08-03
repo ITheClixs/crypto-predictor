@@ -55,6 +55,8 @@ def make_study(n: int = 300):
         cw_p: float,
         pt_s: float,
         pt_p: float,
+        cw_stat_mean: float | None = None,
+        cw_p_mean: float | None = None,
     ):
         oos = pd.DataFrame({"y_true": y_true, "y_pred": y_pred, "close": close, "fold": 0})
         return ModelRun(
@@ -68,6 +70,8 @@ def make_study(n: int = 300):
             dm_p_vs_rw=dm_p,
             cw_stat_vs_rw=cw_stat,
             cw_p_vs_rw=cw_p,
+            cw_stat_vs_mean=cw_stat if cw_stat_mean is None else cw_stat_mean,
+            cw_p_vs_mean=cw_p if cw_p_mean is None else cw_p_mean,
             pt_stat=pt_s,
             pt_p=pt_p,
             phase_sharpes=phase_sharpes(oos, 1, costs),

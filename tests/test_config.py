@@ -37,3 +37,15 @@ def test_defaults_are_sensible() -> None:
     cfg = StudyConfig()
     assert cfg.horizons == (1, 7)
     assert cfg.wf.train_size > cfg.wf.min_train
+
+
+def test_sample_end_is_pinned() -> None:
+    """``end=None`` resolved to *today*, so a cache miss silently re-dated the study.
+
+    That is not hypothetical: it produced a Monte Carlo run against a sample twelve
+    bars longer than the manuscript's, with cell values differing by up to five
+    percentage points (``audit/CHANGELOG_RESEARCH.md`` R13). A study that reports
+    numbers must fix the window those numbers came from.
+    """
+    cfg = StudyConfig()
+    assert cfg.end == "2026-07-18"
