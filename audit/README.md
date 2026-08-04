@@ -35,6 +35,38 @@ size" reading was itself an artifact of an under-replicated size estimate. (2) T
 under block resampling was almost entirely genuine within-block predictability, not size failure.
 See `CHANGELOG_RESEARCH.md`, entries R13–R15.
 
+## What changed on 2026-08-04
+
+The audit is no longer only a diagnosis. Two of its findings became results, and one became
+an instrument.
+
+- **The distortion has a closed form.** `certificate_calibration.py` validates
+  `E[CW_0] ~= sqrt(n) S^2 / sqrt(S^2 + (1+p)/k)`: predicted 1.341 against measured 1.348 at an
+  annualised Sharpe of 0.8. A model with *no features at all* is declared significantly
+  predictive in 43% of samples at BTC's drift, 97.5% at a Sharpe of 1.6.
+- **The benchmark problem is solved rather than reported.** `src/alphacert/` implements a
+  drift-robust, anytime-valid certificate whose validity is a finite-sample theorem, so it
+  needs no calibration at all. Measured rejection rate on data with no predictability:
+  0.3-1.0% across drift Sharpe ratios from 0 to 2.0.
+- **The count is now tested jointly.** `mc_joint_null.py` runs the entire 18-setting
+  experiment inside each null replication; `joint_null_report.py` reads off P(N >= k), the
+  max-T global-null p-value, and Romano-Wolf step-down adjusted p-values.
+
+New scripts, in the order they are useful:
+
+```bash
+./venv/bin/python audit/scripts/certificate_study.py                 # 18 settings, magnitude
+./venv/bin/python audit/scripts/certificate_study.py --payoff sign   # 18 settings, direction
+./venv/bin/python audit/scripts/certificate_calibration.py 400       # drift sweep, horizon law
+./venv/bin/python audit/scripts/mc_joint_null.py 2000 --gbm          # joint null (hours)
+./venv/bin/python audit/scripts/joint_null_report.py                 # read the joint null
+```
+
+The asymmetry between the last two lines and the first three is the point. Calibrating a
+p-value over a dependent grid costs hours of refitting and has to be redone whenever the
+pipeline changes; the certificate costs one pass over forecasts that already exist, because
+its guarantee was proved rather than measured.
+
 ## Reproducing the audit
 
 **Run every command from the repository root.** `DEFAULT_CACHE_DIR` is the relative path

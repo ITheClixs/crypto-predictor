@@ -12,6 +12,7 @@ from cryptoforecast.backtest.strategy import (
     build_positions,
     buy_and_hold,
     phase_sharpes,
+    staggered_strategy,
 )
 from cryptoforecast.config import CostModel
 
@@ -27,6 +28,15 @@ def test_trading_costs_scale_with_turnover() -> None:
     pos = pd.Series([1.0, -1.0])
     costs = trading_costs(pos, cost_per_side=0.001)
     np.testing.assert_allclose(costs.to_numpy(), [0.001, 0.002])
+
+
+def _oos_with_path(returns: list[float], preds: list[float]) -> pd.DataFrame:
+    """OOS frame whose ``close`` column is the actual path implied by ``returns``."""
+    index = pd.date_range("2022-01-01", periods=len(returns), freq="D")
+    close = 100.0 * np.exp(np.cumsum(returns))
+    return pd.DataFrame(
+        {"y_true": returns, "y_pred": preds, "close": close, "fold": 0}, index=index
+    )
 
 
 def _oos(y_true: list[float], y_pred: list[float]) -> pd.DataFrame:
@@ -102,11 +112,17 @@ def test_buy_and_hold_ignores_the_forecast_and_trades_once() -> None:
 
 @pytest.mark.unit
 def test_an_always_long_forecast_is_indistinguishable_from_buy_and_hold() -> None:
-    """The claim the report makes about `historical_mean`, pinned as a test."""
-    truth = [0.02, -0.01, 0.03, -0.02, 0.01, 0.04]
-    drift = [0.001] * 6  # a positive constant: always long, by construction
-    oos = _oos(truth, drift)
-    signal = backtest_strategy(oos, horizon=1, costs=CostModel())
+    """The claim the report makes about `historical_mean`, pinned as a test.
+
+    Compared inside the primary specification: a forecaster that is always long and the
+    always-long reference must produce identical net returns, or the reference is not a
+    reference. Both are staggered with the same execution lag, because comparing a
+    daily-rebalanced strategy against one sampled every ``h`` bars compares two things.
+    """
+    returns = [0.02, -0.01, 0.03, -0.02, 0.01, 0.04, 0.0, -0.03]
+    drift = [0.001] * len(returns)  # a positive constant: always long, by construction
+    oos = _oos_with_path(returns, drift)
+    signal = staggered_strategy(oos, horizon=1, costs=CostModel())
     reference = buy_and_hold(oos, horizon=1, costs=CostModel())
     np.testing.assert_allclose(signal.net.to_numpy(), reference.net.to_numpy())
 
@@ -128,3 +144,50 @@ def test_phase_offset_selects_a_different_schedule() -> None:
     first = backtest_strategy(oos, horizon=7, costs=CostModel(), phase=0)
     second = backtest_strategy(oos, horizon=7, costs=CostModel(), phase=1)
     assert list(first.net.index) != list(second.net.index)
+
+
+
+@pytest.mark.unit
+def test_staggered_weight_is_the_rolling_mean_of_recent_signals() -> None:
+    """The portfolio holds 1/h in each vintage, so the aggregate weight averages h signals."""
+    preds = [1.0, 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0]
+    oos = _oos_with_path([0.01] * len(preds), preds)
+    result = staggered_strategy(oos, horizon=3, costs=CostModel(), execution_lag=1)
+
+    signs = pd.Series(np.sign(preds), index=oos.index)
+    expected = signs.shift(1).rolling(3, min_periods=1).mean()
+    pd.testing.assert_series_equal(
+        result.positions, expected[result.positions.index], check_names=False
+    )
+    assert result.positions.abs().max() <= 1.0
+
+
+@pytest.mark.unit
+def test_staggered_execution_lag_uses_only_past_signals() -> None:
+    """A signal that flips on the last bar must not affect that bar's return.
+
+    This is the feasibility property the single-phase backtest lacked: features at bar t are
+    built from the close of bar t, so a position taken at that same close is not implementable.
+    """
+    returns = [0.0] * 9 + [0.5]  # a large move on the final bar
+    preds = [0.0] * 9 + [1.0]  # ...which the forecast only calls on that same bar
+    oos = _oos_with_path(returns, preds)
+    result = staggered_strategy(oos, horizon=1, costs=CostModel(), execution_lag=1)
+    assert result.gross.iloc[-1] == pytest.approx(0.0)
+
+
+@pytest.mark.unit
+def test_staggered_constant_signal_stops_trading() -> None:
+    """An always-long forecast should pay one entry cost and then nothing."""
+    oos = _oos_with_path([0.001] * 40, [1.0] * 40)
+    result = staggered_strategy(oos, horizon=7, costs=CostModel(), execution_lag=1)
+    # Weight ramps to 1 over the first h bars, then stops moving.
+    assert result.turnover.iloc[10:].sum() == pytest.approx(0.0, abs=1e-12)
+    assert result.positions.iloc[-1] == pytest.approx(1.0)
+
+
+@pytest.mark.unit
+def test_staggered_annualises_daily_because_it_rebalances_daily() -> None:
+    oos = _oos_with_path([0.001] * 60, [1.0] * 60)
+    result = staggered_strategy(oos, horizon=7, costs=CostModel())
+    assert result.periods_per_year == pytest.approx(365.0)

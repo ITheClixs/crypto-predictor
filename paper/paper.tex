@@ -11,6 +11,15 @@
 \usepackage{booktabs}
 \usepackage{amsfonts}
 \usepackage{amsmath}
+\usepackage{amsthm}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{remark}[theorem]{Remark}
 \usepackage{nicefrac}
 \usepackage{microtype}
 \usepackage{graphicx}
@@ -37,7 +46,7 @@
 
 \newcommand{\rsq}{R^2_{OS}}
 
-\title{Benchmark Choice and Measured Test Size in\\Nested Tests of Cryptocurrency Return Predictability}
+\title{Betting Against the Benchmark:\\Drift-Robust, Anytime-Valid Certificates of\\Out-of-Sample Predictive Ability}
 
 \author{%
   Mehmet Demir Guven \\
@@ -50,132 +59,159 @@
 \maketitle
 
 \begin{abstract}
-  We ask whether daily cryptocurrency returns can be forecast out of sample well
-  enough to survive transaction costs, and find that the answer turns almost
-  entirely on which null the test states rather than on the data. Three
-  assets, two horizons, and six forecasters are evaluated by purged and embargoed
-  walk-forward cross-validation over 2020--2026, giving 18 machine-learning
-  settings. The configuration in default applied use---a conditional model raced
-  against a zero-return benchmark, corrected for nesting by Clark--West with a
-  Newey--West bandwidth of $h-1$---rejects 10--30\% of the time at a nominal 5\%
-  on data resampled so that the features carry no predictive information. That is
-  not a defect of the test. \citet{clark2006} state its null as a \emph{zero-mean}
-  martingale difference, and these samples have a large drift, so the statistic is
-  correctly rejecting a hypothesis the applied user did not intend to test. The
-  mechanism is visible in the statistic: the estimators fit an unpenalised
-  intercept, so the zero forecast is not their slopes-zero restriction, and the
-  adjusted differential
-  $\hat f_t = 2(y_t-\hat y^{\,b}_t)(\hat y^{\,m}_t-\hat y^{\,b}_t)$ carries a
-  drift term that is nonzero whatever the features do. Against the recursively
-  estimated mean, which is the restriction these estimators do nest, measured size
-  is 3--5\% at $h=1$ and 7--8\% at $h=7$ under a null that preserves the volatility
-  clustering of the real series, including for early-stopped gradient boosting, for
-  which we find no prior calibration evidence. The two benchmarks then support
-  opposite readings of identical forecasts. Against zero, 5 of 18 settings reject
-  and about 4 are expected from noise, so the count is uninformative. Against the
-  recursive mean, 7 of 18 reject against about 1 expected---a real excess, of which
-  two settings survive false-discovery control, none survives family-wise control,
-  and the two survivors are near-identical linear models on one asset. That excess
-  has no counterpart anywhere else in the study: $\rsq$ is negative in 16 of 18
-  settings, the only significant sign-timing results ($p\approx0.001$ at $h=7$)
-  arise from treating overlapping 7-day labels as independent and are
-  $p\approx0.24$--$0.27$ on non-overlapping subsamples, and the two settings whose
-  net Sharpe intervals exclude zero lose most of it under a one-bar execution delay
-  ($0.91\to0.21$) while carrying $\beta=0.76$ and $0.89$ to buy-and-hold with alpha
-  $t$-statistics of 1.07 and 1.15. We also implement the Wild Clark--West statistic
-  of \citet{pincheira2021}, the published remedy for Clark--West's long-horizon size
-  distortion, and find it numerically indistinguishable from Clark--West here: it
-  repairs a degeneracy, not a misspecified benchmark.
+  Tests of out-of-sample return predictability treat the asset's drift as a nuisance and
+  dispose of it by estimating it. That is where they break. A forecasting model with an
+  unpenalised intercept does not reduce to the zero forecast when its slopes vanish, so
+  racing it against zero tests no drift \emph{and} no conditional predictability jointly;
+  we show in closed form that the resulting Clark--West statistic converges to the
+  $t$-statistic of the asset's mean return, giving an expected value
+  $\sqrt{n}S^2/\sqrt{S^2+(1+p)/k}$ for per-period Sharpe ratio $S$, estimation window $k$
+  and $p$ estimated coefficients.
+  At Bitcoin's realised drift a model containing \emph{no features at all} is declared
+  significantly predictive in about two of every five samples. Replacing zero with the
+  recursive mean removes the leading term but leaves the benchmark's own estimation error
+  inside the statistic. We therefore eliminate the drift rather than estimate it. The
+  \emph{certificate} is a non-negative wealth process: one bettor stakes on the signal
+  leading the outcome, a second hedges every candidate drift two-sidedly, and the infimum
+  over the nuisance of their average is bounded by a martingale under the whole composite
+  null. Validity is finite-sample and uniform over time---no bandwidth, no long-run
+  variance, no bootstrap, no asymptotics, no refitting---and holds for arbitrary black-box
+  pipelines, so the process can be monitored daily on a live strategy without any
+  correction for looking. Its logarithm is the profit and loss of an explicit
+  drift-hedged strategy, so statistical and economic significance become one number:
+  rejecting at $5\%$ means that strategy multiplied capital twentyfold. E-values average
+  under arbitrary dependence, which corrects an eighteen-setting research grid without a
+  joint bootstrap, and averaging the $h$ phase certificates of an overlapping-horizon
+  forecast is literally the staggered $h$-vintage portfolio. The construction yields a
+  design law: certifying an annualised information ratio $\mathrm{IR}$ takes
+  $2\ln(1/\alpha)/\mathrm{IR}^2$ years, about $6/\mathrm{IR}^2$ at $5\%$. That bound is
+  optimal to first order, costs only three per cent more data than a fixed-sample test that
+  must be sized in advance and looked at once, rises to $7.4/\mathrm{IR}^2$ once the drift
+  hedge is paid for---exactly $\ln 2$ nats---and doubles again if the stake is learned online
+  rather than declared in advance, which turns pre-registration into a power calculation. Applied to three
+  cryptocurrencies, two horizons and three estimators over six years of daily
+  out-of-sample data, no setting is certified, the grid-level e-value is $1.18$ against the
+  $20$ required, and the anytime-valid ceilings put the features' incremental annualised
+  information ratio between $0.6$ and $2.6$, every interval containing zero. That is the design law rather than the
+  data: a sample this length cannot certify anything below an information ratio of about
+  $1.6$, so the literature's typical claims are not merely unproven but unprovable at the
+  sample sizes on which they rest.
 \end{abstract}
 
 \section{Introduction}
 
-Claims of accurate cryptocurrency price prediction are abundant and rarely
-survive scrutiny. The reported accuracy is usually traceable to one of four
-errors, each of which is well documented and each of which is easy to commit
-without noticing.
+A forecasting pipeline produces out-of-sample predictions of an asset's return, and the
+analyst wants to know one thing: do the features carry information, or has the model
+rediscovered the fact that the asset went up? The question sounds like the one the standard
+nested predictive-accuracy tests answer. It is not.
 
-\textbf{Target leakage.} The predicted quantity is a function of contemporaneous
-or future information, so the model fits an identity rather than forecasting
-\citep{kaufman2012}. Leakage of this kind is now understood to be a leading cause
-of irreproducible findings in machine-learning-based science more broadly
-\citep{kapoor2023}.
+Those tests treat the unconditional drift as a nuisance parameter and dispose of it by
+plugging in an estimate---either zero, or the recursively estimated sample mean. Plugging in
+zero is worse than it looks. A regression fitted with an unpenalised intercept does not
+reduce to the zero forecast when its slopes are set to zero; it reduces to the
+training-window mean. Racing it against zero therefore tests \emph{no drift and no
+conditional predictability} jointly, while the sentence such a test is used to support is
+about the features alone. \citet{clark2006} are explicit that their null is a zero-mean
+martingale difference, so the statistic is behaving exactly as specified; the error is in
+the translation, and it is invisible in code. Section~\ref{sec:cw} makes the size of that
+error exact: to first order the zero-benchmark Clark--West statistic \emph{is} the
+$t$-statistic of the asset's mean return, and on an asset with Bitcoin's drift a model with
+no features at all is declared significantly predictive in about two samples in five.
+Plugging in the recursive mean removes that leading term and leaves a smaller one, the
+covariance between the benchmark's own estimation error and the model's signal, which is
+what the residual size distortion at longer horizons consists of.
 
-\textbf{Preprocessing leakage.} A scaler, imputer, or feature selector is fit on
-the full sample before splitting, so the test distribution informs training.
+The response of this paper is not a better estimate of the drift. It is to stop estimating
+it.
 
-\textbf{Absent benchmarks.} Accuracy is reported on a price series rather than on
-returns. Prices are close to a martingale, so a naive random-walk forecast attains
-near-perfect $R^2$; a model that appears to explain 99\% of price variance may
-explain none of the return variance, which is the only component that can be
-traded \citep{timmermann2004}.
+\paragraph{The instrument.} Section~\ref{sec:certificate} constructs a \emph{certificate}: a
+non-negative process $\mathcal{E}_t$ with $\mathcal{E}_0=1$ whose expectation never exceeds
+one under the composite null ``the features add nothing, at any drift''. Two bettors are run
+against each other for every candidate drift---one staking on the signal leading the
+outcome, one hedging the drift two-sidedly---and the certificate is the infimum over the
+nuisance of their average. Because an infimum is at most the value at the truth, and the
+value at the truth is a martingale, Ville's inequality gives
+$P(\exists t:\mathcal{E}_t\ge1/\alpha)\le\alpha$ in finite samples and uniformly in time.
+The proof is six lines and uses no asymptotics, no mixing condition, no long-run variance,
+no bandwidth and no bootstrap. It is indifferent to what produced the forecasts, so
+regularised, adaptively stopped and black-box learners are covered by the same statement
+that covers ordinary least squares---which matters, because the asymptotic theory the
+applied literature relies on was derived for none of them.
 
-\textbf{Silent multiple testing.} Many model, asset, and horizon combinations are
-tried and the best is reported without adjusting the threshold. In the closely
-analogous cross-sectional asset-pricing literature, \citet{harvey2016} argue that
-conventional significance levels are badly miscalibrated once the size of the
-collective search is acknowledged.
+\paragraph{Three consequences that are not available to a $t$-statistic.} First, the
+guarantee holds at every stopping time, so the process can be run forward on a live strategy
+and inspected daily with no correction for looking, and it supplies an anytime-valid
+\emph{ceiling} on incremental value---the number that lets a desk retire a research line
+rather than merely fail to confirm it. Second, its logarithm is the profit and loss of an
+explicit drift-hedged strategy, so statistical and economic significance are the same
+quantity and rejecting at $5\%$ means twentyfold growth of capital that was credited with no
+part of the market's return. Third, e-values average under arbitrary dependence, so an
+eighteen-setting research grid is corrected by an average and an $h$-step overlapping
+forecast by splitting capital across its $h$ daily vintages---which is exactly the staggered
+portfolio the economic analysis needs, so the statistically valid combination and the
+implementable strategy coincide.
 
-Preprocessing leakage is impossible by construction here, because standardisation
-is a pipeline step fit inside each fold. Target leakage is prevented by a test
-that perturbs future bars and asserts no feature at or before $t$ changes.
-Multiple testing is reported over an explicit family, though not over the whole
-search. Benchmarking is the item this study initially got wrong.
+\paragraph{The law.} Evidence is log wealth and log wealth grows at half the squared
+information ratio, so the sample-size question closes in form: certifying an annualised
+information ratio $\mathrm{IR}$ takes $2\ln(1/\alpha)/\mathrm{IR}^2$ years, about
+$6/\mathrm{IR}^2$ at the $5\%$ level. Section~\ref{sec:design} shows this is optimal to
+first order, so no cleverer test recovers the missing years; that continuous monitoring
+costs about three per cent more data than a fixed-sample test that must be pre-committed and
+looked at once; and that learning the stake online rather than declaring a target effect
+size in advance roughly doubles the requirement. Six years of daily data---about what any
+liquid cryptocurrency offers---cannot certify an information ratio below roughly $1.6$.
 
-The standard tool for comparing forecast accuracy, the Diebold--Mariano test
-\citep{diebold1995}, assumes the competing forecasts are non-nested. The
-comparison the return-predictability literature actually makes---a conditional
-model against a random walk---violates that assumption, and
-\citet{clark2006, clark2007} give the correction. What the applied user must then
-check, and frequently does not, is which null the corrected statistic states.
-\citet{clark2006} are explicit: theirs is that the series is a \emph{zero-mean}
-martingale difference, with the zero forecast as benchmark. A regression fitted
-with an unpenalised intercept does not reduce to the zero forecast when its slopes
-are set to zero; it reduces to the training-window mean. Racing it against zero
-therefore tests no drift \emph{and} no conditional predictability jointly, while
-the sentence such tests are used to support is about the features alone. Where the
-drift is large, as it is for these assets over this window, the two hypotheses are
-far apart. Section~\ref{sec:cw} derives the contaminating term,
-Section~\ref{sec:calibration} measures what it does to the rejection rate, and
-Section~\ref{sec:results-tests} shows that repairing the benchmark changes which
-settings reject rather than how many.
+\paragraph{The evidence.} Section~\ref{sec:results-tests} applies all of this to a
+deliberately careful study: three assets, two horizons, six forecasters, purged and
+embargoed walk-forward validation over 2020--2026, programmatic leakage tests, transaction
+costs, execution delay and exposure regressions. Clark--West against zero rejects in five of
+eighteen settings and against the recursive mean in seven, and a joint resampling of the
+whole eighteen-test experiment puts $P(N\ge7)$ at well under one per cent---so under
+$p$-values there is something to explain. Under certificates there is not: no setting is
+certified, the grid-level e-value is $1.18$ against the $20$ required, the directional
+variant that replaces an invalid market-timing test certifies nothing either, and the
+ceilings bound the features' incremental annualised information ratio between $0.6$ and
+$2.6$, every interval containing zero. The two readings are not in conflict. The design law says a six-year sample
+cannot resolve ratios of this size, so the correct conclusion is that the question has not
+been answered rather than that it has been answered negatively---and that distinction is
+exactly what the ceiling, and not a $p$-value, is able to express.
 
 \paragraph{What is new here, and what is not.}
-The diagnosis above is not a discovery, and we state its provenance before
+The diagnosis in Section~\ref{sec:cw} is not a discovery and we state its provenance before
 reporting it. The zero-mean null is Clark and West's own statement of their test
-\citep{clark2006}. The recursively estimated mean has been the standard
-out-of-sample benchmark in the equity-premium literature since \citet{welch2008}
-and \citet{campbell2008}, and \citet{moosa2016} show that the drift-versus-no-drift
-benchmark choice changes forecast-evaluation conclusions. Clark--West's size
-distortion at long horizons was documented, and an asymptotically normal
-replacement---the Wild Clark--West statistic---proposed, by \citet{pincheira2021};
-\citet{magner2022} apply that replacement to 13 cryptocurrencies over 2018--2022
-against both a zero-forecast and a constant-forecast benchmark. A reader who knows
-that literature will find Section~\ref{sec:cw} unsurprising.
+\citep{clark2006}; the recursively estimated mean has been the standard out-of-sample
+benchmark in the equity-premium literature since \citet{welch2008} and \citet{campbell2008};
+\citet{moosa2016} argue the drift-versus-no-drift choice directly; \citet{pincheira2021}
+document Clark--West's long-horizon size distortion and propose the Wild Clark--West
+replacement, which \citet{magner2022} apply to thirteen cryptocurrencies against both
+benchmarks. What is new in Section~\ref{sec:cw} is only the closed form for the distortion
+and its numerical validation.
 
-What we add is measurement rather than prescription. First, we calibrate instead
-of assuming: Section~\ref{sec:calibration} measures the size of the entire applied
-pipeline---twelve technical features, purged walk-forward refits, ridge, elastic
-net, and an early-stopped gradient booster---under a null built by resampling the
-return series, and obtains 14--21\% against the zero forecast and 3--5\% against
-the recursive mean at $h=1$. We found no prior calibration of Clark--West-family
-tests for adaptive machine-learning forecasters, where greedy split selection,
-subsampling, and a data-dependent number of trees might plausibly break the normal
-approximation. They do not appear to. Second, we implement the Wild Clark--West
-statistic and measure it in the same design, and report a negative result: in this
-signal-to-noise regime it is numerically indistinguishable from Clark--West, and it
-cannot in principle repair a benchmark that encodes the wrong hypothesis.
-Third, we report what these choices cost on a real study: four routine decisions
----benchmark, HAC bandwidth, label overlap, and execution timing---each
-independently reversed a headline finding of an earlier version of this paper, and
-we give the before and after for all four.
+The game-theoretic apparatus is likewise not ours. Test martingales, e-values and Ville's
+inequality are the subject of an established literature
+\citep{shafer2019, ramdas2023, waudbysmith2024}; \citet{wang2022} prove the e-BH result we
+use; and \citet{choe2021} build confidence sequences for the difference in score between
+\emph{two given} forecasters. What that literature does not contain, and what
+Sections~\ref{sec:certificate}--\ref{sec:design} contribute, is the nested case: a
+comparison in which the benchmark is not given but estimated from the same data, whose
+nuisance is a drift shared by both forecasts, and whose null is therefore composite. The
+specific new objects are the drift-eliminating construction of \eqref{eq:cert} and its
+validity theorem, the concavity result that reduces the nuisance search to two evaluations
+per step, the identification of the phase-averaged certificate with the staggered portfolio,
+and the detection-horizon law with its optimality, anytime-validity and stake-learning
+corollaries. The instrument is released as a library so that the claim can be checked on
+someone else's pipeline rather than only on ours.
 
-That earlier version reported ``five of 18 settings reject, against 0.9 expected
-from a search of that size.'' The comparison assumed the test was correctly sized
-for the hypothesis we had in mind. It was not, and the corrected expectation against
-that benchmark is about 4. We report the withdrawn claim explicitly because the error is easy to
-make, is invisible in the code, and is not detected by any test of the kind we had
-written.
+\paragraph{The four errors this study had to survive first.} Claims of accurate
+cryptocurrency prediction are abundant and rarely survive scrutiny; the reported accuracy is
+usually traceable to target leakage \citep{kaufman2012, kapoor2023}, preprocessing leakage,
+an absent or misspecified benchmark \citep{timmermann2004}, or silent multiple testing
+\citep{harvey2016}. Preprocessing leakage is impossible by construction here, because
+standardisation is a pipeline step fit inside each fold; target leakage is prevented by a
+test that perturbs future bars and asserts that no feature at or before $t$ changes;
+multiple testing is handled by Theorem~\ref{thm:merge}. Benchmarking is the item this study
+initially got wrong, and Appendix~\ref{app:audit} records what was claimed, why it was
+wrong, and what replaced it.
 
 \section{Related work}
 
@@ -242,6 +278,29 @@ established practice in this literature, which is one reason we treat the
 benchmark point below as a measurement rather than a discovery. Much of this work
 evaluates statistical efficiency without asking whether any detected dependence
 survives transaction costs, which we do take up.
+
+\paragraph{Game-theoretic statistics.}
+The instrument of Section~\ref{sec:certificate} is built from an established apparatus and it
+is worth being precise about which parts are borrowed. Test martingales, e-values and Ville's
+inequality \citep{ville1939} are developed in \citet{shafer2019} and surveyed by
+\citet{ramdas2023}; the betting construction and its predictable stakes follow
+\citet{waudbysmith2024}; \citet{vovk2021} establish the merging rules for e-values and
+\citet{wang2022} the e-BH procedure we use for false-discovery control under arbitrary
+dependence. \citet{kelly1956} and \citet{cover1991} supply the growth-rate arguments behind
+Section~\ref{sec:design}. Closest in intent, \citet{choe2021} construct confidence sequences
+for the difference in score between \emph{two given} forecasters, and \citet{henzi2022} give
+sequentially valid inference on probability-forecast performance.
+
+What that literature does not address is the case this paper needs. In a nested predictive
+comparison the benchmark is not given; it is estimated from the same data, its estimation
+error enters the statistic, and the nuisance it introduces---an unknown drift---is shared by
+both forecasts, so the null is composite rather than simple. That is precisely the structure
+Clark--West exists to handle, and it is the structure the game-theoretic literature has not
+taken up. Equation~\eqref{eq:cert} and Theorem~\ref{thm:validity} are our answer to it, and
+Lemma~\ref{lem:concave}, Remark~\ref{rem:stagger} and Theorem~\ref{thm:horizon} are
+consequences specific to that setting. On the econometric side, \citet{giacomini2006} give an
+alternative route to valid nested inference through a fixed rolling window; it is a
+fixed-sample test, requires a non-vanishing estimation window, and does not remove the drift.
 
 \paragraph{Validation for dependent data.}
 Purged and embargoed cross-validation is due to \citet{lopezdeprado2018}, and is
@@ -546,6 +605,94 @@ forecasters make the point most directly: the training-window mean, which uses n
 features at all, scores $\mathrm{CW} = +1.03$ against the zero forecast on BTC at
 $h=1$.
 
+\paragraph{How large the contamination is.} Equation~\eqref{eq:drift} says the drift term is
+present; the following says how big it gets, and it is bigger than the qualitative statement
+suggests.
+
+\begin{proposition}[The zero-benchmark statistic is a drift test]
+\label{prop:distortion}
+Let $y_t$ be i.i.d.\ with mean $\mu$ and variance $\sigma^2$. Let the larger model be the
+intercept-only forecast $\hat\mu_t$ estimated on a window of $k$ observations disjoint from
+$t$, plus the out-of-sample contribution of $p$ exogenous features whose coefficients are
+truly zero, so that $\hat y^{\,m}_t=\hat\mu_t+u_t$ with $\mathbb{E}[u_t]=0$ and
+$\operatorname{Var}(u_t)\approx p\sigma^2/k$. The correct answer is always ``no incremental
+predictability''. Then the Clark--West adjusted differential against the zero benchmark,
+$\hat f_t = 2y_t\hat y^{\,m}_t$, has
+\[
+  \mathbb{E}[\hat f_t] = 2\mu^2,\qquad
+  \operatorname{Var}(\hat f_t) \approx 4\Big(\mu^2\sigma^2+\sigma^4\tfrac{1+p}{k}\Big),
+\]
+so the statistic computed on $n$ test points satisfies
+\[
+  \mathbb{E}\big[\mathrm{CW}_0\big]\;\approx\;
+  \frac{\sqrt{n}\,S^{2}}{\sqrt{S^{2}+(1+p)/k}},\qquad S=\mu/\sigma .
+\]
+For any $\mu\neq0$ this diverges in $n$, so the rejection probability tends to one. Two
+limits are worth naming. When $kS^2\gg 1+p$ it reduces to $\sqrt{n}\,S$: \emph{the statistic
+becomes the $t$-statistic of the asset's mean return}. When $kS^2\ll 1+p$ it is
+$\sqrt{nk/(1+p)}\,S^2$, so a model that estimates more parameters dilutes the drift signal
+with its own estimation noise and the distortion shrinks---which is why the study's
+regularised twelve-feature models show a smaller distortion than a featureless one.
+\end{proposition}
+
+\begin{proof}
+$\hat y^{\,m}_t$ is independent of $y_t$ with mean $\mu$ and variance
+$\sigma^2(1+p)/k$, so $\mathbb{E}[2y_t\hat y^{\,m}_t]=2\mu^2$ and
+$\operatorname{Var}(2y_t\hat y^{\,m}_t)=
+4[\operatorname{Var}(y)\mathbb{E}[\hat y^{\,m}]^2+
+\operatorname{Var}(\hat y^{\,m})\mathbb{E}[y]^2+
+\operatorname{Var}(y)\operatorname{Var}(\hat y^{\,m})]$.
+Substituting and dividing by $\sqrt{\operatorname{Var}(\hat f)/n}$ gives the display after
+dropping the term of order $\mu^2/k$. \qed
+\end{proof}
+
+\begin{table}[t]
+  \centering
+  \caption{Rejection rate on data containing \emph{no} conditional predictability, as the
+  asset's drift grows. Returns are i.i.d.\ with per-period standard deviation $3\%$; the
+  larger model is the recursive mean plus $p=12$ exogenous features whose coefficients are
+  truly zero, on this study's geometry ($n=2186$, $k=504$). Nominal level $5\%$, $400$
+  replications, Monte Carlo standard error at most $2.5$ points. Clark--West against zero
+  degrades monotonically in the drift and is reading the asset's Sharpe ratio, exactly as
+  Proposition~\ref{prop:distortion} predicts; against the recursive mean it is correctly
+  sized in this exogenous-feature case; the certificate is bounded by its nominal level
+  uniformly in the drift, which is Theorem~\ref{thm:validity}.}
+  \label{tab:sweep}
+  \small
+  \begin{tabular}{rrrrrr}
+    \toprule
+    & \multicolumn{2}{c}{$\mathrm{CW}$ statistic vs.\ zero}
+    & \multicolumn{3}{c}{rejection rate at $5\%$} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-6}
+    Annualised Sharpe & predicted & measured
+    & vs.\ zero & vs.\ recursive mean & certificate \\
+    \midrule
+    $0.0$ & $0.00$ & $0.04$ & $5.2\%$  & $5.8\%$ & $0.3\%$ \\
+    $0.4$ & $0.42$ & $0.17$ & $9.0\%$  & $6.2\%$ & $0.3\%$ \\
+    $0.8$ & $1.34$ & $0.42$ & $11.8\%$ & $5.8\%$ & $0.3\%$ \\
+    $1.2$ & $2.40$ & $1.07$ & $33.0\%$ & $6.2\%$ & $0.3\%$ \\
+    $1.6$ & $3.46$ & $1.82$ & $56.0\%$ & $5.5\%$ & $1.0\%$ \\
+    $2.0$ & $4.50$ & $2.60$ & $81.0\%$ & $4.0\%$ & $0.8\%$ \\
+    \midrule
+    \multicolumn{6}{l}{\emph{Same design with $p=0$ (a model with no features at all):}} \\
+    $0.8$ & $1.34$ & $1.35$ & $43.0\%$ & --- & $0.0\%$ \\
+    $1.6$ & $3.46$ & $3.70$ & $97.5\%$ & --- & $0.0\%$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The practical content is Table~\ref{tab:sweep}. With this study's geometry
+($n=2186$, $k=504$) and Bitcoin's realised drift over the sample---an annualised Sharpe
+ratio of $0.84$---Proposition~\ref{prop:distortion} predicts a mean statistic of $1.34$ for
+a model containing \emph{no features at all}; the measurement is $1.35$, and such a model is
+declared significantly predictive in $43\%$ of samples at a nominal $5\%$. Adding twelve
+estimated coefficients that are truly zero dilutes the effect to $11.8\%$, which is the
+regime this study's models occupy and is consistent with the $14$--$21\%$ measured by the
+full-refit experiment of Section~\ref{sec:calibration}. Either way, nothing about the
+features is being measured: the test is reading the asset's drift, and the applied reader is
+told the features predict returns. The rate rises to $81\%$ at an annualised Sharpe ratio of
+$2.0$, which several cryptocurrencies have printed over multi-year windows.
+
 None of this is a fault in the statistic. \citet{clark2006} define the null they
 test as a zero-mean martingale difference, so a drift term entering
 Equation~\eqref{eq:drift} is the test doing what it says. The fault is in the
@@ -731,6 +878,7 @@ relative to noise, so BTC, with the smallest volatility and a substantial drift,
 affected.
 
 \subsection{Sign timing}
+\label{sec:sign}
 
 A model can be poor at magnitude and useful at direction, which is all a sign
 strategy requires. \citet{pesaran1992} test independence between the sign of the
@@ -781,6 +929,365 @@ adjustments of the Clark--West $p$-values over the family of 18. Holm--Bonferron
 %
 Benchmarks are excluded from the family: they are the null being tested against,
 not candidates in the search.
+
+\section{Certificates of incremental predictive ability}
+\label{sec:certificate}
+
+Section~\ref{sec:cw} located the problem in the benchmark and Section~\ref{sec:calibration}
+measured what it costs. Neither repairs it. Replacing the zero forecast with the recursive
+mean removes the leading drift term but leaves the residual
+$-\mathbb{E}[(\hat\mu_t-\mu)\,g_t]$, the covariance between the benchmark's own estimation
+error and the model's signal; that residual is what the $7$--$8\%$ measured size at $h=7$
+in Table~\ref{tab:size} consists of. The deeper difficulty is structural. Every test in this
+family handles the drift by \emph{estimating} it, and an estimated nuisance leaves an
+estimation error inside the statistic.
+
+This section eliminates the drift instead. The construction is a wealth process, and the
+three properties that follow---finite-sample validity for the composite null, a growth rate
+that equals the strategy's own profit and loss, and a merging rule that needs no dependence
+assumption---are theorems rather than simulation results.
+
+\subsection{Setup}
+
+Let $(\mathcal{F}_t)_{t\ge0}$ be a filtration, $y_t$ the realised outcome at $t$ and
+$g_t$ any $\mathcal{F}_{t-1}$-measurable \emph{signal}. In a nested forecast comparison the
+signal of interest is
+%
+\begin{equation}
+  g_t \;=\; \hat y^{\,m}_t - \hat y^{\,b}_t,
+  \label{eq:signal}
+\end{equation}
+%
+the model's forecast minus the intercept-only forecast produced by the same estimation
+window and refitting schedule, so that the hypothesis under test is exactly the one an
+applied paper means: \emph{the features add nothing beyond the intercept}. Validity, as will
+be seen, does not depend on this choice; only power does.
+
+We test the composite null
+%
+\begin{equation}
+  H_0 \;=\; \bigcup_{\mu\in\mathbb{R}} P_\mu,
+  \label{eq:null}
+\end{equation}
+%
+where under $P_\mu$ the sequence $y_t-\mu$ is a martingale difference with respect to
+$(\mathcal{F}_t)$. The union over $\mu$ is the point: the drift is a nuisance and is not
+assumed, estimated or plugged in. Two variants of the test are available and they differ
+only in what they ask of $P_\mu$.
+
+\begin{description}
+  \item[Assumption M (martingale).] $\mathbb{E}[y_t\mid\mathcal{F}_{t-1}]=\mu$ and
+    $|y_t|\le R$ almost surely for a constant $R$ fixed in advance.
+  \item[Assumption S (symmetry).] $y_t-\mu$ is conditionally symmetric about zero given
+    $\mathcal{F}_{t-1}$.
+\end{description}
+%
+Assumption~S implies Assumption~M without the envelope. It is stronger than a martingale
+difference and far weaker than independence: it permits arbitrary volatility clustering,
+arbitrary tail thickness, and any dependence whatsoever in $|y_t-\mu|$. It is also exactly
+the null the sign-flipped resampling of Section~\ref{sec:calibration} constructs, which is
+why the two devices agree.
+
+Fix an $\mathcal{F}_{t-1}$-measurable scale $s_t>0$ and an odd payoff $\phi$. Under
+Assumption~S any bounded odd $\phi$ satisfies $\mathbb{E}[\phi((y_t-\mu)/s_t)\mid
+\mathcal{F}_{t-1}]=0$, because scaling by a positive predictable quantity preserves
+conditional symmetry; we use $\phi=\tanh$ for magnitude and $\phi=\operatorname{sign}$ for
+direction. Under Assumption~M only $\phi(u)=u$ is available, and the envelope $R$ enters
+the stake ceiling below.
+
+\subsection{Construction}
+
+For a candidate drift $\mu$ write $\phi_t(\mu)=\phi\big((y_t-\mu)/s_t\big)$ and let
+$\lambda_t\ge0$ and $\kappa_t>0$ be $\mathcal{F}_{t-1}$-measurable stakes obeying
+$\lambda_t|g_t|B_t\le c<1$ and $\kappa_tB_t\le c<1$, where $B_t$ is a predictable bound on
+$|\phi_t|$ ($B_t=1$ for bounded $\phi$; $B_t=(R+\max|\mu|)/s_t$ for the identity payoff).
+Define
+%
+\begin{align}
+  W^{\mathrm{sig}}_t(\mu) &= \prod_{u\le t}\Big(1+\lambda_u\,g_u\,\phi_u(\mu)\Big),
+  \label{eq:wsig}\\[2pt]
+  W^{\mathrm{ctr}}_t(\mu) &= \tfrac12\prod_{u\le t}\Big(1+\kappa_u\phi_u(\mu)\Big)
+                           + \tfrac12\prod_{u\le t}\Big(1-\kappa_u\phi_u(\mu)\Big),
+  \label{eq:wctr}\\[2pt]
+  \mathcal{E}_t &= \inf_{\mu\in\mathbb{R}}\;
+                   \tfrac12\Big(W^{\mathrm{sig}}_t(\mu)+W^{\mathrm{ctr}}_t(\mu)\Big).
+  \label{eq:cert}
+\end{align}
+%
+The two processes are two bettors. The first stakes on the signal genuinely leading the
+outcome. The second stakes, two-sidedly, on $\mu$ being the wrong centre. At the true drift
+the second bettor breaks even and the infimum is driven by the first; at a wrong drift the
+second bettor gets rich, so candidates the data have ruled out cannot drag the infimum
+down. The nuisance is hedged, not estimated.
+
+\begin{theorem}[Validity]
+\label{thm:validity}
+Under Assumption~S (or Assumption~M with $\phi$ the identity), for every $P_{\mu_0}\in H_0$
+and every $\alpha\in(0,1)$,
+\[
+  P_{\mu_0}\Big(\exists\,t\ge1:\;\mathcal{E}_t\ge 1/\alpha\Big)\;\le\;\alpha .
+\]
+Consequently $1/\sup_{t}\mathcal{E}_t$ is a $p$-value valid at every stopping time, and
+$\mathcal{E}_\tau$ is an e-value for any stopping time $\tau$.
+\end{theorem}
+
+\begin{proof}
+Fix $\mu=\mu_0$. Since $\phi$ is odd and $(y_u-\mu_0)/s_u$ is conditionally symmetric about
+zero given $\mathcal{F}_{u-1}$, $\mathbb{E}[\phi_u(\mu_0)\mid\mathcal{F}_{u-1}]=0$; under
+Assumption~M with $\phi(u)=u$ the same holds by the martingale property. The multipliers
+$\lambda_ug_u$ and $\pm\kappa_u$ are $\mathcal{F}_{u-1}$-measurable, so each factor in
+\eqref{eq:wsig} and \eqref{eq:wctr} has conditional expectation one and, by the stake
+ceilings, is strictly positive. Each product is therefore a non-negative martingale started
+at one; $W^{\mathrm{ctr}}$ is an average of two such, and the bracket in \eqref{eq:cert} is
+an average of two, hence itself a non-negative martingale started at one. Finally
+$\mathcal{E}_t\le\tfrac12(W^{\mathrm{sig}}_t(\mu_0)+W^{\mathrm{ctr}}_t(\mu_0))$ pointwise,
+because an infimum is at most the value at $\mu_0$. Ville's inequality applied to that
+martingale gives the bound. \qed
+\end{proof}
+
+Nothing in the proof uses asymptotics, mixing conditions, a long-run variance estimate, a
+bandwidth, or a bootstrap. Nothing in it is disturbed by the estimator inside the pipeline
+being regularised, adaptively stopped, or a black box: $g_t$ enters only through being
+known one step ahead of the outcome. And nothing in it is disturbed by looking at
+$\mathcal{E}_t$ every day, which is what makes the process usable as a live monitor.
+
+\begin{lemma}[Concavity, and the fast path]
+\label{lem:concave}
+For $\phi(u)=u$, $\mu\mapsto\log W^{\mathrm{sig}}_t(\mu)$ is concave, so its infimum over
+any interval is attained at an endpoint.
+\end{lemma}
+
+\begin{proof}
+$\partial^2_\mu\log\big(1+\lambda_ug_u(y_u-\mu)/s_u\big)
+ = -\big(\lambda_ug_u/s_u\big)^2\big/\big(1+\lambda_ug_u(y_u-\mu)/s_u\big)^2\le 0$,
+and a sum of concave functions is concave. \qed
+\end{proof}
+
+Lemma~\ref{lem:concave} matters operationally rather than theoretically: with the identity
+payoff the drift search costs two evaluations per step instead of a grid, so the certificate
+runs in $O(n)$ time and $O(1)$ memory and can be updated online, one observation at a time.
+For bounded odd payoffs concavity can fail and the infimum in \eqref{eq:cert} is evaluated
+numerically; Section~\ref{sec:implementation} reports the grid refinement.
+
+\subsection{The statistic is a profit and loss}
+
+\begin{theorem}[Evidence in units of capital]
+\label{thm:pnl}
+$\log\tfrac12\big(W^{\mathrm{sig}}_T(\mu)+W^{\mathrm{ctr}}_T(\mu)\big)$ is the cumulative
+log return, net of the drift, of a self-financing strategy that at each date holds
+$\lambda_tg_t$ units of a claim paying $\phi_t(\mu)$ and splits capital equally with a
+two-sided hedge of the drift. Rejecting $H_0$ at level $\alpha$ requires that strategy to
+have multiplied its capital by $1/\alpha$.
+\end{theorem}
+
+The theorem is immediate from \eqref{eq:wsig}--\eqref{eq:cert}---each factor is one plus a
+period return---but its content is not. Statistical significance and economic significance
+are usually separate quantities that a study reports side by side and hopes will agree; here
+they are the same number, and the exchange rate is fixed. At $\alpha=0.05$ the requirement
+is a twentyfold gain, $\log 20 = 3.00$ nats, earned by a strategy that is credited with no
+part of the asset's drift. A model that is long the market and nothing else earns none of
+it, by construction rather than by a regression on buy-and-hold run afterwards.
+
+This also dissolves a question the two-metric literature keeps asking. When a study's
+statistically significant settings and its economically profitable settings are disjoint,
+the natural reading is that one metric is measuring something the other is not. Under
+Theorem~\ref{thm:pnl} there is only one metric, and disjointness cannot arise.
+
+\subsection{Multiplicity and overlap, without a bootstrap}
+\label{sec:merge}
+
+\begin{theorem}[Merging]
+\label{thm:merge}
+Let $E_1,\dots,E_m$ be e-values for the same null, and $w_i\ge0$ with $\sum_iw_i=1$. Then
+$\sum_iw_iE_i$ is an e-value, \emph{whatever the dependence between the $E_i$}. If the
+$E_i$ are e-values and $\alpha\in(0,1)$, the e-Benjamini--Hochberg procedure---reject the
+$k$ largest for the largest $k$ with $E_{(k)}\ge m/(\alpha k)$---controls the false
+discovery rate at $\alpha$ under arbitrary dependence \citep{wang2022}.
+\end{theorem}
+
+\begin{proof}[of the first claim]
+$\mathbb{E}[\sum_iw_iE_i]=\sum_iw_i\mathbb{E}[E_i]\le\sum_iw_i=1$ by linearity, which uses
+no joint distribution. \qed
+\end{proof}
+
+This is the whole of the multiple-testing apparatus this paper needs. The eighteen settings
+share features, assets, horizons, market regimes and two nearly identical estimators; under
+$p$-values that dependence forces either a conservative bound or a joint resampling
+experiment, and Section~\ref{sec:joint} runs the latter for comparison at a cost of several
+hours of computation. Under e-values the average of the eighteen certificates is already a
+valid test of the global null, and no dependence needs to be modelled, estimated or
+simulated.
+
+\paragraph{Overlapping horizons.} An $h$-step forecast made every day produces overlapping
+outcomes, so the per-day payoffs are not a martingale difference sequence and no wealth
+process can be built on them directly. This is the defect that invalidates the averaged
+Pesaran--Timmermann statistic of Section~\ref{sec:sign}: $h$ phase-specific standardised
+statistics were averaged and the average referred to a standard normal, without a variance
+for the average. Partitioning $\{1,\dots,n\}$ into the $h$ phases
+$P_j=\{j,j+h,j+2h,\dots\}$ fixes it. Within a phase, consecutive outcomes span disjoint
+windows and the payoffs \emph{are} a martingale difference sequence with respect to the
+thinned filtration, so each phase yields a certificate; Theorem~\ref{thm:merge} then merges
+the $h$ of them with no assumption about how they depend on one another.
+
+\begin{remark}[The valid combination is the implementable portfolio]
+\label{rem:stagger}
+Averaging the $h$ phase certificates means splitting capital $1/h$ across $h$ bettors, one
+per daily vintage, and reading off their aggregate terminal wealth. That is precisely the
+staggered portfolio the economic section adopts in Section~\ref{sec:economics}: an equal
+allocation to each of the $h$ daily vintages, each held $h$ days. The statistically valid
+combination and the economically natural implementation are the same object, so the
+arbitrary choice of starting phase disappears from both at once.
+\end{remark}
+
+\section{How much data an alpha needs}
+\label{sec:design}
+
+Because evidence is log wealth and log wealth grows at a rate fixed by the signal's
+information ratio, the sample-size question has a closed-form answer.
+
+\begin{theorem}[Detection horizon]
+\label{thm:horizon}
+Let the signal-weighted strategy have per-period information ratio $\mathrm{IR}_p$, small,
+and let the stake be the Kelly fraction. Then expected log wealth grows at
+$\mathrm{IR}_p^2/2$ nats per period, and the expected time to reach the level-$\alpha$
+threshold is
+\[
+  T^\ast \;=\; \frac{2\ln(1/\alpha)}{\mathrm{IR}_p^{2}}\ \text{periods}
+        \;=\; \frac{2\ln(1/\alpha)}{\mathrm{IR}^{2}}\ \text{years},
+\]
+where $\mathrm{IR}=\mathrm{IR}_p\sqrt{P}$ is the annualised ratio at $P$ periods a year.
+\end{theorem}
+
+\begin{proof}[sketch]
+With $\psi_t=g_t\phi_t$, $\sup_\lambda\mathbb{E}\log(1+\lambda\psi)=
+\mathbb{E}[\psi]^2/(2\mathbb{E}[\psi^2])+O(\mathbb{E}[\psi]^3)$. For the identity payoff
+and $g_t$ proportional to the conditional mean $m_t$, $\mathbb{E}[\psi]=\mathbb{E}[m^2]$ and
+$\mathbb{E}[\psi^2]=\mathbb{E}[m^2]\sigma^2$ to leading order, so the rate is
+$\mathbb{E}[m^2]/(2\sigma^2)=\mathrm{IR}_p^2/2$. Rejection needs $\ln(1/\alpha)$ nats.
+The full statement and the bounded-payoff case are in Appendix~\ref{app:proofs}. \qed
+\end{proof}
+
+\begin{corollary}[Six over IR squared]
+\label{cor:six}
+At $\alpha=0.05$, $T^\ast\approx 6/\mathrm{IR}^2$ years: six years for an information ratio
+of $1.0$, twenty-four for $0.5$, sixty-seven for $0.3$.
+\end{corollary}
+
+\begin{corollary}[The bound is not an artifact of this instrument]
+\label{cor:optimal}
+The Kullback--Leibler divergence per period between the alternative and $H_0$ is
+$\mathrm{IR}_p^2/2+o(\mathrm{IR}_p^2)$. By the standard sequential lower bound, no
+level-$\alpha$ anytime-valid test has expected stopping time below
+$\ln(1/\alpha)/\mathrm{KL}$, so $T^\ast$ is optimal to first order and no cleverer test
+recovers the missing years.
+\end{corollary}
+
+\begin{corollary}[Anytime-validity is nearly free; the drift hedge is not quite]
+\label{cor:free}
+A one-sided fixed-sample test at $\alpha=0.05$ with $80\%$ power needs
+$(z_{0.05}+z_{0.20})^2/\mathrm{IR}^2=6.18/\mathrm{IR}^2$ years, against
+$5.99/\mathrm{IR}^2$ for the sequential law: continuous monitoring costs about three per
+cent more data and buys the right to stop, restart, and look every day. Eliminating the
+drift does cost something, and the amount is exact. Averaging the signal bettor with the
+centring bettor in \eqref{eq:cert} halves any terminal wealth the signal earns, which is
+$\ln 2 = 0.69$ nats on a budget of $\ln(1/\alpha)=3.00$: the certificate needs
+$7.38/\mathrm{IR}^2$ years, $23\%$ more than a test that is handed the true drift. That is
+the whole price of never estimating it.
+\end{corollary}
+
+\begin{corollary}[Not knowing your own stake is not free]
+\label{cor:regret}
+If the Kelly fraction must be learned online, log wealth falls short of the oracle's by a
+regret $\rho_T$, with $\rho_T=\tfrac12\ln T+O(1)$ attainable and unimprovable in order. The
+horizon then solves $T\,\mathrm{IR}_p^2/2=\ln(1/\alpha)+\rho_T$. At $T\approx2{,}000$ daily
+periods $\rho_T\approx3.8$ nats, larger than the $3.0$ nats needed to reject: the cost of
+not knowing how strong the signal is exceeds the entire evidentiary budget, and multiplies
+$T^\ast$ by between two and three. Declaring in advance the smallest information ratio worth detecting fixes
+the stake and removes the term.
+\end{corollary}
+
+Corollary~\ref{cor:regret} converts a methodological platitude into a power calculation. A
+pre-registered effect size is not a formality here; it is worth a factor of two in data.
+Section~\ref{sec:results-cert} therefore reports both variants, with the design ratio
+declared before the data were touched.
+
+\begin{table}[t]
+  \centering
+  \caption{The detection horizon of Theorem~\ref{thm:horizon}, in years of daily data at
+  $\alpha=0.05$ and $365$ periods a year. ``Pre-committed'' fixes the stake at the Kelly
+  fraction for the target ratio and pays the $\ln 2$ drift hedge; ``learned online'' adds the
+  $\tfrac12\ln T$ regret of Corollary~\ref{cor:regret}. The fixed-sample column is a
+  one-sided test at $80\%$ power that must be sized in advance, looked at once, and that
+  assumes the benchmark known. Simulated median detection times over $100$ replications
+  agree: $1.93$ against $1.84$ predicted at $\mathrm{IR}=2$, $0.89$ against $0.82$ at
+  $\mathrm{IR}=3$.}
+  \label{tab:horizon}
+  \small
+  \begin{tabular}{lrrr}
+    \toprule
+    Annualised $\mathrm{IR}$ & Pre-committed stake & Learned online & Fixed-sample \\
+    \midrule
+    $0.30$ & $82.0$ & $206.8$ & $68.7$ \\
+    $0.50$ & $29.5$ & $70.1$  & $24.7$ \\
+    $0.75$ & $13.1$ & $29.6$  & $11.0$ \\
+    $1.00$ & $7.4$  & $16.1$  & $6.2$  \\
+    $1.50$ & $3.3$  & $6.7$   & $2.7$  \\
+    $2.00$ & $1.8$  & $3.6$   & $1.5$  \\
+    \midrule
+    \multicolumn{4}{l}{\emph{Read backwards: smallest $\mathrm{IR}$ a sample of this length can certify}} \\
+    \multicolumn{2}{l}{$6.0$ years (this study)} & $1.11$ & $1.59$ \\
+    \multicolumn{2}{l}{$10$ years}               & $0.86$ & $1.25$ \\
+    \multicolumn{2}{l}{$25$ years}               & $0.54$ & $0.81$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Table~\ref{tab:horizon} reads the law off for the ratios an applied paper might hope to
+find. The column that matters for this literature is the last: with the six years of daily
+out-of-sample data this study has---and daily crypto histories are not much longer than
+this for any liquid asset---nothing below an annualised information ratio of about $1.6$ can
+be certified at all, and about $1.1$ even with the stake pre-committed. Reported Sharpe
+ratios in the applied cryptocurrency literature are routinely in the $0.5$--$1.5$ range and
+are almost never separated from market exposure. Corollary~\ref{cor:optimal} says the
+shortfall cannot be argued away by a better test.
+
+\section{Implementation}
+\label{sec:implementation}
+
+The certificate is released as \texttt{alphacert}, a dependency-light package that consumes
+walk-forward forecasts a pipeline has already written and returns the wealth path, the
+anytime-valid $p$-value, the merged grid-level e-value, the e-BH selection, and the design
+quantities of Section~\ref{sec:design}.
+
+\paragraph{Cost.} Calibrating a Clark--West-family test on a machine-learning pipeline means
+simulating the null and refitting the entire pipeline in every replication:
+Section~\ref{sec:calibration} required $2{,}000$ refits of three assets, two horizons and
+three estimators, several hours on a workstation, and it must be redone whenever the feature
+set, the estimator, or the sample changes. The certificate needs none of it, because
+Theorem~\ref{thm:validity} is a finite-sample statement rather than an approximation to be
+checked. One pass over the existing forecasts costs $O(nG)$ for a drift grid of $G$ points,
+or $O(n)$ under Lemma~\ref{lem:concave}; on this study a certificate takes about
+$0.1$--$0.5$ seconds against several hours for the corresponding calibration. That gap is
+the difference between an instrument that runs nightly on every live strategy and one that
+occupies a cluster for a weekend.
+
+\paragraph{The one numerical trap.} The infimum in \eqref{eq:cert} is over a continuum and is
+evaluated on a grid. The grid must resolve the drift to better than its own sampling error
+$\sigma/\sqrt{n}$: a coarser grid does not merely lose precision, it lifts the numerical
+infimum above the true one and the process stops being conservative. On this study
+$\sigma/\sqrt{n}=1.7\times10^{-3}$; at spacings of $5\times10^{-4}$, $2.5\times10^{-4}$ and
+$1\times10^{-4}$ no e-value moves in the fourth decimal, and the coarsest is five times
+faster. The library defaults to $10^{-4}$, exposes the spacing, and its test suite records
+the failure mode of a deliberately coarse grid so that the trap is documented rather than
+latent.
+
+\paragraph{Live use.} Because the guarantee holds at every stopping time, the wealth path
+can be run forward on a deployed strategy and inspected daily without any correction for
+looking. Two decision rules follow directly. A strategy is \emph{certified} the first time
+its wealth crosses $1/\alpha$. A research line can be \emph{retired} when the anytime-valid
+ceiling of Section~\ref{sec:ceiling} falls below the trading cost hurdle---a rigorous
+statement that the edge, if any, is too small to pay for, available at any time and without
+a pre-committed sample size.
 
 \section{Results}
 
@@ -905,7 +1412,109 @@ statistic can repair a benchmark that encodes the wrong hypothesis.
   \input{tables/inference_summary}
 \end{table}
 
+\begin{table}[t]
+  \centering
+  \caption{Clark--West against certificates, on the same eighteen settings and the same
+  forecasts. The signal is the model's forecast minus the intercept-only forecast from the
+  same window and refit schedule; at $h=7$ the seven phase certificates are averaged
+  (Remark~\ref{rem:stagger}). ``Designed'' pre-commits the stake to an annualised
+  information ratio of $1.0$, declared before the data were examined. Rejecting at
+  $\alpha=0.05$ needs an e-value of $20$; the largest here is $1.81$. ``Implied
+  $\mathrm{IR}$'' reads the realised growth rate back through
+  Theorem~\ref{thm:horizon}; ``ceiling'' is the $95\%$ anytime-valid upper bound of
+  Section~\ref{sec:ceiling}, and every corresponding interval contains zero. This sample can
+  certify nothing below $\mathrm{IR}=1.59$ ($1.11$ designed).}
+  \label{tab:cert}
+  \small
+  \begin{tabular}{lllrrrrrr}
+    \toprule
+    & & & \multicolumn{2}{c}{Clark--West} & \multicolumn{2}{c}{e-value}
+    & \multicolumn{2}{c}{information ratio} \\
+    \cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+    Asset & $h$ & Model & vs.\ zero & vs.\ mean & learned & designed & implied & ceiling \\
+    \midrule
+    BTC & 1 & ridge & $2.62$ & $2.66$ & $1.00$ & $0.96$ & $0.00$ & $2.20$ \\
+    BTC & 1 & elastic\_net & $2.57$ & $2.67$ & $1.00$ & $0.96$ & $0.00$ & $1.87$ \\
+    BTC & 1 & gbm & $2.02$ & $1.75$ & $1.00$ & $0.96$ & $0.00$ & $1.13$ \\
+    BTC & 7 & ridge & $1.64$ & $1.36$ & $1.81$ & $0.99$ & $0.42$ & $1.68$ \\
+    BTC & 7 & elastic\_net & $1.76$ & $1.54$ & $1.66$ & $0.99$ & $0.39$ & $1.54$ \\
+    BTC & 7 & gbm & $1.25$ & $1.02$ & $1.04$ & $1.19$ & $0.11$ & $2.55$ \\
+    ETH & 1 & ridge & $1.86$ & $1.76$ & $1.05$ & $1.33$ & $0.12$ & $2.00$ \\
+    ETH & 1 & elastic\_net & $1.37$ & $1.25$ & $1.10$ & $0.96$ & $0.18$ & $1.73$ \\
+    ETH & 1 & gbm & $1.42$ & $1.08$ & $1.00$ & $0.96$ & $0.00$ & $1.88$ \\
+    ETH & 7 & ridge & $-0.79$ & $-1.62$ & $1.12$ & $1.01$ & $0.18$ & $0.70$ \\
+    ETH & 7 & elastic\_net & $-0.98$ & $-1.80$ & $1.11$ & $1.01$ & $0.17$ & $0.63$ \\
+    ETH & 7 & gbm & $0.55$ & $-0.36$ & $1.03$ & $1.01$ & $0.09$ & $0.78$ \\
+    SOL & 1 & ridge & $0.31$ & $1.34$ & $1.82$ & $0.98$ & $0.50$ & $2.39$ \\
+    SOL & 1 & elastic\_net & $0.15$ & $1.43$ & $1.00$ & $1.58$ & $0.00$ & $2.44$ \\
+    SOL & 1 & gbm & $0.82$ & $1.87$ & $1.20$ & $1.22$ & $0.28$ & $1.78$ \\
+    SOL & 7 & ridge & $-1.43$ & $2.01$ & $1.11$ & $1.11$ & $0.20$ & $1.86$ \\
+    SOL & 7 & elastic\_net & $-1.41$ & $2.28$ & $1.11$ & $1.11$ & $0.20$ & $1.95$ \\
+    SOL & 7 & gbm & $-1.39$ & $0.37$ & $1.14$ & $1.12$ & $0.23$ & $1.01$ \\
+    \midrule
+    \multicolumn{5}{l}{Grid-level e-value (average; Theorem~\ref{thm:merge})}
+      & \multicolumn{2}{c}{$1.18$} & \multicolumn{2}{l}{$20$ required} \\
+    \multicolumn{5}{l}{Directional variant, $\phi=\operatorname{sign}$}
+      & \multicolumn{2}{c}{$1.07$} & \multicolumn{2}{l}{$20$ required} \\
+    \multicolumn{5}{l}{Settings surviving e-BH at $5\%$}
+      & \multicolumn{2}{c}{$0$} & \multicolumn{2}{l}{of $18$} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Certificates}
+\label{sec:results-cert}
+
+Table~\ref{tab:cert} runs the certificate of Section~\ref{sec:certificate} on the same
+eighteen settings, using as signal the model's forecast minus the intercept-only forecast
+from the same window and refit schedule. Nothing is refit: the certificate consumes the
+forecasts the pipeline already wrote. At $h=7$ the sample is split into its seven phases and
+the phase e-values are averaged, per Remark~\ref{rem:stagger}.
+
+Nothing is certified. The largest e-value in the grid is $1.81$ against the $20$ required at
+$\alpha=0.05$; the average over the eighteen settings, which is by Theorem~\ref{thm:merge} a
+valid test of the global null under arbitrary dependence, is $1.18$; e-BH selects nothing.
+Pre-committing the stake to an annualised information ratio of $1.0$---declared before the
+data were touched, as Corollary~\ref{cor:regret} recommends---does not change the reading:
+the largest designed e-value is $1.58$.
+
+The directional variant, $\phi=\operatorname{sign}$, is the anytime-valid replacement for
+the market-timing test of Section~\ref{sec:sign} and inherits none of its defects: it needs
+no asymptotic variance, and its phase average requires no distribution for the average of
+dependent standardised statistics. Its grid-level e-value is $1.07$, with a largest cell value of $1.29$. The sign-timing
+results
+this study once reported at $p\approx0.001$ leave no trace under an instrument that is
+valid for the design that produced them.
+
+Read alongside the Clark--West columns, the table is not a contradiction but a scale
+statement. The implied information ratios---read off the realised growth rate through
+Theorem~\ref{thm:horizon}, $\mathrm{IR}=\sqrt{2P\Lambda}$---run from $0$ to $0.51$. The
+smallest ratio this sample could certify is $1.59$ ($1.11$ with the stake pre-committed).
+The settings Clark--West likes are the ones whose implied ratios sit closest to that floor
+without reaching it. There is no disagreement between the instruments about the data; there
+is a disagreement about whether six years is enough to settle the question, and
+Corollary~\ref{cor:optimal} says the certificate is right about that.
+
+\subsection{What the features could still be worth}
+\label{sec:ceiling}
+
+Failing to certify is the less useful half of an answer. The half a desk can act on is the
+anytime-valid ceiling of Section~\ref{sec:implementation}: an upper confidence bound,
+uniform over time, on the incremental value $\theta=\mathbb{E}[z_t(y_t-\mu)]$ of the
+standardised signal, with the drift eliminated exactly as in the certificate.
+
+Expressed as annualised information ratios, the $95\%$ ceilings in Table~\ref{tab:cert} run
+from $0.63$ to $2.55$, and every interval contains zero. The correct summary of this study
+is therefore neither ``the features predict'' nor ``the features do not predict'' but a
+statement with a number in it: \emph{after six years of daily data, the incremental
+annualised information ratio of twelve standard technical features on these three assets
+lies between $0.6$ and $2.6$ depending on the setting, and cannot be distinguished from
+zero}. That is a bound a research
+manager can act on---it does not clear a costed hurdle for a strategy that must also carry
+market exposure---and it is a bound no $p$-value in this literature reports.
+
 \subsection{Multiple testing}
+\label{sec:joint}
 
 \begin{figure}[t]
   \centering
@@ -934,10 +1543,34 @@ be extracted from the zero-benchmark column.
 Against the recursive mean the adjustments are meaningful, because there the test is
 approximately correctly sized. The same two settings survive false-discovery control
 ($p^{\mathrm{BH}} = 0.035$), none survives family-wise control, and at the plug-in
-bandwidth the survivor counts are 5 and 1. So the calibrated reading of the whole
-family is: a raw excess of about six rejections over expectation, of which at most
-one distinct candidate survives false-discovery control and none survives
-family-wise control.
+bandwidth the survivor counts are 5 and 1.
+
+\paragraph{The count needs a joint null, not an expected value.} An earlier version compared
+the observed number of rejections with the \emph{sum} of the marginal rejection
+probabilities. That is $\mathbb{E}[N]$, not the distribution of $N$, and the eighteen tests
+are strongly dependent: ridge and elastic net are nearly the same estimator, the horizons
+share observations, the assets are cross-sectionally correlated, and every setting sees the
+same regimes. Under positive dependence false rejections cluster, so $P(N\ge7)$ can be far
+larger than a binomial calculation with the same mean suggests. We therefore run the
+\emph{entire} eighteen-setting experiment inside each null replication---three synthetic
+assets sharing a common sign process, two horizons, three estimators, all eighteen
+statistics---and read the joint quantities off the resulting vectors
+(\texttt{audit/scripts/mc\_joint\_null.py}). Across $2{,}000$ replications the count has mean
+$0.96$ and standard deviation $1.43$, against $0.93$ for eighteen independent tests: the
+dependence the reviewer of an earlier draft anticipated is real and inflates the spread by
+more than half. It does not rescue the count. The observed seven sits at
+$P(N\ge7)=0.0035$, with $P(N\ge5)=0.039$ and $P(N\ge6)=0.014$, and the marginal cell sizes
+run from $3.5\%$ to $7.5\%$ with a median of $4.9\%$, confirming the calibration of
+Table~\ref{tab:size} setting by setting. Individually, however, nothing survives: the
+largest statistic, $2.667$, sits just under the null's $95$th percentile of $2.689$, so the
+max-$T$ global-null $p$-value is $0.052$ and the smallest Romano--Wolf step-down adjusted
+$p$-value \citep{romano2005} is also $0.052$. The honest reading is therefore split: the
+\emph{number} of rejections is surprising under the joint null, and \emph{no individual
+setting} is.
+
+That is the strongest form the $p$-value evidence takes, and it is why
+Section~\ref{sec:results-cert} is not a contradiction of it: the certificate agrees the
+implied effect sits near the edge of what six years can resolve, and declines to call it.
 
 \subsection{Sign timing}
 \label{sec:results-signs}
@@ -986,6 +1619,7 @@ else. The conclusion---no sign-timing skill in either direction---is unchanged; 
 evidence previously offered for its most striking part was invalid.
 
 \subsection{Economic performance}
+\label{sec:economics}
 \label{sec:results-econ}
 
 \begin{figure}[t]
@@ -1102,62 +1736,61 @@ wide, and the reported figure is in part a property of where sampling began.
 
 \section{Discussion}
 
-\paragraph{The correction inherits whatever null the benchmark encodes.}
-Diebold--Mariano is the default in applied forecast comparison and it is the wrong
-default whenever the benchmark is nested. Swapping in Clark--West fixes the nesting
-and leaves the hypothesis alone. Against a zero-return benchmark, an estimator with
-a fitted intercept is tested for drift and conditional predictability jointly, and
-Equation~\eqref{eq:drift} shows the drift entering the statistic directly. The
-measured consequence in this study is a rejection rate three to six times nominal
-under a null with no conditional predictability in it, and a rejecting set whose
-membership changes from BTC to SOL when the benchmark is repaired. The operational
-form of the point is a question a referee can ask in one line: does the larger model
-fit an intercept, and if so, against which of the two nulls is the reported
-$p$-value computed?
+\paragraph{Estimating a nuisance and eliminating it are different operations.}
+Diebold--Mariano is the default in applied forecast comparison and it is the wrong default
+whenever the benchmark is nested. Swapping in Clark--West fixes the nesting and leaves the
+hypothesis alone. Both benchmarks then dispose of the drift by plugging an estimate into the
+statistic, and the estimate's error does not disappear: with the zero forecast it is the
+whole drift and Proposition~\ref{prop:distortion} prices it; with the recursive mean it is
+the covariance between the benchmark's estimation error and the model's signal, which is
+what the residual size distortion at $h=7$ consists of. The certificate is the same
+comparison with the nuisance hedged rather than estimated, and the price of that---exactly
+$\ln 2$ nats, $23\%$ more data---is small next to what it buys. The operational form of the
+point is a question a referee can ask in one line: does the larger model fit an intercept,
+and if so, against which of the two nulls is the reported $p$-value computed?
 
 \paragraph{A distributional fix does not repair a hypothesis problem.}
-Wild Clark--West \citep{pincheira2021} is the right tool for the problem it was
-built for---the CW core statistic is degenerate under the null, which is why its
-limit is non-standard---and it is well sized at long horizons in the authors' own
-designs. It cannot help here, and Section~\ref{sec:calibration} shows that it does
-not: the drift term in Equation~\eqref{eq:drift} survives the $\theta_t$
-perturbation unchanged, because $\mathbb{E}[\theta_t] = 1$. Choosing the benchmark
-and choosing the reference distribution are separate decisions, and only the first
-one determines what is being tested.
+Wild Clark--West \citep{pincheira2021} is the right tool for the problem it was built
+for---the core statistic is degenerate under the null, which is why its limit is
+non-standard---and it is well sized at long horizons in the authors' own designs. It cannot
+help here, and Section~\ref{sec:calibration} shows that it does not: the drift term in
+Equation~\eqref{eq:drift} survives the $\theta_t$ perturbation unchanged, because
+$\mathbb{E}[\theta_t]=1$. Choosing the benchmark and choosing the reference distribution are
+separate decisions, and only the first determines what is being tested.
 
-\paragraph{Calibrate the test rather than assuming it.}
-The distortion above is invisible in code review, survives a unit-test suite that
-checks every formula against hand-computed values, and is not detected by simulating
-a forecast that is independent noise---a design that measures neither size nor bias
-and that an earlier version of this work used. What detects it is a null built by
-resampling the data through the actual pipeline with actual estimated forecasts.
-That experiment costs minutes of compute. Our own experience also argues for running
-it at a serious replication count: at 400 replications the size estimates moved by up
-to three percentage points between seeds, which is enough to change how a reader
-reads them.
+\paragraph{Validity that is proved does not have to be calibrated.}
+The size distortion above is invisible in code review, survives a unit-test suite that
+checks every formula against hand-computed values, and is not detected by simulating a
+forecast that is independent noise. What detects it is a null built by resampling the data
+through the actual pipeline with actual estimated forecasts---and that experiment has to be
+redone whenever the feature set, the estimator, the sample or the horizon changes, at
+$2{,}000$ pipeline refits a time. Theorem~\ref{thm:validity} removes the obligation rather
+than automating it. The practical consequence is not only speed: a calibration study can
+only certify the pipeline it was run on, whereas a finite-sample theorem covers the pipeline
+a practitioner will build next year out of components that do not exist yet.
 
-\paragraph{Most apparent performance was market exposure.}
-The highest Sharpe ratios in the study belong to a forecaster that makes one
-position change, and the two settings whose intervals exclude zero carry
-$\beta = 0.76$ and $0.89$ to buy-and-hold with alpha $t$-statistics of $1.07$ and
-$1.15$. A one-bar execution delay removes most of the $h=1$ performance. Three cheap
-controls---a buy-and-hold row, an exposure regression, and a delayed-entry
-variant---separate signal from exposure and from timing convention.
+\paragraph{Most apparent performance was market exposure, and the certificate cannot be
+fooled by it.} The highest Sharpe ratios in the study belong to a forecaster that makes one
+position change, and the strongest settings carry betas of $0.76$ and $0.89$ to buy-and-hold
+with alpha $t$-statistics near unity. Under Theorem~\ref{thm:pnl} that exposure earns no
+evidence at all, because the certificate's bettor is credited with no part of the drift by
+construction. The exposure regression, the delayed-execution variant and the staggered
+portfolio remain worth running---they say \emph{how} a strategy made its money---but they are
+no longer load-bearing for the inferential claim.
 
-\paragraph{What is left after all of this is small, and we do not want to overstate
-it in either direction.} Against the correct benchmark, with size calibrated under a
-dependence-preserving null, the raw rejection count is about six above expectation.
-That is a real statistical excess and we report it as one. It is also the weakest
-possible version of a finding: it does not survive family-wise control, the two
-settings that survive false-discovery control are two parametrisations of the same
-linear model on the same asset at the same horizon, the same settings are worse
-point forecasters than the benchmark they beat on the test, and nothing about them
-is tradeable once costs, execution timing, and market exposure are charged. In the other
-direction, the design detects a population $\rsq$ of $1.34\%$ only $80\%$ of the time, so it
-is not powered to exclude an economically relevant effect either. The defensible summary is that the study finds
-one weak, uneconomic candidate and that the four apparently stronger findings of its
-earlier version were artifacts of the benchmark, the bandwidth, the label overlap,
-and the execution convention.
+\paragraph{What is left, stated at the right scale.}
+Against the correct benchmark and with size calibrated under a dependence-preserving null,
+Clark--West rejects in seven of eighteen settings against about one expected, and a joint
+resampling of the whole experiment puts that count in the tail. Under certificates nothing
+is certified, the grid-level e-value is $1.18$ against $20$, and the implied information
+ratios run from $0$ to $0.50$ against a certifiable floor of $1.59$. These are not
+contradictory readings of the data; they are a $p$-value and an e-value disagreeing about
+what six years can settle, and Corollary~\ref{cor:optimal} says the e-value is right.
+The honest summary is that the question is open at this sample size, and the number that
+makes it actionable is the ceiling: the features' incremental information ratio is bounded
+above by $2.6$ and cannot be distinguished from zero. A desk can decide against that.
+It cannot decide against a $p$-value of $0.004$ on a statistic whose null was never the one
+being asked about.
 
 \section{Limitations}
 \label{sec:limitations}
@@ -1189,6 +1822,25 @@ the manuscript's and reported cell values differing by up to five percentage poi
 \texttt{StudyConfig.end} is now pinned to 2026-07-18 in the configuration rather than
 only by the presence of the cache.
 
+\paragraph{Limitations of the certificate.} Three are worth naming and none is hidden by the
+theorem. \emph{The assumption is not free.} The default payoff needs the outcome to be
+conditionally symmetric about its drift; that permits arbitrary volatility clustering and tail
+thickness but excludes systematically skewed conditional distributions, and daily
+cryptocurrency returns are mildly skewed. The identity payoff drops the assumption to a
+martingale difference at a cost in power set by how loose the a-priori return envelope is.
+Run on this study with an envelope of $\sqrt{h}$, it gives a largest e-value of $4.13$ and a
+grid-level e-value of $1.44$, against $1.81$ and $1.18$ for $\tanh$: larger, still an order
+of magnitude short of the $20$ required, and it selects nothing under e-BH. The conclusions
+of Table~\ref{tab:cert} do not depend on the symmetry assumption. \emph{The power is real
+but bounded.} Corollary~\ref{cor:optimal} says no anytime-valid test does better in order, but
+a fixed-sample test that is pre-committed, looked at once, and handed the true drift needs
+$23\%$ less data; a study that genuinely will not look at its data until a pre-registered
+sample size is reached gives up nothing by using one. \emph{The infimum is numerical.} The
+drift search is a grid, and a grid too coarse to resolve $\sigma/\sqrt{n}$ silently destroys
+the guarantee rather than merely weakening it. We report the refinement check, the library
+defaults conservatively and exposes the spacing, and its test suite records the failure mode;
+that is mitigation, not elimination.
+
 \paragraph{Limitations that bound generalisation.}
 Asset selection is not survivorship-free (Section~\ref{sec:data}); this biases
 towards finding profitable long exposure, which strengthens a negative result about
@@ -1211,35 +1863,47 @@ $0.847$ (BTC GBM, $h=7$), already short of any conventional threshold.
 
 \section{Conclusion}
 
-Across 18 model, asset, and horizon combinations evaluated by purged walk-forward
-cross-validation from 2020 to 2026, the answer to whether daily cryptocurrency
-returns are predictable depends almost entirely on which null the test states. The
-configuration in standard use---Clark--West against a zero-return benchmark at an
-$h-1$ bandwidth---rejects 10--30\% of the time on data constructed to contain no
-predictability, because a fitted intercept makes the zero forecast the wrong
-restriction and the sample drift enters the statistic directly. Its 5 of 18
-rejections are therefore roughly what noise produces. Against the recursively
-estimated mean, which is the restriction these estimators do nest, the same
-statistic is approximately correctly sized---3--5\% at $h=1$ and 7--8\% at $h=7$
-under a null that preserves volatility clustering, including for early-stopped
-gradient boosting---and it rejects in 7 of 18, against about 1 expected. That excess
-is the only positive result in the study, and it is a weak one: two settings survive
-false-discovery control and they are two parametrisations of one linear model on one
-asset, none survives family-wise control, the surviving set moves with the HAC
-bandwidth, and the same settings have negative $\rsq$, no sign-timing skill, and no
-alpha net of costs and market exposure. The only significant sign-timing results in
-the earlier version were an overlapping-label artifact; the two settings with Sharpe
-intervals excluding zero carry $\beta = 0.76$ and $0.89$ to buy-and-hold with
-insignificant alpha, and the one-day one loses three quarters of its Sharpe to a
-one-bar execution delay.
+Tests of out-of-sample predictability dispose of the asset's drift by estimating it, and
+that is where they break. Proposition~\ref{prop:distortion} makes the failure exact: against
+a zero benchmark the Clark--West statistic converges to the $t$-statistic of the asset's mean
+return, so on an asset with Bitcoin's drift a model containing no features at all is declared
+significantly predictive in $43\%$ of samples, and with twelve estimated coefficients it is
+still $12\%$. Replacing zero with the recursive mean removes the leading term and leaves the
+benchmark's own estimation error behind.
 
-We do not claim that no cryptocurrency signal exists at daily frequency; this design
-is not powered to support that claim and we make no attempt to. The transferable
-result is that four routine choices---which benchmark, which bandwidth, whether
-labels overlap, and when execution is assumed---determined every apparent finding in
-an earlier version of this study, and that all four are cheap to check. The
-benchmark is the one that has to be got right first, because it is the only one of
-the four that changes the hypothesis rather than the precision.
+The alternative developed here does not estimate the drift. A certificate is a non-negative
+wealth process---one bettor staking on the signal, one hedging every candidate drift---whose
+infimum over the nuisance is bounded by a martingale under the entire composite null.
+Validity is finite-sample and holds at every stopping time, with no bandwidth, no long-run
+variance, no bootstrap, no asymptotics and no refitting, for arbitrary black-box pipelines.
+Three things follow that a $t$-statistic cannot supply: the process may be monitored daily on
+a live strategy without any correction for looking; its logarithm is the profit and loss of
+an explicit drift-hedged strategy, so a $5\%$ rejection \emph{is} a twentyfold multiplication
+of capital that was credited with none of the market's return; and because e-values average
+under arbitrary dependence, an eighteen-setting grid needs no joint bootstrap and an
+overlapping $h$-step forecast is combined by splitting capital across its $h$ daily
+vintages---the staggered portfolio, arrived at from the statistics rather than bolted on
+afterwards.
+
+The construction also closes the sample-size question. Certifying an annualised information
+ratio $\mathrm{IR}$ takes $2\ln(1/\alpha)/\mathrm{IR}^2$ years, about $6/\mathrm{IR}^2$ at
+the $5\%$ level, rising to $7.4/\mathrm{IR}^2$ once the drift hedge is paid for and to
+$16/\mathrm{IR}^2$ if the stake is learned online rather than declared in advance. The bound
+is optimal to first order, so no better test recovers the missing years, and continuous
+monitoring costs only three per cent more data than a fixed-sample test that may be looked at
+once. Six years of daily data---about what any liquid cryptocurrency offers---cannot certify
+an information ratio below $1.59$.
+
+Applied to this study, nothing is certified. The grid-level e-value is $1.18$ against the
+$20$ required, the directional variant that replaces an invalid market-timing test gives
+$1.07$, and the implied information ratios run from $0$ to $0.50$. We do not read that as
+evidence of no predictability, and the instrument says why: the settings Clark--West likes
+imply ratios just below what six years can resolve. The reportable number is therefore not a
+$p$-value but a ceiling---after six years, the incremental information ratio of twelve
+standard technical features on these three assets is at most $2.6$, and cannot be
+distinguished from zero. That is a statement a research manager can act on, and it is
+available at any time, on any pipeline, for the cost of one pass over forecasts that have
+already been computed.
 
 \paragraph{Reproducibility.} All results, figures, and tables in this paper are
 generated by a single command from a public repository, and the tables reproduced
@@ -1258,12 +1922,127 @@ without re-running the models. Two cautions apply to anyone repeating the size
 experiment. It must be run with the sample end date pinned, for the reason given in
 Section~\ref{sec:limitations}; and it needs a serious replication count, because at
 400 replications we observed cell-to-cell movement of up to three percentage points
-between random seeds.
+between random seeds. The certificate needs neither caution, because it needs no size
+experiment; the one thing it does need is a drift grid fine enough to resolve the mean, and
+the library's default and its test suite both enforce that.
 
 \bibliographystyle{unsrtnat}
 \bibliography{references}
 
 \appendix
+
+\section{Proofs and derivations}
+\label{app:proofs}
+
+\paragraph{Theorem~\ref{thm:horizon}, in full.} Let $\psi_t=g_t\phi_t(\mu_0)$ with
+$\mathbb{E}[\psi_t\mid\mathcal{F}_{t-1}]=\eta_t$ under the alternative. For a stake
+$\lambda$ small enough that $\lambda|\psi|\le c<1$,
+\[
+  \mathbb{E}\log(1+\lambda\psi)
+  = \lambda\,\mathbb{E}[\psi] - \tfrac{\lambda^2}{2}\mathbb{E}[\psi^2] + O(\lambda^3),
+\]
+maximised at $\lambda^\ast=\mathbb{E}[\psi]/\mathbb{E}[\psi^2]$ with value
+$\Lambda=\mathbb{E}[\psi]^2/(2\mathbb{E}[\psi^2])+O(\mathbb{E}[\psi]^3)$. Take $\phi$ the
+identity, $s_t\equiv\sigma$, and $g_t\propto m_t$ where $m_t=\mathbb{E}[y_t\mid
+\mathcal{F}_{t-1}]-\mu_0$ is the conditional mean. Then $\mathbb{E}[\psi]\propto
+\mathbb{E}[m^2]/\sigma$ and $\mathbb{E}[\psi^2]\propto\mathbb{E}[m^2]$ to leading order in
+$\mathbb{E}[m^2]/\sigma^2$, so
+\[
+  \Lambda \;=\; \frac{\mathbb{E}[m^2]}{2\sigma^2}\big(1+o(1)\big)
+           \;=\; \frac{\mathrm{IR}_p^{2}}{2}\big(1+o(1)\big),
+\]
+because the strategy holding $m_t/\sigma$ units earns $\mathbb{E}[m^2]/\sigma$ per period
+with standard deviation $\sqrt{\mathbb{E}[m^2]}$, hence per-period information ratio
+$\mathrm{IR}_p=\sqrt{\mathbb{E}[m^2]}/\sigma$. Crossing $\log(1/\alpha)$ therefore takes
+$T^\ast=2\log(1/\alpha)/\mathrm{IR}_p^2$ periods. For a bounded odd payoff the same
+calculation runs with $\phi$ in place of the identity and multiplies $\Lambda$ by
+$\mathbb{E}[\phi'(\varepsilon/\sigma)]^2/\mathbb{E}[\phi(\varepsilon/\sigma)^2]$, which for
+$\phi=\tanh$ and Gaussian $\varepsilon$ is $0.98$: the bounded transform costs about two per
+cent of the growth rate and buys the removal of the envelope, which for daily returns is
+worth a factor of two in the other direction.
+
+\paragraph{Corollary~\ref{cor:optimal}.} Under the alternative with conditional mean shift
+$m_t$ and Gaussian innovations, the per-period Kullback--Leibler divergence from $H_0$ is
+$\mathbb{E}[m^2]/(2\sigma^2)=\mathrm{IR}_p^2/2$. Wald's identity for a level-$\alpha$
+sequential test with vanishing type-II error gives
+$\mathbb{E}[\tau]\ge\log(1/\alpha)/\mathrm{KL}$, which is $T^\ast$. Hence the constant in
+Theorem~\ref{thm:horizon} is not improvable by a different anytime-valid construction.
+
+\paragraph{Corollary~\ref{cor:regret}.} With a stake grid
+$\{\lambda_1,\dots,\lambda_G\}$ and uniform prior, $\tfrac1G\sum_j\prod_t(1+\lambda_j\psi_t)
+\ge \tfrac1G\max_j\prod_t(1+\lambda_j\psi_t)$, so log wealth is within $\log G$ of the best
+fixed stake in hindsight; a continuous mixture in the style of \citet{cover1991} attains
+$\tfrac12\log T+O(1)$, and no online rule does better in order. Substituting into
+$T\mathrm{IR}_p^2/2=\log(1/\alpha)+\rho_T$ and solving gives the ``learned online'' column
+of Table~\ref{tab:horizon}.
+
+\paragraph{Why the recursive mean does not finish the job.} With $b_t=\hat\mu_t$ the
+Clark--West differential is $\hat f_t=2(y_t-\hat\mu_t)g_t$ with $g_t=\hat y^{\,m}_t-\hat\mu_t$,
+so
+\[
+  \mathbb{E}[\hat f_t]
+  = 2\,\mathbb{E}\big[(y_t-\mu)g_t\big] - 2\,\mathbb{E}\big[(\hat\mu_t-\mu)g_t\big].
+\]
+The first term is the estimand. The second is the covariance between the benchmark's own
+estimation error and the model's signal, both functions of the same training window; it does
+not vanish in finite samples, it grows with the horizon because overlapping labels make
+$\hat\mu_t$ and $g_t$ share more observations, and it is what the residual $7$--$8\%$ size at
+$h=7$ in Table~\ref{tab:size} consists of. Equation~\eqref{eq:cert} removes it because no
+estimate of $\mu$ appears anywhere in the construction.
+
+\section{Audit trail of corrected claims}
+\label{app:audit}
+
+Earlier versions of this study reported findings that did not survive their own robustness
+checks. They are listed here rather than in the body, because the scientific content is in
+the current sections and a reader who wants the forensic record should be able to find it in
+one place. The full changelog, with the script that produced each number, is in the
+repository.
+
+\begin{description}
+  \item[Benchmark.] ``Five of 18 settings reject, against $0.9$ expected from a search of
+    that size.'' The comparison assumed the test was correctly sized for the hypothesis
+    intended. It was not: against the zero forecast the measured rejection rate on data with
+    no predictability is $14$--$21\%$ at $h=1$, so the correct expectation was about four.
+    Proposition~\ref{prop:distortion} now gives the distortion in closed form.
+  \item[The nesting claim.] The manuscript asserted that the zero forecast is the
+    slopes-zero restriction of the estimators. It is not; the restriction is the
+    training-window mean, because the intercept is unpenalised.
+  \item[The validating simulation.] An earlier calibration replaced the larger model's
+    forecast with exogenous noise. That construction makes the null of equal accuracy false
+    rather than true and estimates no coefficient, so it measures neither size nor bias. It
+    was replaced by refitting the entire pipeline inside each replication.
+  \item[Sign timing.] Significant market-timing results at $p\approx0.001$ came from
+    treating overlapping seven-day labels as independent. On non-overlapping subsamples they
+    are $p\approx0.24$--$0.27$. The phase-averaged repair introduced at that point was
+    itself invalid---it referred an average of dependent standardised statistics to a
+    standard normal without deriving a variance for the average---and is superseded by the
+    directional certificate of Section~\ref{sec:results-cert}.
+  \item[Execution and schedule.] The primary backtest entered at the same close its features
+    were computed from, which is infeasible, and reported one of $h$ arbitrary starting
+    phases. Both are replaced: execution is delayed by one bar and the strategy is the
+    staggered portfolio over all $h$ vintages, which Remark~\ref{rem:stagger} shows is also
+    the statistically correct combination.
+  \item[Size measurement.] The first Monte Carlo used $400$ replications against a sample
+    that a working-directory bug had silently re-downloaded twelve bars longer. Cells moved
+    by up to three percentage points between seeds. Rebuilt at $2{,}000$ replications against
+    the pinned cache.
+  \item[The dependence null.] A $28$--$43\%$ rejection rate under block resampling was read
+    as size failure. Block resampling preserves whatever genuine within-block predictability
+    the real series contains, so that rate is an upper bound on size, not a measurement of
+    it. The sign-flipped null separates the two.
+  \item[Novelty.] An earlier version presented the benchmark correction as its main
+    contribution. A literature check established that reporting both benchmarks is standard
+    practice in this literature \citep{magner2022, moosa2016, welch2008, campbell2008}. The
+    contribution was narrowed accordingly, and the present version claims novelty only for
+    the instrument of Sections~\ref{sec:certificate}--\ref{sec:design}.
+\end{description}
+
+Each of these was found by a check the study already ran and then reported honestly, which
+is the only reason they are known. The pattern worth extracting is that none of them was
+visible in the code: every one was a mismatch between a quantity the code computed correctly
+and the sentence it was used to support.
+
 
 \section{Statistical definitions}
 \label{sec:formulas}

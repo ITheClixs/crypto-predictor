@@ -1,84 +1,162 @@
-# Are Short-Horizon Cryptocurrency Returns Predictable Out of Sample?
+# Betting Against the Benchmark
 
-**A purged walk-forward study with nested-model tests, transaction costs, and multiple-testing control**
+**Drift-robust, anytime-valid certificates of out-of-sample predictive ability — with a
+reference implementation (`alphacert`) and a six-year cryptocurrency case study**
 
 [![ci](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml/badge.svg)](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.12%2B-blue)
-![tests](https://img.shields.io/badge/tests-164-informational)
-![coverage](https://img.shields.io/badge/coverage-97%25-informational)
+![tests](https://img.shields.io/badge/tests-214-informational)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
 ## Abstract
 
-I test whether daily cryptocurrency returns can be forecast out of sample well enough to
-survive trading costs. Three assets (BTC, ETH, SOL), two horizons (1 and 7 days), and six
-forecasters (random walk, historical mean, AR(1), ridge, elastic net, gradient-boosted
-trees) are evaluated by purged and embargoed walk-forward cross-validation over
-2020-07-23 to 2026-07-17, giving 18 machine-learning settings against a martingale null.
+Tests of out-of-sample return predictability treat the asset's drift as a nuisance and
+dispose of it by **estimating** it. That is where they break.
 
-The headline result depends entirely on which test is used, and on whether that test has
-the size it claims. Diebold–Mariano rejects in favour of the random walk in 7 of 18
-settings and never in favour of a model; the Clark–West correction for nesting turns that
-into 5 of 18 rejecting the no-predictability null at an uncorrected 5%. Neither number is
-the answer.
+A model with an unpenalised intercept does not reduce to the zero forecast when its slopes
+vanish — it reduces to the training-window mean. Racing it against zero therefore tests *no
+drift* **and** *no conditional predictability* jointly. In closed form (Proposition 1):
 
-**The test in standard use does not test the hypothesis it is used to support.** Under a
-null built by resampling the return series — retaining the drift, the tails, the feature
-persistence, the sample length and the estimators, while removing conditional
-predictability — Clark–West against a zero-return benchmark rejects **10–30%** of the time
-at a nominal 5%. That is not a bug in the test: Clark & West (2006) state its null as a
-*zero-mean* martingale difference, and these samples have a large drift. The mechanism is
-identifiable: ridge, elastic net and the booster all fit an unpenalised intercept, which
-equals the training-window mean, so the zero forecast is *not* their slopes-zero
-restriction. The adjusted differential is
-$\hat f_t = 2(y_t - \hat y^b_t)(\hat y^m_t - \hat y^b_t)$, and with $\hat y^b = 0$ its
-expectation is $2(\mathbb{E}[y]\mathbb{E}[\hat y^m] + \mathrm{Cov}(y, \hat y^m))$ — the
-first term is drift, nonzero whatever the features do.
+$$\mathbb{E}[\mathrm{CW}_0] \approx \frac{\sqrt{n} S^2}{\sqrt{S^2 + (1+p)/k}} \longrightarrow \sqrt{n} S \quad \text{when } k S^2 \gg 1+p,$$
 
-Against the **recursively estimated mean** — the restriction these estimators actually nest
-— the same statistic is approximately correctly sized: **3–5% at $h=1$ and 7–8% at $h=7$**
-under a sign-flipped null that preserves the volatility clustering of the real series,
-including for early-stopped XGBoost, for which no prior calibration evidence was found.
-Measured on both a BTC and a SOL return pool.
+for per-period Sharpe ratio $S$, estimation window $k$ and $p$ estimated coefficients — the
+statistic **converges to the $t$-statistic of the asset's mean return**. Measured: at
+Bitcoin's realised drift a model with *no features at all* is declared significantly
+predictive in **43%** of samples at a nominal 5%, and **81%** at an annualised Sharpe ratio
+of 2.0. Swapping in the recursive mean removes the leading term and leaves the benchmark's
+own estimation error behind.
 
-**The two benchmarks then support opposite readings of identical forecasts.** Against zero,
-5 of 18 settings reject and about 4 are expected from noise, so the count is uninformative.
-Against the recursive mean, 7 of 18 reject against about **1** expected. That excess is
-real, and it is the only positive result in the study. It is also weak: two settings survive
-false-discovery control (BTC ridge and BTC elastic net at $h=1$, $p_{BH} = 0.035$) and those
-are two parametrisations of one linear model on one asset, none survives family-wise
-control, and the surviving set moves with the HAC bandwidth (2 vs 5 under BH).
+### The instrument
 
-Wild Clark–West (Pincheira, Hardy & Muñoz 2021), the published remedy for CW's long-horizon
-size distortion, is implemented here and **changes nothing**: it is numerically
-indistinguishable from CW on this data (max $|\Delta T| = 0.0034$; no 5% decision changes)
-because it repairs a degeneracy in the reference distribution, not a benchmark that encodes
-the wrong hypothesis.
+This repository eliminates the drift instead. A **certificate** is a non-negative wealth
+process: one bettor stakes on the signal leading the outcome, a second hedges every candidate
+drift two-sidedly, and the certificate is the infimum over the nuisance of their average.
+Because an infimum is at most the value at the truth, and the value at the truth is a
+martingale, Ville's inequality gives
 
-Three supporting results all point away from the excess. $R^2_{OS}$ is negative in 16 of 18
-settings against the same benchmark. The only significant sign-timing findings
-($p \approx 0.001$ for two ETH settings at $h=7$) come from treating overlapping 7-day
-labels as independent, and are $p \approx 0.24$–$0.27$ on non-overlapping subsamples. The
-two settings whose Sharpe interval excludes zero carry $\beta = 0.76$ and $0.89$ to
-buy-and-hold with alpha *t*-statistics of 1.07 and 1.15, and a one-bar execution delay takes
-the $h=1$ winner from 0.91 to 0.21, because the backtest enters at the same close its
-features are computed from.
+$$P(\exists t : \mathcal{E}_t \ge 1/\alpha) \le \alpha$$
 
-**Conclusion.** Over this sample, with this feature set, the study finds one weak,
-uneconomic candidate — and only under the benchmark the applied literature usually does not
-use. We do *not* claim the absence of predictability: the design reaches 80% power only at a
-population $R^2$ of 1.34%, four times anything it observed, so it cannot exclude an
-economically relevant effect either. The
-transferable finding is that four routine choices — which benchmark, which HAC bandwidth,
-whether labels overlap, and when execution is assumed — determined every apparent result in
-the first version of this study, and that the benchmark is the one to get right first,
-because it is the only one of the four that changes the hypothesis rather than the
-precision.
+in **finite samples** and **uniformly in time**. No bandwidth, no long-run variance, no
+bootstrap, no asymptotics, no refitting — and it is indifferent to what produced the
+forecasts, so regularised, early-stopped and black-box learners are covered by the same
+theorem that covers OLS.
 
-> The full audit, including the reproduction scripts for every number above and a record of
-> which earlier claims they overturn, is in [`audit/`](audit/README.md).
+| | Clark–West | Certificate |
+|---|---|---|
+| Rejection rate at Sharpe 0.0 / 2.0, no predictability | 5.2% / **81%** (vs zero) | 0.3% / 0.8% |
+| Calibration needed | 2,000 pipeline refits, hours | none — validity is a theorem |
+| Valid if you look every day | no | yes, at every stopping time |
+| Multiplicity over an 18-cell grid | joint bootstrap | average the e-values |
+| Overlapping $h$-step labels | needs a variance for the average | $h$ phase e-values, averaged |
+| Units of the statistic | dimensionless | **profit and loss** |
+
+Three consequences a $t$-statistic cannot give:
+
+1. **Monitorable.** Run it forward on a live strategy, look every day, no correction. It also
+   yields an anytime-valid **ceiling** on incremental value — the number that lets you
+   *retire* a research line rather than merely fail to confirm it.
+2. **Denominated in money.** $\log \mathcal{E}_T$ is the P&L of an explicit drift-hedged
+   strategy, so rejecting at 5% *is* a twentyfold multiplication of capital that was credited
+   with none of the market's return. Statistical and economic significance stop being two
+   numbers that might disagree.
+3. **Composable.** E-values average under *arbitrary* dependence, so a research grid needs no
+   joint bootstrap — and averaging the $h$ phase certificates of an overlapping forecast is
+   literally the staggered $h$-vintage portfolio, so the valid combination and the
+   implementable strategy are the same object.
+
+### The design law
+
+Evidence is log wealth; log wealth grows at half the squared information ratio. So
+
+$$T^\ast = \frac{2\ln(1/\alpha)}{\mathrm{IR}^2} \text{ years} \approx \frac{6}{\mathrm{IR}^2} \text{ at the 5 percent level}.$$
+
+It is optimal to first order (no cleverer test recovers the missing years); continuous
+monitoring costs only **3% more data** than a fixed-sample test that may be looked at once;
+the drift hedge costs exactly $\ln 2 = 0.69$ nats, i.e. **23% more data**; and learning the
+stake online instead of declaring a target effect size in advance costs a further factor of
+two. Pre-registration becomes a power calculation.
+
+| Annualised IR | Years to certify (stake pre-committed) | (learned online) |
+|---|---|---|
+| 0.50 | 29.5 | 70.1 |
+| 1.00 | 7.4 | 16.1 |
+| 1.50 | 3.3 | 6.7 |
+| 2.00 | 1.8 | 3.6 |
+
+**Six years of daily data — about what any liquid cryptocurrency offers — cannot certify an
+information ratio below 1.59.**
+
+### The evidence
+
+Three assets, two horizons, three estimators, purged and embargoed walk-forward validation
+over 2020–2026, programmatic leakage tests, transaction costs, one-bar execution delay,
+staggered portfolios, exposure regressions.
+
+- **Nothing is certified.** Largest e-value 1.81 against the 20 required; grid-level e-value
+  **1.18**; e-BH selects nothing; the directional variant (which replaces an invalid
+  Pesaran–Timmermann average) gives 1.07.
+- **Implied information ratios run 0.00 to 0.50**, against a certifiable floor of 1.59.
+- **Ceiling:** after six years, the incremental information ratio of twelve standard
+  technical features on these three assets is **at most about 2, and cannot be distinguished
+  from zero.**
+
+Clark–West rejects in 7 of 18 settings against the recursive mean, and a joint resampling of
+the whole experiment puts that count in the tail. This is not a contradiction: it is a
+$p$-value and an e-value disagreeing about what six years can settle, and the design law says
+which one is right. The reportable number is the ceiling, not a $p$-value on a statistic whose
+null was never the question being asked.
+
+> The full audit, including reproduction scripts for every number above and a record of which
+> earlier claims they overturn, is in [`audit/`](audit/README.md). Retracted claims are listed
+> in the paper's appendix and in [`audit/CHANGELOG_RESEARCH.md`](audit/CHANGELOG_RESEARCH.md).
+
+---
+
+## Using `alphacert`
+
+```python
+import numpy as np
+from alphacert import certify, certify_overlapping, e_bh, merge_average, value_ceiling
+from alphacert import certifiable_ratio, detection_horizon
+
+# signal_t must be computable strictly before outcome_t is realised. For a nested forecast
+# comparison, use the model's forecast minus the intercept-only forecast from the same window.
+signal = model_forecast - intercept_only_forecast
+cert = certify(signal, outcome)                    # tanh payoff; conditional symmetry
+cert.evalue                                        # e-value; >= 20 rejects at 5%
+cert.p_value                                       # anytime-valid p-value
+cert.stopping_time(0.05)                           # when the evidence arrived, if it did
+cert.log_wealth                                    # the drift-hedged strategy's P&L, in nats
+
+# Overlapping h-step labels: h phase certificates, averaged. Also the staggered portfolio.
+evalue, phases = certify_overlapping(signal, outcome, horizon=7)
+
+# A whole research grid, corrected under arbitrary dependence. No bootstrap.
+merge_average([c.evalue for c in grid])            # valid test of the global null
+e_bh([c.evalue for c in grid], alpha=0.05)         # FDR control, arbitrary dependence
+
+# Decide before you look; it is worth a factor of two in data.
+detection_horizon(1.0, kelly_known=True)           # 7.4 years
+certifiable_ratio(6.0)                             # 1.59 -- what this sample can speak to
+cert = certify(signal, outcome, design_ratio=1.0)  # pre-committed stake
+
+# Retire a research line with a number rather than a shrug.
+bound = value_ceiling(signal, outcome, alpha=0.05)
+bound.ratio_ceiling(outcome.std())                 # annualised IR the features could still have
+```
+
+**Assumptions.** `payoff="tanh"` (default) and `"sign"` need the outcome to be *conditionally
+symmetric* about its drift — far weaker than i.i.d., permitting arbitrary volatility
+clustering, fat tails and any dependence in $|y_t - \mu|$. `payoff="identity"` needs only a
+martingale difference plus an a-priori envelope on $|y_t|$, and pays for it in power.
+
+**The one numerical trap.** The infimum over the drift is evaluated on a grid, and the grid
+must resolve the drift to better than $\sigma/\sqrt{n}$ — a coarser grid lifts the numerical
+infimum above the true one and the process stops being conservative. The default spacing is
+`1e-4`, `recommended_resolution()` computes a safe one, and the test suite records the failure
+mode of a deliberately coarse grid so it is documented rather than latent.
 
 ---
 
@@ -922,6 +1000,21 @@ make app        # a small local viewer on http://127.0.0.1:8000
 make paper      # typeset paper/paper.pdf (needs tectonic)
 ```
 
+The certificate results and the calibration behind them:
+
+```bash
+./venv/bin/python audit/scripts/gen_forecasts.py           # 72,900 OOS forecasts
+./venv/bin/python audit/scripts/certificate_study.py       # certificates, all 18 settings
+./venv/bin/python audit/scripts/certificate_study.py --payoff sign   # directional variant
+./venv/bin/python audit/scripts/certificate_calibration.py 400       # drift sweep + horizon law
+./venv/bin/python audit/scripts/mc_joint_null.py 2000 --gbm          # joint null for Clark-West
+./venv/bin/python audit/scripts/joint_null_report.py                 # P(N >= k), Romano-Wolf
+```
+
+The certificate needs no calibration -- `certificate_calibration.py` exists to *demonstrate*
+Theorem 1, not to license it. The joint null is the expensive one, and it is expensive
+precisely because p-values over a dependent grid have to be simulated.
+
 `make backtest` runs in roughly 15 seconds and rewrites `reports/results.md`,
 `reports/results.csv`, and all eight figures. Market data is cached under `data/cache/`,
 so re-runs are offline. `reports/results.md` is generated, never hand-edited: its headline
@@ -936,6 +1029,12 @@ with an 80% coverage floor, on Python 3.12 and 3.13.
 ## Repository layout
 
 ```
+src/alphacert/         the instrument, dependency-light and study-independent
+  certificate.py       the drift-robust e-process (Theorem 1)
+  payoffs.py           odd transforms: identity / tanh / sign, and what each assumes
+  merge.py             e-value averaging, e-BH, phase split for overlapping horizons
+  bounds.py            anytime-valid ceiling on incremental value
+  design.py            detection-horizon law, certifiable-ratio calculator
 src/cryptoforecast/
   config.py            frozen study configuration
   data/                cached Yahoo Finance OHLCV loader
@@ -951,7 +1050,9 @@ src/cryptoforecast/
 app/                   a small Flask viewer over the same evaluation
 paper/                 NeurIPS-format preprint; tables generated from the results
 reports/               generated results.md, results.csv, figures (PNG and PDF)
-tests/                 164 tests, including the leakage guarantees
+tests/                 leakage guarantees, statistical formulas, and the certificate's
+                       validity, power and documented numerical failure mode
+audit/scripts/         every number in the audit, one script per claim
 ```
 
 ---

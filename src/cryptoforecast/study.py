@@ -15,13 +15,24 @@ from pathlib import Path
 import pandas as pd
 
 from .backtest.engine import walk_forward
-from .backtest.strategy import StrategyResult, backtest_strategy, buy_and_hold, phase_sharpes
+from .backtest.strategy import (
+    StrategyResult,
+    backtest_strategy,
+    buy_and_hold,
+    phase_sharpes,
+    staggered_strategy,
+)
 from .config import StudyConfig
 from .data.cache import DEFAULT_CACHE_DIR
 from .data.loaders import load_ohlcv
 from .dataset import build_supervised
 from .evaluate.metrics import regression_metrics
-from .evaluate.stats import clark_west, diebold_mariano, pesaran_timmermann_non_overlapping
+from .evaluate.stats import (
+    clark_west,
+    diebold_mariano,
+    pesaran_timmermann_non_overlapping,
+    sign_rotation_test,
+)
 from .models.registry import PRIMARY_BENCHMARK, default_models
 
 #: The ex-ante reference forecast for the out-of-sample R^2 (Campbell-Thompson), and the
@@ -39,15 +50,23 @@ class ModelRun:
     model: str
     oos: pd.DataFrame
     metrics: dict[str, float]
+    #: Primary economic specification: equal-weighted over all h daily vintages, entered one
+    #: bar after the signal is observable. Feasible, and free of the phase arbitrariness that
+    #: moves the single-schedule Sharpe by up to 1.4 points at h = 7.
     strategy: StrategyResult
+    #: The single-schedule, same-close backtest earlier versions reported. Retained as an
+    #: explicitly optimistic upper bound and as the input to the phase diagnostics.
+    same_close_strategy: StrategyResult
     dm_stat_vs_rw: float  # negative => lower squared error than the random walk
     dm_p_vs_rw: float  # two-sided
     cw_stat_vs_rw: float  # positive => beats the zero forecast; joint no-drift null
     cw_p_vs_rw: float  # one-sided
     cw_stat_vs_mean: float  # positive => beats the recursive mean it actually nests
     cw_p_vs_mean: float  # one-sided
-    pt_stat: float  # positive => sign-timing skill; phase-averaged, non-overlapping
-    pt_p: float  # two-sided, mean over phases
+    pt_stat: float  # phase-averaged Pesaran-Timmermann; kept for the audit trail only
+    pt_p: float  # mean over phases; NOT a calibrated p-value, see sign_p
+    sign_excess: float  # hit rate minus the rate independence implies; positive => skill
+    sign_p: float  # two-sided randomisation p-value, no analytic variance assumed
     phase_sharpes: list[float]  # net Sharpe on each of the h start offsets
 
 
@@ -82,6 +101,7 @@ def run_asset_horizon(
         cw = clark_west(y_true, y_pred, rw_pred, horizon=horizon)
         cw_mean = clark_west(y_true, y_pred, r2_bench_pred, horizon=horizon)
         pt = pesaran_timmermann_non_overlapping(y_true, y_pred, horizon=horizon)
+        sign = sign_rotation_test(y_true, y_pred, block=horizon)
         runs.append(
             ModelRun(
                 asset=asset,
@@ -89,7 +109,8 @@ def run_asset_horizon(
                 model=name,
                 oos=oos,
                 metrics=regression_metrics(y_true, y_pred, r2_bench_pred),
-                strategy=backtest_strategy(oos, horizon, cfg.costs, kind="sign"),
+                strategy=staggered_strategy(oos, horizon, cfg.costs, kind="sign"),
+                same_close_strategy=backtest_strategy(oos, horizon, cfg.costs, kind="sign"),
                 dm_stat_vs_rw=dm.statistic,
                 dm_p_vs_rw=dm.p_value,
                 cw_stat_vs_rw=cw.statistic,
@@ -98,6 +119,8 @@ def run_asset_horizon(
                 cw_p_vs_mean=cw_mean.p_value,
                 pt_stat=pt.statistic,
                 pt_p=pt.p_value,
+                sign_excess=sign.statistic,
+                sign_p=sign.p_value,
                 phase_sharpes=phase_sharpes(oos, horizon, cfg.costs),
             )
         )

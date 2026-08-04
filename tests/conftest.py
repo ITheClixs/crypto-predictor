@@ -35,7 +35,12 @@ def make_study(n: int = 300):
     and CLI code can be exercised fast. The ``ridge`` run is a near-perfect sign
     predictor; the ``random_walk`` run predicts zero.
     """
-    from cryptoforecast.backtest.strategy import backtest_strategy, buy_and_hold, phase_sharpes
+    from cryptoforecast.backtest.strategy import (
+        backtest_strategy,
+        buy_and_hold,
+        phase_sharpes,
+        staggered_strategy,
+    )
     from cryptoforecast.config import CostModel, StudyConfig
     from cryptoforecast.evaluate.metrics import regression_metrics
     from cryptoforecast.study import ModelRun, StudyResults
@@ -65,7 +70,8 @@ def make_study(n: int = 300):
             model=model,
             oos=oos,
             metrics=regression_metrics(y_true, y_pred.to_numpy()),
-            strategy=backtest_strategy(oos, 1, costs),
+            strategy=staggered_strategy(oos, 1, costs),
+            same_close_strategy=backtest_strategy(oos, 1, costs),
             dm_stat_vs_rw=dm_stat,
             dm_p_vs_rw=dm_p,
             cw_stat_vs_rw=cw_stat,
@@ -74,6 +80,8 @@ def make_study(n: int = 300):
             cw_p_vs_mean=cw_p if cw_p_mean is None else cw_p_mean,
             pt_stat=pt_s,
             pt_p=pt_p,
+            sign_excess=pt_s,
+            sign_p=pt_p,
             phase_sharpes=phase_sharpes(oos, 1, costs),
         )
 

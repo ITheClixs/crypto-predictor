@@ -8,6 +8,110 @@ reproduce from `audit/scripts/`.
 
 ---
 
+## 2026-08-04 — The instrument replaces the diagnosis
+
+Scope: the 2026-08-03 pass fixed what the paper *claimed*; this one changes what the paper
+*is*. The benchmark problem is now diagnosed in closed form and then solved, rather than
+diagnosed and reported. A new package, `alphacert`, implements the solution.
+
+### R16 — Proposition 1: the distortion in closed form (NEW RESULT)
+
+**Was:** the drift contamination of the zero-benchmark Clark–West statistic was shown to be
+nonzero (Equation 12) and its magnitude measured by simulation, cell by cell.
+
+**Now:** it has a closed form. For i.i.d. returns with per-period Sharpe `S`, an estimation
+window of `k`, and a larger model estimating `p` coefficients that are truly zero,
+
+    E[CW_0]  ~=  sqrt(n) S^2 / sqrt(S^2 + (1+p)/k)
+
+which tends to `sqrt(n) S` when `k S^2 >> 1+p` — the statistic *converges to the t-statistic
+of the asset's mean return*. Validated by simulation in `audit/scripts/certificate_calibration.py`:
+predicted 1.341 against measured 1.348 at an annualised Sharpe of 0.8 with `p = 0`. Two
+consequences the simulation alone did not make visible. First, a model containing **no
+features at all** is declared significantly predictive in 43% of samples at BTC's realised
+drift, and 97.5% at a Sharpe of 1.6. Second, the distortion *shrinks* as the model estimates
+more parameters, because their estimation noise dilutes the drift signal — which is why the
+study's regularised twelve-feature models measured 14–21% rather than 43%.
+
+### R17 — The certificate (NEW METHOD)
+
+**Was:** the paper diagnosed the benchmark and recommended using the recursive mean. That
+leaves the residual term `-E[(mu_hat_t - mu) g_t]`, the covariance between the benchmark's
+own estimation error and the model's signal, which is what the 7–8% measured size at h=7
+consists of.
+
+**Now:** the drift is eliminated rather than estimated. For each candidate drift `mu`, two
+non-negative martingales are built — one betting that the signal leads the outcome, one
+betting two-sidedly that `mu` is the wrong centre — and the certificate is the infimum over
+`mu` of their average. An infimum is at most the value at the truth, the value at the truth
+is a martingale, and Ville's inequality closes it:
+
+    P( exists t : E_t >= 1/alpha )  <=  alpha
+
+in finite samples, uniformly in time, for arbitrary black-box pipelines, with no bandwidth,
+no long-run variance, no bootstrap, no asymptotics and no refitting. Measured rejection rate
+on data with no predictability: 0.3–1.0% across annualised drift Sharpe ratios from 0 to 2.0,
+against 5.2% to 81% for Clark–West vs zero.
+
+Three properties follow that the previous instrument did not have.
+
+- **Anytime-valid.** The process may be monitored daily on a live strategy with no correction
+  for looking, and it yields a time-uniform *ceiling* on incremental value.
+- **Denominated in P&L.** `log E_T` is the cumulative log return of an explicit drift-hedged
+  strategy. Rejecting at 5% *is* a twentyfold multiplication of capital credited with none of
+  the market's return. The "disjoint statistical and economic winners" problem cannot arise.
+- **Composable.** E-values average under arbitrary dependence, so the 18-setting grid needs no
+  joint bootstrap, and the h phase certificates of an overlapping forecast are combined by
+  averaging — which is exactly the staggered h-vintage portfolio the economic section adopted
+  independently.
+
+### R18 — The detection-horizon law (NEW RESULT)
+
+Evidence is log wealth and log wealth grows at `IR_p^2 / 2`, so
+
+    T* = 2 ln(1/alpha) / IR^2  years   ~=  6 / IR^2  at 5%.
+
+Optimal to first order by the sequential lower bound, so no better test recovers the missing
+years. Continuous monitoring costs 3% more data than a fixed-sample test that may be looked at
+once (5.99 vs 6.18 years at IR = 1). The drift hedge costs exactly `ln 2 = 0.69` nats — 23%
+more data — because capital is split with the centring bettor. Learning the stake online
+instead of declaring a target effect size costs a further factor of two to three. Simulated
+median detection times match: 1.93 years observed against 1.84 predicted at IR = 2, 0.89
+against 0.82 at IR = 3.
+
+**Consequence for the study, and for the literature.** Six years of daily data cannot certify
+an information ratio below **1.59** (1.11 with the stake pre-committed). The study's implied
+ratios run 0.00 to 0.50. Reported Sharpe ratios in the applied cryptocurrency literature sit
+in the 0.5–1.5 range and are rarely separated from market exposure; at those magnitudes the
+claims are not merely unproven but unprovable at the sample sizes on which they rest.
+
+### R19 — What the certificate says about this study
+
+Nothing is certified. Largest e-value 1.81 against the 20 required; grid-level e-value 1.18;
+e-BH selects nothing; the directional variant — the anytime-valid replacement for the averaged
+Pesaran–Timmermann statistic, which was itself invalid — gives 1.07. The 95% anytime-valid
+ceilings put the features' incremental annualised information ratio between 0.63 and 2.55,
+every interval containing zero.
+
+This does **not** retract the 7-of-18 Clark–West count against the recursive mean, whose joint
+significance is reported separately. It reframes it: a p-value and an e-value are disagreeing
+about what six years can settle, and R18 says which is right. The reportable number is the
+ceiling.
+
+### R20 — Reviewer items closed in code
+
+- **Joint null.** The whole 18-test experiment is now simulated jointly
+  (`audit/scripts/mc_joint_null.py`), giving P(N >= k), max-T and Romano–Wolf step-down
+  adjusted p-values, rather than comparing an observed count to a sum of marginal
+  probabilities.
+- **Execution and schedule.** The primary economic specification is the staggered portfolio
+  over all h daily vintages with one-bar delayed execution (`staggered_strategy`); same-close
+  single-phase results are retained only as a labelled optimistic bound.
+- **Sign timing.** The phase-averaged Pesaran–Timmermann statistic referred an average of
+  dependent standardised statistics to a standard normal without a variance for the average.
+  It is superseded by the sign certificate.
+
+
 ## 2026-08-03 — Literature gate applied to the manuscript; size study rebuilt
 
 Scope: the 2026-07-30 pass fixed the *claims*; this one fixes the *framing* and the

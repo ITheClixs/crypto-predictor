@@ -90,8 +90,28 @@ def test_inference_summary_counts_match_the_table(table: pd.DataFrame) -> None:
     ml = table[table["model"].isin(["ridge", "elastic_net", "gbm"])]
     n = len(ml)
     beats = int(((ml["dm_stat"] < 0) & (ml["dm_p_vs_rw"] < 0.05)).sum())
-    assert f"Diebold--Mariano, favours model & {beats} / {n}" in body
-    assert f"{0.05 * n:.1f} / {n}" in body
+    assert f"favours model & {beats} / {n}" in body
+
+
+@pytest.mark.unit
+def test_inference_summary_names_the_benchmark_on_every_clark_west_row(
+    table: pd.DataFrame,
+) -> None:
+    """The two Clark-West rows test different nulls; an unlabelled row hides the distinction."""
+    body = inference_summary_table(table)
+    assert "Clark--West vs.\\ zero forecast" in body
+    assert "Clark--West vs.\\ recursive mean" in body
+
+
+@pytest.mark.unit
+def test_inference_summary_drops_the_nominal_expected_count(table: pd.DataFrame) -> None:
+    """``0.05 n`` assumes the test has its nominal size; this study measured that it does not.
+
+    Printing 0.9 expected rejections beside a count produced by a test whose measured
+    rejection rate is 14-30% is the arithmetic the paper exists to retract.
+    """
+    body = inference_summary_table(table)
+    assert "Expected by chance" not in body
 
 
 @pytest.mark.unit

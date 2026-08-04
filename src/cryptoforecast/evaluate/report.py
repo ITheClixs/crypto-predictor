@@ -45,7 +45,10 @@ def _per_period_sharpe(net: pd.Series) -> float:
 def _pnl_fields(strategy: StrategyResult) -> dict[str, object]:
     """PnL columns shared by model rows and the buy-and-hold reference row."""
     net, ppy = strategy.net, strategy.periods_per_year
-    lo, hi = block_bootstrap_ci(net, partial(sharpe_ratio, periods_per_year=ppy), n_boot=500)
+    # 500 draws left the interval endpoints themselves noisy, which matters because two of
+    # them sit within 0.02 of zero. 10,000 puts the Monte Carlo error on those endpoints well
+    # below the rounding shown in the tables.
+    lo, hi = block_bootstrap_ci(net, partial(sharpe_ratio, periods_per_year=ppy), n_boot=10_000)
     return {
         "sharpe_net": sharpe_ratio(net, ppy),
         "sharpe_lo": lo,
@@ -92,6 +95,8 @@ def results_table(study: StudyResults) -> pd.DataFrame:
                 "cw_p_vs_mean": run.cw_p_vs_mean,
                 "pt_stat": run.pt_stat,
                 "pt_p": run.pt_p,
+                "sign_excess": run.sign_excess,
+                "sign_p": run.sign_p,
                 "sharpe_phase_lo": min(phases) if phases else float("nan"),
                 "sharpe_phase_hi": max(phases) if phases else float("nan"),
                 "dsr": deflated_sharpe_ratio(run.strategy.net, len(srs), trials_sr_std),

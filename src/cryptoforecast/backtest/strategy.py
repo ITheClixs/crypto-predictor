@@ -86,13 +86,70 @@ def backtest_strategy(
 
 
 def buy_and_hold(oos: pd.DataFrame, horizon: int, costs: CostModel) -> StrategyResult:
-    """Always-long reference on the same schedule and cost model.
+    """Always-long reference on the same schedule and cost model as the primary strategy.
 
     The point of comparison for every long-biased forecaster. A model whose only
     achievement is staying long during a bull market should be visibly indistinct
-    from this line, not quietly credited with the market's return.
+    from this line, not quietly credited with the market's return. It is built with
+    :func:`staggered_strategy` so that it shares the primary specification's daily
+    rebalancing, execution lag and annualisation; comparing a daily-rebalanced strategy
+    against a reference sampled every ``h`` bars would compare two different things.
     """
-    return backtest_strategy(oos, horizon, costs, kind="always_long")
+    return staggered_strategy(oos, horizon, costs, kind="always_long")
+
+
+def staggered_strategy(
+    oos: pd.DataFrame,
+    horizon: int,
+    costs: CostModel,
+    kind: str = "sign",
+    execution_lag: int = 1,
+) -> StrategyResult:
+    """Equal-weighted portfolio over all ``horizon`` daily vintages, executed with a lag.
+
+    Two defects of the single-phase backtest are fixed here at once.
+
+    *Phase arbitrariness.* Sampling every ``h``-th bar leaves ``h`` schedules and nothing
+    distinguishes them; at ``h = 7`` the resulting Sharpe ratios span about 1.4 points, so the
+    headline number was partly a property of where sampling began. No investor would put all
+    capital in one weekly vintage. Allocating ``1/h`` to each vintage uses every daily signal
+    while keeping the ``h``-day holding period, which makes the aggregate weight the rolling
+    mean of the last ``h`` signals.
+
+    *Infeasible execution.* The features at bar ``t`` are computed from the completed close
+    ``C_t``, so entering at that same close requires knowing the price before it prints. With
+    ``execution_lag = 1`` the weight in force during bar ``t`` depends only on signals through
+    ``t - 1``, and the return earned is the realised one-bar return of bar ``t``.
+
+    Because the portfolio rebalances daily, PnL is computed on one-bar returns taken from the
+    ``close`` column rather than on the ``h``-bar label, and it annualises at 365.
+    """
+    if "close" not in oos:
+        raise ValueError("staggered_strategy needs a 'close' column to compute one-bar returns")
+    signals = build_positions(oos["y_pred"], kind)
+    # Weight in force during bar t: the average of the h most recent signals, all of which
+    # were observable by t - execution_lag.
+    weights = signals.shift(execution_lag).rolling(horizon, min_periods=1).mean()
+    close = oos["close"].astype(float)
+    one_bar = close.pct_change()
+
+    valid = weights.notna() & one_bar.notna()
+    weights, one_bar = weights[valid], one_bar[valid]
+
+    gross = weights * one_bar
+    turn = (weights - weights.shift(1)).abs().fillna(weights.abs())
+    net = gross - turn * costs.cost_per_side
+    equity = (1.0 + net).cumprod()
+
+    return StrategyResult(
+        positions=weights,
+        gross=gross,
+        net=net,
+        equity=equity,
+        turnover=turn,
+        horizon=horizon,
+        periods_per_year=CRYPTO_DAYS_PER_YEAR,
+    )
 
 
 def phase_sharpes(

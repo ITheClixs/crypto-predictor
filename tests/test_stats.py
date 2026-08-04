@@ -24,6 +24,7 @@ from cryptoforecast.evaluate.stats import (
     pesaran_timmermann_non_overlapping,
     probabilistic_sharpe_ratio,
     sharpe_ratio,
+    sign_rotation_test,
 )
 
 
@@ -176,6 +177,54 @@ def test_pesaran_timmermann_is_inflated_by_overlapping_labels() -> None:
     # Same hit rate, no extra information -- yet only the overlapping version "rejects".
     assert independent.p_value > 0.05
     assert overlapping.p_value < 0.01
+
+
+@pytest.mark.unit
+def test_sign_rotation_test_is_not_inflated_by_overlapping_labels() -> None:
+    """The property the analytic test lacks: repeating each row ``h`` times must not help.
+
+    Duplicating observations adds no information. Pesaran-Timmermann divides its variance by
+    ``n`` and so treats the duplicates as evidence, inflating the statistic by ~sqrt(h). A
+    rotation test compares the realised hit rate against hit rates from the same two series
+    with their alignment destroyed, so duplication changes the reference distribution the same
+    way it changes the statistic and the p-value is left alone.
+    """
+    rng = np.random.default_rng(21)
+    h, n = 7, 400
+    y = rng.normal(0.0, 0.03, n)
+    pred = -0.3 * y + rng.normal(0.0, 0.03, n)
+
+    plain = sign_rotation_test(pd.Series(y), pred, block=1, n_draws=400, seed=1)
+    duplicated = sign_rotation_test(
+        pd.Series(np.repeat(y, h)), np.repeat(pred, h), block=h, n_draws=400, seed=1
+    )
+
+    analytic_plain = pesaran_timmermann(pd.Series(y), pred)
+    analytic_dup = pesaran_timmermann(pd.Series(np.repeat(y, h)), np.repeat(pred, h))
+
+    # The analytic test is fooled by duplication; the rotation test is not.
+    assert abs(analytic_dup.statistic) > 2 * abs(analytic_plain.statistic)
+    assert duplicated.p_value > 0.5 * plain.p_value
+
+
+@pytest.mark.unit
+def test_sign_rotation_test_detects_a_real_sign_relationship() -> None:
+    rng = np.random.default_rng(22)
+    y = rng.normal(0.0, 0.03, 600)
+    pred = y + rng.normal(0.0, 0.005, 600)  # nearly perfect sign agreement
+    result = sign_rotation_test(pd.Series(y), pred, block=1, n_draws=500, seed=2)
+    assert result.statistic > 0
+    assert result.p_value < 0.01
+
+
+@pytest.mark.unit
+def test_sign_rotation_test_holds_its_level_under_independence() -> None:
+    """No relationship, no rejection: the p-value must not be small by construction."""
+    rng = np.random.default_rng(23)
+    y = rng.normal(0.0, 0.03, 500)
+    pred = rng.normal(0.0, 0.03, 500)
+    result = sign_rotation_test(pd.Series(y), pred, block=1, n_draws=500, seed=3)
+    assert result.p_value > 0.05
 
 
 @pytest.mark.unit

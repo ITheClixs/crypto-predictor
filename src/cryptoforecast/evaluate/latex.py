@@ -94,7 +94,7 @@ def accuracy_table(table: pd.DataFrame) -> str:
                 f"{_signed(r['dm_stat'], r['dm_p_vs_rw'])} & "
                 f"{_signed(r['cw_stat'], r['cw_p_vs_rw'])} & "
                 f"{_signed(r.get('cw_stat_vs_mean'), r.get('cw_p_vs_mean'))} & "
-                f"{_signed(r['pt_stat'], r['pt_p'])} \\\\"
+                f"{_signed(r.get('sign_excess'), r.get('sign_p'))} \\\\"
             )
         body.append("\\addlinespace")
     header = [
@@ -106,7 +106,7 @@ def accuracy_table(table: pd.DataFrame) -> str:
         "DM $(p)$",
         "CW vs.\\ 0 $(p)$",
         "CW vs.\\ mean $(p)$",
-        "PT $(p)$",
+        "Sign excess $(p)$",
     ]
     return _tabular(body[:-1], "lrrrrrrrr", header)
 
@@ -135,33 +135,51 @@ def performance_table(table: pd.DataFrame) -> str:
 
 
 def inference_summary_table(table: pd.DataFrame) -> str:
-    """How many of the ML settings each test and correction rejects."""
+    """How many of the ML settings each test and correction rejects, by benchmark.
+
+    The benchmark is named in every row because the two columns test different hypotheses:
+    against the zero forecast the null is "no drift and no conditional predictability", against
+    the recursively estimated mean it is "the features add nothing beyond an intercept". A
+    single "Clark--West" row would hide the only distinction the paper is about.
+
+    The old "expected by chance" footer reported ``0.05 n`` regardless of the measured size of
+    the test, which is the arithmetic this paper exists to retract. It is gone; calibrated
+    expectations and the joint null distribution live in the calibration section.
+    """
     ml = table[table["model"].isin(ML_NAMES)]
     n = len(ml)
+
+    def _count(mask: pd.Series) -> str:
+        return f"{int(mask.sum())} / {n}"
+
     rows = [
         (
-            "Diebold--Mariano, favours model",
-            int(((ml["dm_stat"] < 0) & (ml["dm_p_vs_rw"] < 0.05)).sum()),
+            "Diebold--Mariano vs.\\ zero, favours model",
+            _count((ml["dm_stat"] < 0) & (ml["dm_p_vs_rw"] < 0.05)),
         ),
         (
-            "Diebold--Mariano, favours benchmark",
-            int(((ml["dm_stat"] > 0) & (ml["dm_p_vs_rw"] < 0.05)).sum()),
+            "Diebold--Mariano vs.\\ zero, favours benchmark",
+            _count((ml["dm_stat"] > 0) & (ml["dm_p_vs_rw"] < 0.05)),
         ),
-        ("Clark--West, uncorrected", int((ml["cw_p_vs_rw"] < 0.05).sum())),
-        ("Clark--West, Benjamini--Hochberg", int((ml["cw_p_bh"] < 0.05).sum())),
-        ("Clark--West, Holm--Bonferroni", int((ml["cw_p_holm"] < 0.05).sum())),
-        ("Pesaran--Timmermann, sign skill", int(((ml["pt_stat"] > 0) & (ml["pt_p"] < 0.05)).sum())),
+        ("\\addlinespace", ""),
+        ("Clark--West vs.\\ zero forecast, uncorrected", _count(ml["cw_p_vs_rw"] < 0.05)),
+        ("Clark--West vs.\\ recursive mean, uncorrected", _count(ml["cw_p_vs_mean"] < 0.05)),
+        ("\\addlinespace", ""),
+        ("Clark--West vs.\\ zero, Benjamini--Hochberg", _count(ml["cw_p_bh"] < 0.05)),
+        ("Clark--West vs.\\ zero, Holm--Bonferroni", _count(ml["cw_p_holm"] < 0.05)),
+        ("\\addlinespace", ""),
+        ("Sign rotation test, skill", _count((ml["sign_excess"] > 0) & (ml["sign_p"] < 0.05))),
         (
-            "Pesaran--Timmermann, anti-predictive",
-            int(((ml["pt_stat"] < 0) & (ml["pt_p"] < 0.05)).sum()),
+            "Sign rotation test, anti-predictive",
+            _count((ml["sign_excess"] < 0) & (ml["sign_p"] < 0.05)),
         ),
-        ("Net Sharpe interval excludes zero", int((ml["sharpe_lo"] > 0).sum())),
+        ("Net Sharpe interval excludes zero", _count(ml["sharpe_lo"] > 0)),
     ]
-    body = [f"{name} & {count} / {n} \\\\" for name, count in rows]
-    expected = 0.05 * n
-    body.append("\\addlinespace")
-    body.append(f"\\emph{{Expected by chance at $\\alpha=0.05$}} & {expected:.1f} / {n} \\\\")
-    return _tabular(body, "lr", ["Criterion", "Settings"])
+    body = []
+    for name, count in rows:
+        blank = name == "\\addlinespace"
+        body.append("\\addlinespace" if blank else f"{name} & {count} \\\\")
+    return _tabular(body, "lr", ["Criterion (all at a nominal 5\\%, $h-1$ bandwidth)", "Settings"])
 
 
 def all_tables(table: pd.DataFrame) -> dict[str, str]:

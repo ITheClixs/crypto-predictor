@@ -65,7 +65,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "C4", "PD", "NPY", "RUF"]
 
 [tool.mypy]
 python_version = "3.12"
-packages = ["cryptoforecast"]
+packages = ["cryptoforecast", "alphacert"]
 disallow_untyped_defs = true
 warn_unused_ignores = true
 warn_redundant_casts = true
