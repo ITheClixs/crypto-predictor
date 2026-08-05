@@ -59,43 +59,29 @@
 \maketitle
 
 \begin{abstract}
-  Tests of out-of-sample return predictability treat the asset's drift as a nuisance and
-  dispose of it by estimating it. That is where they break. A forecasting model with an
-  unpenalised intercept does not reduce to the zero forecast when its slopes vanish, so
-  racing it against zero tests no drift \emph{and} no conditional predictability jointly;
-  we show in closed form that the resulting Clark--West statistic converges to the
-  $t$-statistic of the asset's mean return, giving an expected value
-  $\sqrt{n}S^2/\sqrt{S^2+(1+p)/k}$ for per-period Sharpe ratio $S$, estimation window $k$
-  and $p$ estimated coefficients.
-  At Bitcoin's realised drift a model containing \emph{no features at all} is declared
-  significantly predictive in about two of every five samples. Replacing zero with the
-  recursive mean removes the leading term but leaves the benchmark's own estimation error
-  inside the statistic. We therefore eliminate the drift rather than estimate it. The
-  \emph{certificate} is a non-negative wealth process: one bettor stakes on the signal
-  leading the outcome, a second hedges every candidate drift two-sidedly, and the infimum
-  over the nuisance of their average is bounded by a martingale under the whole composite
-  null. Validity is finite-sample and uniform over time---no bandwidth, no long-run
-  variance, no bootstrap, no asymptotics, no refitting---and holds for arbitrary black-box
-  pipelines, so the process can be monitored daily on a live strategy without any
-  correction for looking. Its logarithm is the profit and loss of an explicit
-  drift-hedged strategy, so statistical and economic significance become one number:
-  rejecting at $5\%$ means that strategy multiplied capital twentyfold. E-values average
-  under arbitrary dependence, which corrects an eighteen-setting research grid without a
-  joint bootstrap, and averaging the $h$ phase certificates of an overlapping-horizon
-  forecast is literally the staggered $h$-vintage portfolio. The construction yields a
-  design law: certifying an annualised information ratio $\mathrm{IR}$ takes
-  $2\ln(1/\alpha)/\mathrm{IR}^2$ years, about $6/\mathrm{IR}^2$ at $5\%$. That bound is
-  optimal to first order, costs only three per cent more data than a fixed-sample test that
-  must be sized in advance and looked at once, rises to $7.4/\mathrm{IR}^2$ once the drift
-  hedge is paid for---exactly $\ln 2$ nats---and doubles again if the stake is learned online
-  rather than declared in advance, which turns pre-registration into a power calculation. Applied to three
-  cryptocurrencies, two horizons and three estimators over six years of daily
-  out-of-sample data, no setting is certified, the grid-level e-value is $1.18$ against the
-  $20$ required, and the anytime-valid ceilings put the features' incremental annualised
-  information ratio between $0.6$ and $2.6$, every interval containing zero. That is the design law rather than the
-  data: a sample this length cannot certify anything below an information ratio of about
-  $1.6$, so the literature's typical claims are not merely unproven but unprovable at the
-  sample sizes on which they rest.
+  Tests of out-of-sample return predictability dispose of the asset's drift by estimating it,
+  and that is where they break. A model with an unpenalised intercept does not reduce to the
+  zero forecast when its slopes vanish, so racing it against zero tests no drift \emph{and} no
+  conditional predictability jointly. We show in closed form that the resulting Clark--West
+  statistic converges to the $t$-statistic of the asset's mean return: at Bitcoin's realised
+  drift, a model with no features at all is called significantly predictive in $43\%$ of
+  samples. We therefore eliminate the drift instead of estimating it. A \emph{certificate} is
+  a non-negative wealth process---one bettor stakes on the signal, a second hedges every
+  candidate drift---whose infimum over the nuisance is bounded by a martingale under the
+  composite null. Validity is finite-sample and uniform in time, with no bandwidth, long-run
+  variance, bootstrap, asymptotics or refitting, for arbitrary black-box pipelines. Three
+  things follow: the process can be monitored daily on a live strategy with no correction for
+  looking; its logarithm is the profit and loss of an explicit drift-hedged strategy, so a
+  $5\%$ rejection \emph{is} a twentyfold gain on capital credited with none of the market's
+  return; and e-values average under arbitrary dependence, so a research grid needs no joint
+  bootstrap and an overlapping $h$-step forecast combines into exactly the staggered
+  $h$-vintage portfolio. The construction also closes the sample-size question: certifying an
+  annualised information ratio $\mathrm{IR}$ takes $2\ln(1/\alpha)/\mathrm{IR}^2$ years,
+  about $6/\mathrm{IR}^2$ at $5\%$, and that is optimal to first order. Six years of daily
+  data---about what any liquid cryptocurrency offers---cannot certify an information ratio
+  below $1.6$. On three cryptocurrencies, two horizons and three estimators, nothing is
+  certified, and the ceiling puts the incremental information ratio below $2.6$ without
+  separating it from zero.
 \end{abstract}
 
 \section{Introduction}
@@ -123,6 +109,10 @@ what the residual size distortion at longer horizons consists of.
 
 The response of this paper is not a better estimate of the drift. It is to stop estimating
 it.
+
+Figure~\ref{fig:certificate} is the paper in three panels: what the drift does to the
+standard test, what the new instrument says about this study, and what six years of daily
+data can settle at all.
 
 \paragraph{The instrument.} Section~\ref{sec:certificate} constructs a \emph{certificate}: a
 non-negative process $\mathcal{E}_t$ with $\mathcal{E}_0=1$ whose expectation never exceeds
@@ -212,6 +202,23 @@ test that perturbs future bars and asserts that no feature at or before $t$ chan
 multiple testing is handled by Theorem~\ref{thm:merge}. Benchmarking is the item this study
 initially got wrong, and Appendix~\ref{app:audit} records what was claimed, why it was
 wrong, and what replaced it.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fig10_certificate.pdf}
+  \caption{The argument in three panels. \textbf{Left:} rejection rate on data containing no
+  conditional predictability, as the asset's drift grows. Clark--West against a zero
+  benchmark climbs from nominal to $81\%$, tracking the closed form of
+  Proposition~\ref{prop:distortion} (dotted); against the recursive mean it is correctly
+  sized in this design; the certificate is bounded by its nominal level uniformly in the
+  drift, which is Theorem~\ref{thm:validity}. \textbf{Middle:} every certificate this study
+  produces, against the threshold it would have to cross. The largest reaches $1.82$ where
+  $20$ is required. \textbf{Right:} the detection-horizon law of
+  Theorem~\ref{thm:horizon}. Six years of daily data---about what any liquid cryptocurrency
+  offers---sits below the curve for every information ratio under $1.6$, so those effects are
+  out of reach at this sample size whatever the test.}
+  \label{fig:certificate}
+\end{figure}
 
 \section{Related work}
 
@@ -310,12 +317,34 @@ test window from informing the fit.
 \section{Data}
 \label{sec:data}
 
-We use daily adjusted OHLCV bars from Yahoo Finance for the USD pairs of BTC, ETH,
-and SOL. BTC and ETH span 2019-01-01 to 2026-07-18 (2{,}756 bars each); SOL begins
-2020-04-10 (2{,}291 bars). Cryptocurrency markets trade every calendar day, so the
-bar index is contiguous with no weekend or holiday gaps. We verified this rather
-than assuming it, and Section~\ref{sec:cv} shows that the split logic remains
-conservative under gaps regardless.
+We use daily OHLCV bars from Yahoo Finance for the USD pairs of BTC, ETH, and SOL. BTC and
+ETH span 2019-01-01 to 2026-07-18 (2{,}756 bars each); SOL begins 2020-04-10 (2{,}291 bars).
+Cryptocurrency markets trade every calendar day, so the bar index is contiguous with no
+weekend or holiday gaps. We verified this rather than assuming it, and Section~\ref{sec:cv}
+shows that the split logic remains conservative under gaps regardless.
+
+\paragraph{Provenance, and what this source is and is not.}
+Because the economic analysis of Section~\ref{sec:economics} turns on execution timing, the
+construction of a daily bar is not a detail, and we state what we know and what we do not.
+The \texttt{BTC-USD}, \texttt{ETH-USD} and \texttt{SOL-USD} series are Yahoo Finance's
+\emph{composite} quotes aggregated across multiple venues, not the tape of any single
+exchange. Bars are stamped in UTC and close at 00:00 UTC. Volume is summed across the
+contributing venues. ``Adjusted close'' carries no meaning for a spot cryptocurrency pair---
+there are no splits or dividends---and equals the close; we use the unadjusted close
+throughout to avoid implying otherwise. Yahoo may revise historical bars without notice,
+which is why every number in this paper is computed from a cache pinned at 2026-07-18 and
+committed to the repository, with per-file SHA-256 digests recorded there; the configuration
+pins the sample end date rather than resolving it to the current day, after an earlier
+revision silently re-dated an entire Monte Carlo experiment.
+
+Three consequences follow and none is favourable. A composite high or low need not be
+executable on any single venue, so any strategy touching intrabar extremes would be
+mis-priced---ours touches only closes, which is one reason it does. A composite close is not
+a price at which an order can be filled, so the one-bar entry delay of
+Section~\ref{sec:economics} is a necessary correction and not a sufficient one. And a study
+that wanted to make a positive claim about tradeability, rather than the negative claim we
+make, would need exchange-specific data from a venue on which the strategy could actually
+have traded, with the order book and funding rates that go with it.
 
 The evaluated out-of-sample window is shorter than the data window because the
 first fold consumes 504 bars of training history. Table~\ref{tab:data} gives the
@@ -410,6 +439,16 @@ $|\mathcal{T}| \ge 504$ bars, $|\mathcal{V}| = 63$ bars, and $e = 5$, giving 35
 folds for BTC and ETH and 28 for SOL. Figure~\ref{fig:design} shows the resulting
 layout, drawn from the splits the study actually runs.
 
+\paragraph{The benchmark is refit on the same schedule as the model, not daily.}
+Every forecaster, benchmark included, is estimated once per 63-bar test block, so the
+intercept-only forecast is constant within a block and steps at block boundaries. This is
+the exact slopes-zero restriction of a model trained once at the start of the block, which is
+what makes the nesting claim of Section~\ref{sec:cw} literally true here. It is \emph{not}
+the fully recursive historical mean of \citet{welch2008}, which is re-estimated at every
+forecast origin. We call it the \emph{fold-level expanding mean} throughout, and readers
+comparing to the equity-premium literature should keep the distinction in view: the two
+coincide asymptotically and differ by at most one block of data at any origin.
+
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{fig1_design.pdf}
@@ -451,6 +490,44 @@ purged temporal holdout described above. The linear objectives are
   + \alpha \rho \lVert \beta \rVert_1 + \frac{\alpha(1-\rho)}{2}\lVert \beta \rVert_2^2 .
 \end{equation}
 %
+The booster's configuration is given in full in Table~\ref{tab:gbm}, because a model whose
+complexity is chosen adaptively is not described by the three hyperparameters usually
+reported, and because the size calibration of Section~\ref{sec:calibration} is a statement
+about that exact configuration.
+
+\begin{table}[t]
+  \centering
+  \caption{Gradient-boosting specification, in full. Adaptive capacity is what makes this
+  estimator worth calibrating separately from the linear ones, so the settings that govern it
+  --- the tree cap, the stopping rule, and the size and placement of the validation slice ---
+  are stated rather than left to a library default.}
+  \label{tab:gbm}
+  \small
+  \begin{tabular}{lll}
+    \toprule
+    Setting & Value & Note \\
+    \midrule
+    Implementation      & XGBoost 3.0.4 \citep{chen2016} & \texttt{XGBRegressor} \\
+    Objective           & \texttt{reg:squarederror} & \\
+    Maximum trees       & 400 & the cap, not the count used \\
+    Learning rate       & 0.03 & \\
+    Maximum depth       & 3 & \\
+    Row subsample       & 0.8 & per tree \\
+    Column subsample    & 0.8 & per tree \\
+    $L_2$ penalty       & 1.0 & \texttt{reg\_lambda} \\
+    Minimum child weight& 5.0 & \\
+    Early-stopping patience & 30 rounds & on the validation slice \\
+    Validation slice    & last 15\% of the training window & chronological, never random \\
+    Purge before slice  & $h$ bars & drops fit rows whose labels reach into it \\
+    Iteration used      & best, not final & \texttt{best\_iteration} restored by the library \\
+    Base score          & estimated from the training labels & the intercept analogue \\
+    Missing values      & none reach the model & features are complete by construction \\
+    Random seed         & 7, fixed across folds and replications & \\
+    Fallback            & no early stopping if the slice would be $<10$ rows & fewer than 30 fit rows \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 Both linear objectives are fitted with an unpenalised intercept on standardised
 features, and the gradient booster estimates its own base score from the training
 labels. Setting the slopes to zero therefore returns the training-window mean of
@@ -485,7 +562,7 @@ factor of $\sqrt{7} \approx 2.6$.
 
 The schedule admits $h$ start offsets and nothing distinguishes them. We therefore
 run every strategy on all $h$ and report the spread; at $h=7$ it reaches 1.40
-Sharpe points on one setting (Section~\ref{sec:robustness}).
+Sharpe points on one setting (Section~\ref{sec:phase}).
 
 An always-long reference is computed on the same schedule with the same cost
 model, so that a forecaster whose only achievement is holding the asset can be
@@ -751,11 +828,18 @@ replications per cell (600 for the booster), with Monte Carlo standard errors.
   \centering
   \caption{Rejection rate at a nominal 5\% under three resampling nulls, with Monte
   Carlo standard errors. 2{,}000 replications per cell; 600 for the booster, which
-  is measured at $h=1$ only. Return pool: BTC. Sign-flipped is the null that has
-  both realistic dependence and no conditional predictability; the block column is
-  an upper bound on size, not a measurement. Wild Clark--West was computed on every
-  replication and its rejection rate differs from Clark--West's by at most $0.4$
-  percentage points in every cell, so it is not tabulated separately.}
+  is measured at $h=1$ only. Return pool: BTC. \textbf{These are not all test sizes.}
+  The data-generating process here has a non-zero drift and no conditional predictability,
+  which is the hypothesis an applied paper means. It is the stated null of the
+  recursive-mean rows, so those entries \emph{are} size. It is \emph{not} the stated null of
+  the zero-forecast rows---\citet{clark2006} specify a zero-mean martingale difference---so
+  those entries are rejection probabilities under benchmark misspecification, and a number
+  above 5\% there is the test answering a question correctly that nobody asked. Sign-flipped
+  is the null with both realistic dependence and a true no-predictability hypothesis; the
+  block column retains whatever genuine within-block predictability the real series contains
+  and is therefore an upper bound, not a measurement. Wild Clark--West was computed on every
+  replication and differs from Clark--West by at most $0.4$ percentage points in every cell,
+  so it is not tabulated separately.}
   \label{tab:size}
   \small
   \setlength{\tabcolsep}{4pt}
@@ -765,9 +849,12 @@ replications per cell (600 for the booster), with Monte Carlo standard errors.
     \cmidrule(lr){3-5}\cmidrule(l){6-8}
     Statistic & Model & indep. & sign-flip & block & indep. & sign-flip & block \\
     \midrule
+    \multicolumn{8}{l}{\emph{Rejection under benchmark misspecification} (the stated null is false here)} \\
     CW vs.\ zero forecast  & ridge       & 12.0 & 14.1 & 53.2 & 22.1 & 28.6 & 25.7 \\
     CW vs.\ zero forecast  & elastic net & 17.5 & 20.9 & 43.9 & 23.4 & 30.4 & 25.1 \\
     CW vs.\ zero forecast  & GBM         & 16.8 & 20.0 & ---  & ---  & ---  & ---  \\
+    \midrule
+    \multicolumn{8}{l}{\emph{Size} (the stated null is the hypothesis being tested)} \\
     CW vs.\ recursive mean & ridge       & \textbf{3.7} & \textbf{4.8} & 44.6 & \textbf{5.9} & \textbf{7.2} & 10.7 \\
     CW vs.\ recursive mean & elastic net & \textbf{3.1} & \textbf{3.5} & 30.6 & \textbf{5.7} & \textbf{6.8} & 9.5 \\
     CW vs.\ recursive mean & GBM         & \textbf{3.7} & \textbf{3.0} & ---  & ---  & ---  & ---  \\
@@ -797,15 +884,60 @@ Greedy split selection, subsampling and a data-dependent number of trees do not
 visibly break the approximation here. That is calibration evidence for this
 estimator under this null, not a theorem, and we found no prior measurement of it.
 
-Third, the dependence question has a cleaner answer than the block column suggests.
-Under block resampling the corrected test rejects 30--45\% of the time at $h=1$,
-which the earlier version of this paper read as a size failure under dependence.
-It is not: under the sign-flipped null, which preserves the same volatility
-dynamics but removes conditional predictability by construction, size is 3.0--4.8\%
-at $h=1$ and 6.8--7.2\% at $h=7$. Almost all of the block column is therefore
-genuine within-block predictability in the real return series that block resampling
-carries into the synthetic path, not distortion in the test. The corrected test is
-usable under realistic dependence, mildly oversized at $h=7$.
+Third, the dependence question has a cleaner answer than the block column suggests, but a
+more careful one than an earlier version of this paper gave. Under block resampling the
+corrected test rejects 30--45\% of the time at $h=1$, which that version read as a size
+failure under dependence. Under the sign-flipped null, which preserves the same volatility
+dynamics but removes conditional predictability by construction, size is 3.0--4.8\% at $h=1$
+and 6.8--7.2\% at $h=7$. It is tempting to attribute the entire gap to genuine within-block
+predictability that block resampling carries into the synthetic path, and that attribution is
+not identified. Independent sign randomisation removes conditional mean dependence, but it
+also removes other things, and Table~\ref{tab:nulls} measures which: skewness falls from
+$-1.05$ to $-0.19$, the leverage correlation from $-0.071$ to $-0.003$, and the
+autocorrelation of return \emph{signs} from $-0.045$ to $+0.001$. Any of those could move a
+finite-sample statistic. The correct statement is that the gap is consistent with dependence
+structures the block bootstrap retains and sign randomisation removes, of which conditional
+mean dependence is one candidate among several.
+
+What settles the question is not a sharper reading of two nulls but a third that shares
+neither's artifacts. A GARCH(1,1) fitted to the same returns with the conditional mean held
+at the sample drift generates volatility clustering parametrically (autocorrelation of
+absolute returns $0.141$, against $0.154$ in the real series) while reproducing almost none of
+the tail thickness (excess kurtosis $0.63$ against $18.8$), no leverage effect and no sign
+dependence. It is wrong in different ways from the resampling nulls, which is exactly what
+makes it useful. All three agree: Clark--West against the recursive mean rejects $5.25\%$,
+$6.25\%$ and $5.00\%$ under block, sign-flipped and GARCH nulls respectively, against zero it
+rejects $10.0\%$, $14.5\%$ and $9.0\%$, and the certificate rejects $0.25\%$, $1.50\%$ and
+$0.25\%$ (Monte Carlo standard error $1.1$ points, $400$ replications each). The conclusion
+does not depend on which fiction generates the data, which is the only form of reassurance a
+resampling calibration can honestly offer.
+
+\begin{table}[t]
+  \centering
+  \caption{What each null generator preserves, and what it costs. Means over 60 draws of the
+  full sample. No generator reproduces the real series; the point is that they fail
+  differently, so agreement between them is informative in a way that any single one is not.
+  Sign flipping keeps volatility clustering exactly and destroys skewness, leverage and sign
+  dependence; the GARCH null keeps clustering parametrically and reproduces neither the tails
+  nor the leverage effect.}
+  \label{tab:nulls}
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    Generator & s.d. & exc.\ kurt. & skew & $\rho_1(r)$ & $\rho_1(|r|)$ & leverage \\
+    \midrule
+    Real series (BTC)      & $0.0323$ & $18.78$ & $-1.05$ & $-0.054$ & $0.154$ & $-0.071$ \\
+    i.i.d.\ resample       & $0.0326$ & $18.72$ & $-1.08$ & $\phantom{-}0.003$ & $0.003$ & $\phantom{-}0.002$ \\
+    Block resample         & $0.0323$ & $17.77$ & $-0.99$ & $-0.046$ & $0.150$ & $-0.066$ \\
+    Sign-flipped           & $0.0323$ & $17.75$ & $-0.19$ & $\phantom{-}0.004$ & $0.150$ & $-0.003$ \\
+    GARCH(1,1), zero mean  & $0.0325$ & $\phantom{0}0.63$ & $\phantom{-}0.02$ & $-0.001$ & $0.141$ & $\phantom{-}0.004$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The corrected test is therefore usable under realistic dependence, mildly oversized at $h=7$,
+and that reading survives changing the null generator.
 
 Fourth, Wild Clark--West makes no difference. Its rejection rate matches
 Clark--West's to within $0.4$ percentage points in every cell above, including the
@@ -818,8 +950,10 @@ mechanism.
   \caption{Measured rejection rate at a nominal 5\% under the three resampling nulls. Bar
   height averages the estimators measured in each cell and the whisker spans them. Only the
   sign-flip null has both realistic dependence and a true no-predictability hypothesis; the
-  block null is an upper bound on size, and the gap between the two is genuine within-block
-  predictability rather than distortion in the test.}
+  block null is an upper bound on size. The gap between them is consistent with dependence
+  the block bootstrap retains and sign randomisation removes; Table~\ref{tab:nulls} shows
+  that conditional mean dependence is one candidate among several, and a GARCH null that
+  shares neither generator's artifacts gives the same answer.}
   \label{fig:size}
 \end{figure}
 
@@ -846,11 +980,19 @@ $\rho^2$. The one-bar return is in the feature set, so the estimators can find i
 
 Interpolating the ridge curve, the minimum detectable effect at 80\% power is
 $\rho = 0.116$, a population $\rsq$ of $1.34\%$. That is a large effect by the standards of
-this literature and roughly four times the largest $\rsq$ this study observes. Two things
-follow, and they cut in opposite directions. Our failure to find predictability is not
-informative about effects below about one percent of return variance, so we make no claim
-there. And an effect small enough to hide from this design is small enough that the 17 bp
-cost model above would consume it.
+this literature and roughly four times the largest $\rsq$ this study observes.
+
+This number should be read narrowly. It is a \emph{scenario-specific} power curve, not the
+minimum detectable effect of the design: the alternative is linear and AR(1), the carrier is
+a lagged return already present in the feature set, the horizon is one day, and the estimators
+are the two linear ones. Power against a nonlinear, regime-dependent, or unstable alternative,
+against the booster, or at $h=7$, is a different quantity and is not measured here. Two
+conclusions survive that caveat, and they cut in opposite directions: this design is not
+informative about effects below roughly one percent of return variance, so we make no claim
+there; and an effect small enough to hide from it is small enough that the 17 bp cost model
+would consume it. Section~\ref{sec:design} gives the general version of this calculation,
+which is not scenario-specific because it depends on the alternative only through its
+information ratio.
 
 \paragraph{Does the calibration transfer across assets?}
 Size measured on one return distribution need not hold for another, and the rejections in
@@ -1361,12 +1503,11 @@ The earlier reading of this table---four of five rejections in BTC, consistent w
 a weak short-horizon effect in the most liquid asset---was an artifact of the
 benchmark. Under the corrected benchmark the geography reverses.
 
-Calibration then does something different to each count, and this is the result we
-would most like a reader to take away. Against the zero forecast, 5 of 18 is close
-to the $\approx 4$ that the sign-flipped null produces when nothing is predictable,
-so the zero-benchmark rejections carry essentially no information. Against the
-recursive mean, 7 of 18 is well above the $\approx 1$ expected, and that excess is
-not accounted for by size. The two benchmarks therefore support opposite readings of
+Calibration then does something different to each count. Against the zero forecast,
+5 of 18 is close to the $\approx 4$ that the sign-flipped null produces when nothing is
+predictable, so the zero-benchmark rejections carry essentially no information. Against the
+recursive mean, 7 of 18 is well above the $\approx 1$ expected, and Section~\ref{sec:joint}
+shows by joint resampling that the excess is not accounted for by size. The two benchmarks therefore support opposite readings of
 the same forecasts: under the default one the study has nothing to report, and under
 the one the estimators actually nest it has a small excess to report.
 
@@ -1379,7 +1520,7 @@ are BTC ridge and BTC elastic net at $h=1$, which with $\alpha = 10^{-3}$ are cl
 to the same estimator on the same data, so they are one candidate finding rather
 than two. Every other measurement in this paper points the other way: those settings
 have negative $\rsq$ against the same benchmark, no sign-timing skill, and no alpha
-once market exposure and a one-bar execution delay are accounted for.
+once market exposure and a feasible entry delay are accounted for.
 
 \paragraph{Wild Clark--West changes nothing here.}
 \citet{pincheira2021} restore asymptotic normality by multiplying the larger
@@ -1471,7 +1612,7 @@ from the same window and refit schedule. Nothing is refit: the certificate consu
 forecasts the pipeline already wrote. At $h=7$ the sample is split into its seven phases and
 the phase e-values are averaged, per Remark~\ref{rem:stagger}.
 
-Nothing is certified. The largest e-value in the grid is $1.81$ against the $20$ required at
+Nothing is certified (Figure~\ref{fig:certificate}, middle). The largest e-value in the grid is $1.81$ against the $20$ required at
 $\alpha=0.05$; the average over the eighteen settings, which is by Theorem~\ref{thm:merge} a
 valid test of the global null under arbitrary dependence, is $1.18$; e-BH selects nothing.
 Pre-committing the stake to an annualised information ratio of $1.0$---declared before the
@@ -1625,114 +1766,133 @@ evidence previously offered for its most striking part was invalid.
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{fig7_sharpe.pdf}
-  \caption{Net Sharpe with 95\% circular-block-bootstrap intervals. The dashed
-  line marks buy-and-hold on the same schedule and cost model. Intervals excluding
-  zero are highlighted.}
+  \caption{Net Sharpe with 95\% circular-block-bootstrap intervals ($10{,}000$ resamples),
+  under the primary specification: an equal-weighted portfolio over all $h$ daily vintages,
+  entered one bar after the signal is observable. The dashed line marks buy-and-hold on the
+  same schedule and cost model. No interval excludes zero.}
   \label{fig:sharpe}
 \end{figure}
 
-Two of 18 settings have a net Sharpe whose interval excludes zero, both gradient
-boosting on ETH: $0.91$ with interval $[0.00, 1.74]$ at $h=1$, and $0.92$ with
-$[0.02, 1.80]$ at $h=7$. Both intervals begin essentially at zero. Neither setting
-appears among the two surviving Benjamini--Hochberg correction, and neither of
-those two has an interval excluding zero.
+\paragraph{How much of an interval is the bootstrap's own noise.} Every Sharpe interval below
+is a circular block bootstrap with $10{,}000$ resamples, and that count is not decorative. At
+$500$ resamples---what an earlier version used---the lower bound of the 95\% interval moves by
+up to $0.25$ Sharpe points across five random seeds, and for one of the eighteen settings it
+crosses zero between seeds, so the reject-or-not reading was a property of the random number
+generator. At $2{,}000$ the movement is $0.09$ and the flip persists; at $10{,}000$ it is
+$0.042$ at worst, median $0.023$, and no setting's verdict changes with the seed. We report
+the $10{,}000$-resample intervals throughout and treat anything finer than $0.05$ Sharpe
+points as below the resolution of the procedure.
 
-The statistical winners and the economic winners are therefore disjoint. Two
-unrelated groups of survivors drawn from one search is the signature of noise: if
-a genuine short-horizon effect existed and were tradeable, the settings that
-detect it and the settings that profit from it ought to overlap.
+These are conditional intervals, and the conditioning matters. The bootstrap resamples
+realised strategy returns after the forecasts and positions have been produced, so it prices
+the sampling variability of the return sequence and nothing else. It does not price model
+estimation, the expanding-window refits, early stopping, or the selection of a model, an
+asset, a horizon, a benchmark and a bandwidth from the grid that was searched. They are
+therefore intervals for the realised strategy-return sequence, not selection-adjusted evidence
+of trading profitability, and they are narrower than intervals for the research procedure that
+produced them would be. The certificate of Section~\ref{sec:certificate} is our answer to
+that gap rather than a wider bootstrap: it is valid at every stopping time and merges across
+the grid without a dependence assumption, which is what selection adjustment is for.
 
-\paragraph{Both economic winners are market exposure.} Regressing each strategy's
-net return on buy-and-hold's, on the same schedule and cost model, with a
-Newey--West standard error on the intercept:
+\paragraph{The primary specification, and why it is not the one earlier versions reported.}
+Two conventions have to be fixed before a Sharpe ratio means anything, and this study got
+both wrong at first. The features at bar $t$ are computed from the completed close $C_t$ and
+predict the return over $(t,t+1]$, so collecting that return requires being positioned from
+$C_t$---an order filled at the very price that produced the signal. And at $h=7$ there are
+seven starting offsets, nothing distinguishes them, and Figure~\ref{fig:phase} shows their
+Sharpe ratios spanning up to $1.40$ points within a single setting. The primary specification
+therefore delays entry by one bar and allocates $1/h$ to each daily vintage. The second
+choice is not merely more sensible: by Remark~\ref{rem:stagger} the staggered portfolio
+\emph{is} the phase-averaged certificate, so the same object settles the statistical and the
+economic question.
 
-\begin{center}
+Table~\ref{tab:execution} prices the two conventions separately. Staggering is a no-op at
+$h=1$, as it must be, and moves $h=7$ Sharpe ratios by up to $0.30$. The execution delay is
+the expensive one, and only at the short horizon: it costs up to $0.74$ Sharpe at $h=1$
+(ETH GBM $0.91\to0.21$, BTC ridge $0.51\to-0.23$) and at most $0.18$ at $h=7$, because a
+seven-day position does not care much which day it opens. Every one-day result in the earlier
+version was therefore a property of an execution convention that cannot be traded.
+
+\paragraph{Under the feasible specification, nothing survives.} No setting out of eighteen
+has a net Sharpe whose bootstrap interval excludes zero. The largest is ETH GBM at $h=7$,
+$0.788$ with interval $[-0.007, 1.594]$---close enough to the line to make the point that the
+line is where it is for a reason. Five settings beat their own buy-and-hold on the point
+estimate, none by a margin the interval can separate from zero, and the largest deflated
+Sharpe ratio in the grid is $0.715$. Mean maximum drawdown across the eighteen is $-84\%$.
+
+\paragraph{What is left is market exposure.} Regressing each strategy's net return on
+buy-and-hold's, on the same schedule and cost model, with a Newey--West standard error on the
+intercept, no setting has a positive alpha distinguishable from zero: the largest $t$-statistic
+on a positive alpha is $0.91$ (SOL elastic net, $h=7$). Three are significantly \emph{negative}
+(ETH elastic net at $h=1$, $t=-2.60$; ETH elastic net and ridge at $h=7$, $t=-2.24$ and
+$-2.15$). The pattern is the one the exposure column predicts: settings with a high percentage
+long carry betas of $0.74$--$0.85$ to buy-and-hold and contribute nothing beyond it, while the
+settings that actually take both sides have betas near $0.2$ and no alpha either.
+
+\begin{table}[t]
+  \centering
+  \caption{What the two backtest conventions are worth, on identical forecasts. Columns are
+  net Sharpe ratios. ``Single phase, same close'' is what earlier versions of this study
+  reported; the primary specification is the last column. Staggering cannot matter at $h=1$
+  and does not; the execution delay is the expensive convention, and only at $h=1$.}
+  \label{tab:execution}
   \small
-  \begin{tabular}{lccccc}
+  \begin{tabular}{lcrrrr}
     \toprule
-    Setting & Sharpe & \% long & $\beta$ to buy-and-hold & $\alpha$ (ann.) & $t(\alpha)$ \\
+    & & Single phase, & Staggered, & Staggered, & \\
+    Setting & $h$ & same close & same close & one-bar delay & change \\
     \midrule
-    ETH GBM, $h=1$          & $0.91$ & 94\% & $0.76$ & $+0.236$ & $1.07$ \\
-    ETH GBM, $h=7$          & $0.92$ & 91\% & $0.89$ & $+0.192$ & $1.15$ \\
-    BTC GBM, $h=7$          & $0.82$ & 90\% & $0.82$ & $+0.097$ & $0.66$ \\
-    SOL elastic net, $h=7$  & $0.60$ & 56\% & $0.43$ & $+0.499$ & $1.23$ \\
-    Historical mean (all)   & $0.23$--$0.84$ & 100\% & $1.00$ & $\approx 0$ & $\le|1.6|$ \\
+    ETH GBM         & 1 & $0.911$ & $0.911$ & $0.207$ & $-0.704$ \\
+    BTC ridge       & 1 & $0.509$ & $0.510$ & $-0.235$ & $-0.744$ \\
+    ETH elastic net & 1 & $-0.109$ & $-0.109$ & $-0.606$ & $-0.497$ \\
+    SOL ridge       & 1 & $0.049$ & $0.049$ & $0.339$ & $+0.291$ \\
+    \midrule
+    ETH GBM         & 7 & $0.922$ & $0.771$ & $0.786$ & $-0.136$ \\
+    SOL elastic net & 7 & $0.600$ & $0.305$ & $0.457$ & $-0.143$ \\
+    BTC elastic net & 7 & $0.507$ & $0.738$ & $0.595$ & $+0.088$ \\
+    \midrule
+    \multicolumn{2}{l}{mean $|$change$|$, $h=1$} & \multicolumn{4}{l}{$0.36$ from the delay, $0.00$ from staggering} \\
+    \multicolumn{2}{l}{mean $|$change$|$, $h=7$} & \multicolumn{4}{l}{$0.08$ from the delay, $0.15$ from staggering} \\
     \bottomrule
   \end{tabular}
-\end{center}
+\end{table}
 
-Neither of the two settings whose Sharpe interval excludes zero has an alpha
-distinguishable from zero once its market exposure is removed. An earlier version of
-this paper asserted the same thing in words, that the high-Sharpe results were
-long-only exposure; the regression is what makes it checkable.
+\paragraph{One cost scenario is not a cost model.} The $17$ bp per side charged above is a
+single assumption. Sweeping it with the forecasts held fixed gives each setting a break-even
+cost, the per-side charge at which its net Sharpe reaches zero: $15$ of $18$ are positive at
+zero cost, $14$ at $17$ bp, $9$ at $40$ bp, and the median break-even is $36$ bp, roughly
+twice the assumed charge. The sign of the economic result is therefore not delicate at the
+margin. What the sweep exposes instead is the exposure finding from another direction: the
+settings that tolerate the highest costs are the ones that barely trade, and the highest
+break-even in the grid, $157$ bp, belongs to a setting that is $89\%$ long. Cost tolerance
+here is a function of turnover rather than of forecast quality.
 
-\paragraph{Execution is assumed at a price the signal has not yet been computed
-from.} Every feature at bar $t$ uses the completed close $C_t$, and the backtest
-enters at that same $C_t$. Delaying entry by one bar, holding the forecasts fixed,
-moves the $h=1$ results substantially and the $h=7$ results hardly at all:
-ETH GBM at $h=1$ falls from $0.91$ to $0.21$, BTC ridge at $h=1$ from $0.51$ to
-$-0.23$, ETH elastic net at $h=1$ from $-0.11$ to $-0.61$; no $h=7$ setting moves by
-more than $0.20$. The one-day results are therefore properties of the execution
-convention as much as of the forecasts, and the surviving economic result---ETH GBM
-at $h=7$, $0.92 \to 0.98$---is the one already shown above to be $91\%$ long with
-$\beta = 0.89$.
-
-\paragraph{One cost scenario is not a cost model.} The 17 bp per side above is a single
-assumption. Sweeping it, with the forecasts held fixed, gives each setting a break-even
-cost---the per-side charge at which its net Sharpe reaches zero:
-
-\begin{center}
-  \small
-  \begin{tabular}{lccccc}
-    \toprule
-    Per-side cost & 0 bp & 17 bp & 25 bp & 40 bp & 100 bp \\
-    \midrule
-    Settings with net Sharpe $> 0$ & 16/18 & 13/18 & 11/18 & 9/18 & 6/18 \\
-    \bottomrule
-  \end{tabular}
-\end{center}
-
-The median break-even cost is 31 bp, roughly twice the assumed charge, so the sign of the
-economic result is not delicate at the margin. What the sweep exposes instead is the exposure
-finding again, from a different direction. The settings that survive the highest costs are the
-ones that barely trade: ETH GBM at $h=1$ breaks even at 148 bp and is $94\%$ long, and the
-three settings with no finite break-even below 200 bp are all near-permanently long. Turnover,
-not forecast quality, is what determines cost tolerance here, and a strategy whose cost
-tolerance comes from never changing its mind is buy-and-hold with extra steps.
-
-Six of 18 settings out-Sharpe buy-and-hold on the point estimate, the weakest form
-of that claim given that every interval contains zero. Meanwhile the
-historical-mean forecaster attains Sharpe ratios of $0.84$, $0.80$, and $0.25$
-across the three assets while making exactly one position change. It predicts a
-positive drift, hence is always long, and its net returns are numerically identical
-to buy-and-hold asset by asset and horizon by horizon. We carry buy-and-hold as an
-explicit row in Table~\ref{tab:performance} so that this cannot be mistaken for
-model performance.
-
-Maximum drawdowns range from $-55\%$ to $-99\%$ across the machine-learning
-settings. This is a property of the position sizing rather than of any model: unit
-leverage reversing direction on roughly 70\% annualised volatility carries a large
-variance drag, so the geometric return sits well below the arithmetic one.
-Buy-and-hold itself draws down between $76\%$ and $96\%$ over the same window.
+A flat per-side charge is still a first-order assumption and we do not claim otherwise. It
+does not scale with trade size, depth, spread, volatility, venue, or maker-versus-taker
+status, and it carries no market-impact term, so it can price a small book and cannot price
+capacity. What the sweep supports is the negative claim---that no setting's result is created
+or destroyed by the level of the charge---and not a positive claim about scalable
+profitability.
 
 \subsection{Robustness to the trading schedule}
-\label{sec:robustness}
+\label{sec:phase}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.92\linewidth]{fig8_phase.pdf}
-  \caption{Net Sharpe on each of the $h$ possible start offsets of the trading
-  schedule at $h = 7$. The circled point is the offset the results table reports;
-  nothing privileges it.}
+  \includegraphics[width=0.86\linewidth]{fig8_phase.pdf}
+  \caption{At $h=7$ the single-phase backtest has seven possible starting offsets. Each bar
+  spans the Sharpe ratios they produce for one setting. The spread reaches $1.40$ points,
+  which is larger than any difference between models, and it is why the primary specification
+  holds all seven vintages at once rather than choosing among them.}
   \label{fig:phase}
 \end{figure}
 
-Sampling every $h$-th bar leaves $h$ schedules and nothing privileges the one
-starting at the first bar. At $h=7$ the spread is substantial: SOL ridge reports a
-Sharpe of $0.45$ drawn from a distribution running from $-0.83$ to $0.57$, and SOL
-elastic net reports $0.60$ from a range of $[-0.55, 0.60]$. A single-offset Sharpe
-at a multi-day horizon is therefore one draw from a distribution 1.4 Sharpe points
-wide, and the reported figure is in part a property of where sampling began.
+The seven-day results of an earlier version depended on where sampling began. The widest
+spread is SOL ridge, whose seven schedules run from $-0.83$ to $+0.58$; ETH GBM runs from
+$0.49$ to $1.05$. A robustness check that reports this range is better than one that does not,
+but it is still reporting a diagnostic for a quantity nobody would trade. The staggered
+portfolio removes the choice rather than characterising it, and Figure~\ref{fig:phase} is
+retained as the reason it had to be removed.
 
 \section{Discussion}
 
@@ -1746,8 +1906,8 @@ the covariance between the benchmark's estimation error and the model's signal, 
 what the residual size distortion at $h=7$ consists of. The certificate is the same
 comparison with the nuisance hedged rather than estimated, and the price of that---exactly
 $\ln 2$ nats, $23\%$ more data---is small next to what it buys. The operational form of the
-point is a question a referee can ask in one line: does the larger model fit an intercept,
-and if so, against which of the two nulls is the reported $p$-value computed?
+point is a single diagnostic question: does the larger model fit an intercept, and if so,
+against which of the two nulls is the reported $p$-value computed?
 
 \paragraph{A distributional fix does not repair a hypothesis problem.}
 Wild Clark--West \citep{pincheira2021} is the right tool for the problem it was built
@@ -1770,9 +1930,9 @@ only certify the pipeline it was run on, whereas a finite-sample theorem covers 
 a practitioner will build next year out of components that do not exist yet.
 
 \paragraph{Most apparent performance was market exposure, and the certificate cannot be
-fooled by it.} The highest Sharpe ratios in the study belong to a forecaster that makes one
-position change, and the strongest settings carry betas of $0.76$ and $0.89$ to buy-and-hold
-with alpha $t$-statistics near unity. Under Theorem~\ref{thm:pnl} that exposure earns no
+fooled by it.} Under the feasible specification no setting has a Sharpe interval excluding
+zero and none has a positive alpha to buy-and-hold distinguishable from it; the settings with
+the highest Sharpe ratios are $85$--$94\%$ long and carry betas of $0.74$--$0.85$. Under Theorem~\ref{thm:pnl} that exposure earns no
 evidence at all, because the certificate's bettor is credited with no part of the drift by
 construction. The exposure regression, the delayed-execution variant and the staggered
 portfolio remain worth running---they say \emph{how} a strategy made its money---but they are

@@ -5,7 +5,7 @@ reference implementation (`alphacert`) and a six-year cryptocurrency case study*
 
 [![ci](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml/badge.svg)](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.12%2B-blue)
-![tests](https://img.shields.io/badge/tests-214-informational)
+![tests](https://img.shields.io/badge/tests-217-informational)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
@@ -91,22 +91,45 @@ information ratio below 1.59.**
 ### The evidence
 
 Three assets, two horizons, three estimators, purged and embargoed walk-forward validation
-over 2020–2026, programmatic leakage tests, transaction costs, one-bar execution delay,
+over 2020–2026, programmatic leakage tests, transaction costs, feasible one-bar entry delay,
 staggered portfolios, exposure regressions.
 
 - **Nothing is certified.** Largest e-value 1.81 against the 20 required; grid-level e-value
   **1.18**; e-BH selects nothing; the directional variant (which replaces an invalid
-  Pesaran–Timmermann average) gives 1.07.
+  Pesaran–Timmermann average) gives 1.07; dropping the symmetry assumption for the identity
+  payoff gives 1.44.
 - **Implied information ratios run 0.00 to 0.50**, against a certifiable floor of 1.59.
-- **Ceiling:** after six years, the incremental information ratio of twelve standard
-  technical features on these three assets is **at most about 2, and cannot be distinguished
-  from zero.**
+- **Ceiling:** after six years, the incremental annualised information ratio of twelve
+  standard technical features on these three assets is **between 0.63 and 2.55, every
+  interval containing zero.**
+- **Economically, nothing either.** Under the feasible specification no setting of eighteen
+  has a Sharpe interval excluding zero, and none has a positive alpha to buy-and-hold
+  distinguishable from zero. The instruments agree.
 
 Clark–West rejects in 7 of 18 settings against the recursive mean, and a joint resampling of
-the whole experiment puts that count in the tail. This is not a contradiction: it is a
-$p$-value and an e-value disagreeing about what six years can settle, and the design law says
-which one is right. The reportable number is the ceiling, not a $p$-value on a statistic whose
-null was never the question being asked.
+the whole experiment puts P(N ≥ 7) at 0.0035 — though no single setting survives family-wise
+control (smallest Romano–Wolf p = 0.052). This is not a contradiction: it is a $p$-value and
+an e-value disagreeing about what six years can settle, and the design law says which one is
+right. The reportable number is the ceiling, not a $p$-value on a statistic whose null was
+never the question being asked.
+
+### Three nulls, none of them the truth
+
+A resampling null is only as good as the properties it keeps, so the calibration is repeated
+under generators that fail in different ways.
+
+| Generator | s.d. | exc. kurt. | skew | ρ₁(r) | ρ₁(\|r\|) | leverage |
+|---|---|---|---|---|---|---|
+| Real series (BTC) | 0.0323 | 18.78 | −1.05 | −0.054 | 0.154 | −0.071 |
+| Block resample | 0.0323 | 17.77 | −0.99 | −0.046 | 0.150 | −0.066 |
+| Sign-flipped | 0.0323 | 17.75 | −0.19 | 0.004 | 0.150 | −0.003 |
+| GARCH(1,1), zero mean | 0.0325 | 0.63 | 0.02 | −0.001 | 0.141 | 0.004 |
+
+Sign-flipping keeps volatility clustering exactly and destroys skewness, leverage and sign
+dependence — so the block/sign-flip gap is **not** attributable to conditional mean dependence
+alone, and we no longer claim it is. The GARCH null shares neither generator's artifacts and
+gives the same answer: Clark–West against the recursive mean rejects 5.25% / 6.25% / 5.00%
+across the three, the certificate 0.25% / 1.50% / 0.25%.
 
 > The full audit, including reproduction scripts for every number above and a record of which
 > earlier claims they overturn, is in [`audit/`](audit/README.md). Retracted claims are listed

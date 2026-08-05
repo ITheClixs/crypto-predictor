@@ -8,6 +8,77 @@ reproduce from `audit/scripts/`.
 
 ---
 
+## 2026-08-05 — Submission pass: one retraction, three additions
+
+Preparing the manuscript for arXiv turned up one substantive error and closed the remaining
+reviewer items. The error is listed first because it changes reported numbers.
+
+### R21 — The "feasible execution" backtest was still the infeasible one (CRITICAL)
+
+**Was:** the 2026-08-04 pass introduced `staggered_strategy(..., execution_lag=1)` and the
+manuscript described it as the primary, *feasible* specification: "the weight in force during
+bar t depends only on signals through t-1".
+
+**Why wrong:** that sentence is true and irrelevant. A weight aligned to bar `t` is held from
+close `t-1`, so a signal computed at close `t-1` and given `execution_lag=1` is traded *at the
+very close that produced it*. That is the same-close convention the pass claimed to have
+removed. The proof is arithmetic: at h=1 the "delayed" Sharpe ratios reproduced the
+single-phase same-close ones to three decimals (ETH GBM 0.911 vs 0.911, BTC ridge 0.510 vs
+0.509), and the genuinely delayed numbers -- the ones the reviewer had quoted, 0.91 to 0.21
+and 0.51 to -0.23 -- appeared only at a shift of two.
+
+**Now:** the argument is `entry_delay`, counted in bars between the signal becoming known and
+the start of the holding period, so `0` is the same-close convention and `1` is feasible. Two
+regression tests pin the semantics: one asserts that `entry_delay=0` reproduces the
+single-phase backtest's holdings exactly at h=1, the other that a signal known at close `t`
+cannot influence the weight held over `(t, t+1]`.
+
+**Downstream, and it is not small.** Under the corrected primary specification **no setting of
+eighteen has a net Sharpe interval excluding zero** (previously two, then one). The largest is
+ETH GBM at h=7, 0.788 with interval [-0.007, 1.594]. No setting has a positive alpha to
+buy-and-hold distinguishable from zero: the largest t-statistic on a positive alpha is 0.91,
+and three settings are significantly *negative*. The break-even cost sweep, the exposure
+regressions and the cost curve were all recomputed on the corrected specification.
+
+The economic and statistical instruments now agree completely: nothing survives either.
+
+### R22 — A third null generator, and a retracted attribution
+
+**Was:** "almost all of the block column is genuine within-block predictability, not
+distortion in the test."
+
+**Why wrong:** not identified. Independent sign randomisation removes conditional mean
+dependence, but `audit/scripts/garch_null.py` measures what else it removes: skewness falls
+from -1.05 to -0.19, the leverage correlation from -0.071 to -0.003, and the autocorrelation
+of return signs from -0.045 to +0.001. Any of those could move a finite-sample statistic.
+
+**Now:** the claim is that the gap is *consistent with* dependence the block bootstrap retains
+and sign randomisation removes, of which conditional mean dependence is one candidate among
+several. What settles the question is a third null that shares neither's artifacts: a
+GARCH(1,1) fitted to the same returns with the conditional mean held at the sample drift,
+which reproduces volatility clustering (0.141 against 0.154) but almost none of the tail
+thickness (excess kurtosis 0.63 against 18.8). All three agree -- Clark-West against the
+recursive mean rejects 5.25%, 6.25% and 5.00%; the certificate 0.25%, 1.50% and 0.25%.
+
+### R23 — Bootstrap resamples, and what an interval is conditional on
+
+At 500 resamples the lower bound of a 95% Sharpe interval moves by up to 0.25 across five
+seeds and one setting's reject-or-not verdict flips between them. At 10,000 the worst movement
+is 0.042 and no verdict changes. The manuscript now reports 10,000-resample intervals, states
+the seed stability, and states explicitly that these are conditional intervals for the
+realised return sequence -- they price no part of model estimation, refitting, early stopping,
+or the selection of a setting from the grid.
+
+### R24 — Reviewer items closed without a claim change
+
+Data provenance (composite venue, UTC cutoff, volume aggregation, revision policy, what
+"adjusted" does and does not mean for spot crypto, and why a composite high or low is not
+executable); the gradient booster's specification in full, including the tree cap, the
+stopping patience, the validation slice and whether the best or final iteration is used; the
+size table relabelled so that rows testing the stated null are marked size and rows testing a
+different one are marked rejection under benchmark misspecification; the power curve scoped as
+scenario-specific; the fold-level expanding mean distinguished from the fully recursive one.
+
 ## 2026-08-04 — The instrument replaces the diagnosis
 
 Scope: the 2026-08-03 pass fixed what the paper *claimed*; this one changes what the paper

@@ -103,9 +103,9 @@ def staggered_strategy(
     horizon: int,
     costs: CostModel,
     kind: str = "sign",
-    execution_lag: int = 1,
+    entry_delay: int = 1,
 ) -> StrategyResult:
-    """Equal-weighted portfolio over all ``horizon`` daily vintages, executed with a lag.
+    """Equal-weighted portfolio over all ``horizon`` daily vintages, entered after a delay.
 
     Two defects of the single-phase backtest are fixed here at once.
 
@@ -117,19 +117,37 @@ def staggered_strategy(
     mean of the last ``h`` signals.
 
     *Infeasible execution.* The features at bar ``t`` are computed from the completed close
-    ``C_t``, so entering at that same close requires knowing the price before it prints. With
-    ``execution_lag = 1`` the weight in force during bar ``t`` depends only on signals through
-    ``t - 1``, and the return earned is the realised one-bar return of bar ``t``.
+    ``C_t`` and predict the return over ``(t, t+1]``. Capturing that return means holding from
+    ``C_t``, so the order has to be filled at the very close that produced the signal. That is
+    the convention earlier versions of this study reported and it is not executable.
+
+    ``entry_delay`` counts bars between the signal becoming known and the start of the holding
+    period, so it is the quantity the infeasibility is measured in rather than an internal
+    shift:
+
+    ``entry_delay = 0``
+        Enter at the signal's own close. Reproduces the single-phase same-close Sharpe exactly
+        at ``h = 1``, which is what the regression test pins. Retain only as an optimistic
+        upper bound.
+    ``entry_delay = 1`` (default)
+        Enter one bar later. The weight in force over ``(t, t+1]`` uses signals through
+        ``t - 1``, so the whole position is decided before the bar it trades in opens.
+
+    The distinction is worth a Sharpe ratio of 0.7 at ``h = 1`` on this data, which is why it
+    is a named argument with a test rather than a shift buried in an expression.
 
     Because the portfolio rebalances daily, PnL is computed on one-bar returns taken from the
     ``close`` column rather than on the ``h``-bar label, and it annualises at 365.
     """
     if "close" not in oos:
         raise ValueError("staggered_strategy needs a 'close' column to compute one-bar returns")
+    if entry_delay < 0:
+        raise ValueError("entry_delay must be non-negative")
     signals = build_positions(oos["y_pred"], kind)
-    # Weight in force during bar t: the average of the h most recent signals, all of which
-    # were observable by t - execution_lag.
-    weights = signals.shift(execution_lag).rolling(horizon, min_periods=1).mean()
+    # ``one_bar[t]`` is the return over (t-1, t], so a weight aligned to bar t is held from
+    # close t-1. Entering ``entry_delay`` bars after the signal therefore shifts by
+    # ``entry_delay + 1``: at 0 the position starts at the signal's own close.
+    weights = signals.shift(entry_delay + 1).rolling(horizon, min_periods=1).mean()
     close = oos["close"].astype(float)
     one_bar = close.pct_change()
 

@@ -79,3 +79,6 @@ paper/*.out
 paper/*.bbl
 paper/*.blg
 paper/*.synctex.gz
+
+# arXiv build staging; the tarball is committed, the scratch directory is not.
+paper/arxiv/

@@ -1,0 +1,4 @@
+null,cw_vs_zero_pct,cw_vs_mean_pct,certificate_pct,mc_se_pct
+block resample,10.0,5.25,0.25,1.0897247358851683
+sign-flipped,14.5,6.25,1.5,1.0897247358851683
+"GARCH(1,1), zero mean",9.0,5.0,0.25,1.0897247358851683
