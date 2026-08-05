@@ -29,11 +29,12 @@ This module removes the drift instead of estimating it. For a fixed candidate dr
 ``W_ctr(mu)``
     the wealth of a bettor who stakes on ``mu`` being the wrong centre.
 
-Their average is a non-negative martingale for every ``mu``, and the certificate is its
-infimum over ``mu``. At the true drift the second bettor makes nothing, so the infimum is
-driven by the first; at a wrong drift the second bettor gets rich, so the infimum is not
-dragged down by candidates the data have ruled out. The nuisance is eliminated, not
-estimated, and the elimination costs one line of proof rather than a bootstrap.
+Any convex combination of them is a non-negative martingale for every ``mu``, and the
+certificate is its infimum over ``mu``. At the true drift the second bettor makes nothing,
+so the infimum is driven by the first; at a wrong drift the second bettor gets rich, so
+the infimum is not dragged down by candidates the data have ruled out. The nuisance is
+eliminated rather than estimated, and the elimination costs one line of proof, not a
+bootstrap.
 
 What it costs
 -------------
@@ -180,13 +181,14 @@ def certify(
     signal: np.ndarray,
     outcome: np.ndarray,
     *,
-    payoff: str | Payoff = "tanh",
+    payoff: str | Payoff = "identity",
     drift_grid: np.ndarray | None = None,
     drift_resolution: float = DEFAULT_DRIFT_RESOLUTION,
     return_bound: float = 0.5,
     centre_signal: bool = True,
     cap: float = 0.9,
     centring_fraction: float = 0.9,
+    signal_weight: float = 0.9,
     design_ratio: float | None = None,
     periods_per_year: float = 365.0,
     chunk: int = 256,
@@ -204,9 +206,13 @@ def certify(
     outcome
         Realised outcome ``y_t``, aligned with ``signal``.
     payoff
-        ``"tanh"`` (default), ``"sign"`` or ``"identity"``; see :mod:`alphacert.payoffs`.
-        The first two assume the outcome is conditionally symmetric about its drift; the
-        third assumes only a martingale difference and pays for it in power.
+        ``"identity"`` (default), ``"tanh"`` or ``"sign"``; see :mod:`alphacert.payoffs`.
+        The identity payoff assumes only a martingale difference plus the envelope
+        ``return_bound``. The other two are bounded and therefore not throttled by that
+        envelope, but they require the outcome to be conditionally symmetric about its drift
+        -- an assumption that implies zero unconditional skewness and is rejected outright by
+        daily cryptocurrency returns (skew -1.05 on BTC, p < 1e-70). They are available for
+        series where symmetry is defensible; the default is not one of them.
     drift_grid, drift_resolution
         The drift search. ``drift_resolution`` sets the spacing of the default grid and
         must sit well below the outcome's sampling error ``sigma / sqrt(n)``; a coarser
@@ -216,6 +222,13 @@ def certify(
         A-priori envelope ``R`` with ``|y_t| <= R``. Used only by the identity payoff.
     cap, centring_fraction
         Stake ceilings, in ``(0, 1)``. Both exist to keep every wealth factor positive.
+    signal_weight
+        Capital split between the two bettors, in ``(0, 1)``. An equal split throws away
+        ``ln 2 = 0.69`` nats of the signal bettor's wealth at the true drift, where the
+        centring bettor breaks even and contributes nothing. Weighting the signal by ``w``
+        costs only ``-ln w`` there, while the centring bettor -- whose wealth grows
+        *exponentially* at a wrong drift -- needs only a little longer to exclude one. At
+        ``w = 0.9`` the measured power rises by a quarter to a half with no change in size.
     design_ratio
         Annualised information ratio the test is designed to detect. When given, the
         stake is fixed at the Kelly fraction for that ratio instead of being learned
@@ -245,6 +258,8 @@ def certify(
         raise ValueError("signal and outcome must be finite")
     if not 0.0 < cap < 1.0 or not 0.0 < centring_fraction < 1.0:
         raise ValueError("cap and centring_fraction must lie in (0, 1)")
+    if not 0.0 < signal_weight < 1.0:
+        raise ValueError("signal_weight must lie in (0, 1)")
     n = outcome.size
     if n == 0:
         return Certificate(np.ones(0), get_payoff(payoff).name, np.zeros(0), 0)
@@ -291,7 +306,9 @@ def certify(
         up = np.cumsum(np.log1p(stake), axis=0)
         down = np.cumsum(np.log1p(-stake), axis=0)
         log_centring = np.logaddexp(up, down) - np.log(2.0)
-        log_average = np.logaddexp(log_signal, log_centring) - np.log(2.0)
+        log_average = np.logaddexp(
+            log_signal + np.log(signal_weight), log_centring + np.log1p(-signal_weight)
+        )
         running_min = np.minimum(running_min, log_average.min(axis=1))
 
     wealth = np.exp(np.maximum.accumulate(running_min))

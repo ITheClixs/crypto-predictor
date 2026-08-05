@@ -33,7 +33,7 @@ from alphacert import (
 )
 from cryptoforecast.evaluate.stats import newey_west_lrv
 
-PAYOFF = sys.argv[sys.argv.index("--payoff") + 1] if "--payoff" in sys.argv else "tanh"
+PAYOFF = sys.argv[sys.argv.index("--payoff") + 1] if "--payoff" in sys.argv else "identity"
 BENCHMARK = "historical_mean"
 MODELS = ("ridge", "elastic_net", "gbm")
 PERIODS_PER_YEAR = 365.0

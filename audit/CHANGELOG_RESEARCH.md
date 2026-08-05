@@ -8,6 +8,97 @@ reproduce from `audit/scripts/`.
 
 ---
 
+## 2026-08-06 — An error in our own corollary, and the price of the guarantee
+
+An adversarial re-read of the manuscript, in the voice of a referee who would run the
+experiments the paper omitted, turned up one wrong theorem-adjacent claim, one falsified
+assumption, and one missing experiment. All three are fixed. The paper is materially more
+honest and, we think, materially better for it.
+
+### R25 — "Anytime-validity costs three per cent" was wrong (CRITICAL)
+
+**Was:** Corollary "Anytime-validity is nearly free" compared `2 ln(1/alpha) / IR^2 = 5.99`
+years for the certificate against `(z_a + z_b)^2 / IR^2 = 6.18` years for a fixed-sample test
+at 80% power, and concluded that continuous monitoring costs 3% more data.
+
+**Why wrong:** those are not the same quantity. The first is the *median* crossing time of the
+wealth process; the second is an *eightieth percentile*. The coincidence of 5.99 and 6.18 is
+seductive and meaningless.
+
+**Now:** matched on level and power. Log wealth at the oracle stake is approximately
+`N(x, 2x)` with `x = T IR_p^2 / 2`, so power `beta` needs
+`x(beta) = ([z_b sqrt(2) + sqrt(2 z_b^2 + 4 ln(1/alpha))] / 2)^2`. The ratio to the
+fixed-sample requirement is scale-free and equals **1.90 at 80% power**, 2.21 at median power,
+and stays between 1.9 and 2.0 up to 95%. Anytime-validity costs roughly a doubling of the
+sample, not three per cent. `power_matched_horizon` and `anytime_validity_cost` compute it and
+a test pins both numbers.
+
+### R26 — Assumption S is refuted by the paper's own data; identity is now the default
+
+Conditional symmetry about a *constant* drift implies unconditional symmetry, hence zero
+skewness — so the assumption is refutable from the marginal distribution alone. Measured
+sample skewness: BTC −1.046 (p = 2.7e-78), ETH −0.956 (p = 1.2e-68), SOL −0.227 (p = 1.2e-05).
+The `tanh` payoff was the default and rests on an assumption these data reject outright.
+
+The identity payoff, which needs only a martingale difference plus an a-priori envelope, is
+now the default throughout. On this study it is also the stronger result (largest e-value 3.05
+and grid-level 1.43, against 1.81 and 1.18 for `tanh`), so the weaker assumption cost nothing.
+Theorem "evidence in units of capital" is scoped to the identity payoff as well, because
+`tanh((y-mu)/s)` is not a tradeable claim and the profit-and-loss reading is figurative for it.
+
+### R27 — The head-to-head the paper never ran
+
+**The referee's first question:** at matched size, is the certificate more or less powerful
+than a correctly sized Clark-West? The paper did not say. It is less, and by a lot at the
+nominal threshold.
+
+Measured on this study's geometry, 400 replications, in the design where Clark-West against
+the recursive mean is exactly correctly sized (measured 5.5%):
+
+| IR | CW | CW size-matched | certificate | certificate size-matched |
+|---|---|---|---|---|
+| 1.0 | 0.230 | 0.210 | 0.030 | 0.163 |
+| 1.5 | 0.510 | 0.495 | 0.188 | 0.390 |
+| 2.0 | 0.853 | 0.850 | 0.480 | 0.757 |
+| 3.0 | 1.000 | 1.000 | 0.988 | 0.998 |
+
+Two losses separate cleanly. The *construction* is nearly as efficient as the incumbent — 0.757
+against 0.850 at IR = 2, size-matched. What costs is anytime-validity: measured size at the
+nominal threshold is 0.5–0.7% against a nominal 5%, which is Ville's inequality being loose for
+a smooth wealth path, and is the same factor of two R25 derives independently.
+
+**Consequently a claim in the Discussion is retracted.** The manuscript said the p-value and
+the e-value were "disagreeing about what six years can settle, and Corollary [optimality] says
+the e-value is right." That is wrong: the optimality corollary bounds *anytime-valid*
+procedures, and Clark-West is not one, so its greater power is fully consistent with it. Part
+of the certificate's silence is its own conservatism. What survives is narrower and stated as
+such: Clark-West's count is jointly surprising (P(N>=7) = 0.0035) and individually
+unidentified (smallest Romano-Wolf p = 0.052), and the certificate contributes a *bounded*
+answer rather than a stronger one.
+
+### R28 — Two design fixes that recovered most of the power, and two that did not
+
+- **Weighted capital split (kept).** An equal average of the signal and centring bettors
+  discards `ln 2 = 0.69` nats at the true drift, where the centring bettor breaks even.
+  Weighting the signal 0.9 costs 0.105 nats and lifts power at IR = 2 from 0.217 to 0.310, at
+  identical size. Now the default.
+- **Pre-committed stake (kept).** Lifts power at IR = 2 from 0.357 to 0.480 at the nominal
+  threshold. Already recommended by the regret corollary; now measured.
+- **Stakes above Kelly (rejected).** Power at a fixed threshold looks like a goal-reaching
+  problem, which would favour over-betting. It does not: doubling the stake takes power at
+  IR = 2 from 0.217 to 0.060, quadrupling it to 0.025.
+- **Stake mixture (rejected on cost).** A mixture over a stake grid attains the optimal
+  `(1/2) ln T` regret but buys almost nothing over the plug-in here (0.257 against 0.233) at
+  forty times the computation, because the plug-in is already near that bound.
+
+### R29 — Positive control
+
+The null result on returns was uninterpretable without evidence that the instrument can detect
+anything on real data. Pointed at realised volatility — genuinely predictable, same assets,
+same window, same identity payoff — it certifies all three within 148 to 416 days, with
+e-values of 3.1e7, 4.2e9 and 7.5e8. The silence about returns is therefore about returns and
+about the sample length, not about the instrument being inert.
+
 ## 2026-08-05 — Submission pass: one retraction, three additions
 
 Preparing the manuscript for arXiv turned up one substantive error and closed the remaining

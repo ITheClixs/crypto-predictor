@@ -63,25 +63,23 @@
   and that is where they break. A model with an unpenalised intercept does not reduce to the
   zero forecast when its slopes vanish, so racing it against zero tests no drift \emph{and} no
   conditional predictability jointly. We show in closed form that the resulting Clark--West
-  statistic converges to the $t$-statistic of the asset's mean return: at Bitcoin's realised
-  drift, a model with no features at all is called significantly predictive in $43\%$ of
-  samples. We therefore eliminate the drift instead of estimating it. A \emph{certificate} is
+  statistic converges to the $t$-statistic of the asset's mean return: at Bitcoin's drift a
+  model with no features at all is called significantly predictive in $43\%$ of samples. We therefore eliminate the drift instead of estimating it. A \emph{certificate} is
   a non-negative wealth process---one bettor stakes on the signal, a second hedges every
-  candidate drift---whose infimum over the nuisance is bounded by a martingale under the
-  composite null. Validity is finite-sample and uniform in time, with no bandwidth, long-run
-  variance, bootstrap, asymptotics or refitting, for arbitrary black-box pipelines. Three
-  things follow: the process can be monitored daily on a live strategy with no correction for
-  looking; its logarithm is the profit and loss of an explicit drift-hedged strategy, so a
-  $5\%$ rejection \emph{is} a twentyfold gain on capital credited with none of the market's
-  return; and e-values average under arbitrary dependence, so a research grid needs no joint
-  bootstrap and an overlapping $h$-step forecast combines into exactly the staggered
-  $h$-vintage portfolio. The construction also closes the sample-size question: certifying an
-  annualised information ratio $\mathrm{IR}$ takes $2\ln(1/\alpha)/\mathrm{IR}^2$ years,
-  about $6/\mathrm{IR}^2$ at $5\%$, and that is optimal to first order. Six years of daily
-  data---about what any liquid cryptocurrency offers---cannot certify an information ratio
-  below $1.6$. On three cryptocurrencies, two horizons and three estimators, nothing is
-  certified, and the ceiling puts the incremental information ratio below $2.6$ without
-  separating it from zero.
+  candidate drift---whose infimum over the nuisance is bounded by a martingale under the null. Validity is finite-sample and uniform in time, with no bandwidth, long-run
+  variance, bootstrap, asymptotics or refitting, for arbitrary black-box pipelines. It can
+  therefore be monitored daily with no correction for looking, and e-values average under
+  arbitrary dependence, so a research grid needs no joint bootstrap and an overlapping
+  $h$-step forecast combines into exactly the staggered $h$-vintage portfolio. The
+  construction closes the sample-size question---the median time to certify an annualised
+  information ratio $\mathrm{IR}$ is $2\ln(1/\alpha)/\mathrm{IR}^2$ years, about
+  $6/\mathrm{IR}^2$ at $5\%$---and we are equally explicit about the price, which the e-value
+  literature does not report for this comparison: matched on level and power the guarantee
+  costs about twice the sample of a fixed-sample test, and against a correctly sized
+  Clark--West we measure power of $0.48$ against $0.85$ at $\mathrm{IR}=2$. As a positive
+  control the same instrument certifies volatility persistence on the same assets within
+  $148$--$416$ days. On returns it certifies nothing in six years, and its ceiling bounds the
+  incremental information ratio at $2.6$ without separating it from zero.
 \end{abstract}
 
 \section{Introduction}
@@ -141,15 +139,24 @@ forecast by splitting capital across its $h$ daily vintages---which is exactly t
 portfolio the economic analysis needs, so the statistically valid combination and the
 implementable strategy coincide.
 
-\paragraph{The law.} Evidence is log wealth and log wealth grows at half the squared
-information ratio, so the sample-size question closes in form: certifying an annualised
-information ratio $\mathrm{IR}$ takes $2\ln(1/\alpha)/\mathrm{IR}^2$ years, about
-$6/\mathrm{IR}^2$ at the $5\%$ level. Section~\ref{sec:design} shows this is optimal to
-first order, so no cleverer test recovers the missing years; that continuous monitoring
-costs about three per cent more data than a fixed-sample test that must be pre-committed and
-looked at once; and that learning the stake online rather than declaring a target effect
-size in advance roughly doubles the requirement. Six years of daily data---about what any
-liquid cryptocurrency offers---cannot certify an information ratio below roughly $1.6$.
+\paragraph{The law, and its price.} Evidence is log wealth and log wealth grows at half the
+squared information ratio, so the sample-size question closes in form: the median time to
+certify an annualised information ratio $\mathrm{IR}$ is $2\ln(1/\alpha)/\mathrm{IR}^2$ years,
+about $6/\mathrm{IR}^2$ at the $5\%$ level, and no anytime-valid test does better in order.
+Six years of daily data---about what any liquid cryptocurrency offers---cannot certify an
+information ratio below roughly $1.6$.
+
+We are equally explicit about what the guarantee costs, because that is the number a
+practitioner has to weigh and it is missing from the e-value literature for this comparison.
+Matched on level \emph{and} power, the certificate needs about \emph{twice} the sample of a
+one-sided fixed-sample test (Corollary~\ref{cor:free}), a ratio that is scale-free and sits
+between $1.9$ and $2.2$ across conventional power levels. Against Clark--West itself, in the
+design where Clark--West is correctly sized, Section~\ref{sec:headtohead} measures the loss
+directly: at an annualised information ratio of $2$ the incumbent has power $0.85$ and the
+certificate $0.31$. That is the exchange rate. Nothing in this paper claims the certificate
+dominates; the claim is that it buys validity under weaker assumptions, at every stopping
+time, across a dependent grid and for pipelines no asymptotic theory covers, and that the
+price is roughly a doubling of the data.
 
 \paragraph{The evidence.} Section~\ref{sec:results-tests} applies all of this to a
 deliberately careful study: three assets, two horizons, six forecasters, purged and
@@ -1124,6 +1131,13 @@ only in what they ask of $P_\mu$.
     $\mathcal{F}_{t-1}$.
 \end{description}
 %
+Assumption~S has a property worth stating plainly because it is easy to adopt by accident:
+conditional symmetry about a \emph{constant} $\mu$ implies unconditional symmetry, hence zero
+skewness, so the assumption is refutable from the marginal distribution alone. On this
+paper's data it is refuted---sample skewness $-1.05$, $-0.96$ and $-0.23$ on BTC, ETH and
+SOL. The identity payoff, which needs only Assumption~M, is therefore the default throughout,
+and the bounded payoffs are reported as sensitivity analyses rather than as the headline.
+%
 Assumption~S implies Assumption~M without the envelope. It is stronger than a martingale
 difference and far weaker than independence: it permits arbitrary volatility clustering,
 arbitrary tail thickness, and any dependence whatsoever in $|y_t-\mu|$. It is also exactly
@@ -1215,12 +1229,24 @@ numerically; Section~\ref{sec:implementation} reports the grid refinement.
 
 \begin{theorem}[Evidence in units of capital]
 \label{thm:pnl}
+Let $\phi$ be the identity payoff. Then
 $\log\tfrac12\big(W^{\mathrm{sig}}_T(\mu)+W^{\mathrm{ctr}}_T(\mu)\big)$ is the cumulative
-log return, net of the drift, of a self-financing strategy that at each date holds
-$\lambda_tg_t$ units of a claim paying $\phi_t(\mu)$ and splits capital equally with a
-two-sided hedge of the drift. Rejecting $H_0$ at level $\alpha$ requires that strategy to
-have multiplied its capital by $1/\alpha$.
+log return of a self-financing strategy that at each date holds $\lambda_tg_t/s_t$ units of
+the asset, funded at rate $\mu$, and splits capital equally with a two-sided hedge of that
+funding rate. Rejecting $H_0$ at level $\alpha$ requires that strategy to have multiplied its
+capital by $1/\alpha$.
 \end{theorem}
+
+\begin{remark}[The interpretation is literal only for the identity payoff]
+\label{rem:tradeable}
+For a bounded odd $\phi$ such as $\tanh$ the same algebra holds, but the ``asset'' pays
+$\phi\big((y_t-\mu)/s_t\big)$, and no such claim trades. The wealth process is then still a
+valid e-process --- Theorem~\ref{thm:validity} does not care --- but it is the profit and loss
+of a strategy in a synthetic derivative, not of one a desk could run. We flag this because the
+identity between statistical and economic significance is the paper's most quotable claim and
+it is exact in one case and figurative in the other. It is one reason the identity payoff is
+the default.
+\end{remark}
 
 The theorem is immediate from \eqref{eq:wsig}--\eqref{eq:cert}---each factor is one plus a
 period return---but its content is not. Statistical significance and economic significance
@@ -1324,18 +1350,29 @@ $\ln(1/\alpha)/\mathrm{KL}$, so $T^\ast$ is optimal to first order and no clever
 recovers the missing years.
 \end{corollary}
 
-\begin{corollary}[Anytime-validity is nearly free; the drift hedge is not quite]
+\begin{corollary}[What anytime-validity actually costs]
 \label{cor:free}
-A one-sided fixed-sample test at $\alpha=0.05$ with $80\%$ power needs
-$(z_{0.05}+z_{0.20})^2/\mathrm{IR}^2=6.18/\mathrm{IR}^2$ years, against
-$5.99/\mathrm{IR}^2$ for the sequential law: continuous monitoring costs about three per
-cent more data and buys the right to stop, restart, and look every day. Eliminating the
-drift does cost something, and the amount is exact. Averaging the signal bettor with the
-centring bettor in \eqref{eq:cert} halves any terminal wealth the signal earns, which is
-$\ln 2 = 0.69$ nats on a budget of $\ln(1/\alpha)=3.00$: the certificate needs
-$7.38/\mathrm{IR}^2$ years, $23\%$ more than a test that is handed the true drift. That is
-the whole price of never estimating it.
+Compared at matched level \emph{and matched power}, the certificate needs about twice the data
+of a one-sided fixed-sample test. Log wealth at the oracle stake is approximately
+$\mathcal{N}(x, 2x)$ with $x = T\,\mathrm{IR}_p^2/2$, so attaining power $\beta$ requires
+$x(\beta) = \big([z_\beta\sqrt2 + \sqrt{2z_\beta^2+4\ln(1/\alpha)}\,]/2\big)^2$, against
+$(z_\alpha+z_\beta)^2/2$ for the fixed-sample test. The ratio is scale-free---the information
+ratio cancels---and equals $1.90$ at $\alpha=0.05,\ \beta=0.80$, $2.21$ at median power, and
+stays between $1.9$ and $2.0$ for $\beta$ up to $0.95$.
 \end{corollary}
+
+\begin{remark}[A correction, and why the comparison is easy to get wrong]
+\label{rem:correction}
+An earlier version of this paper reported that anytime-validity costs three per cent more
+data. That figure came from comparing the certificate's \emph{median crossing time},
+$2\ln(1/\alpha)/\mathrm{IR}^2 = 5.99/\mathrm{IR}^2$ years, with the fixed-sample test's
+\emph{eighty-per-cent-power} sample size, $6.18/\mathrm{IR}^2$. Those are not the same
+quantity: the first is a median and the second is an $80$th percentile. Matched properly the
+cost is $11.8/\mathrm{IR}^2$ against $6.2/\mathrm{IR}^2$. We record the error because the
+$5.99$ against $6.18$ coincidence is seductive and because the corrected number changes the
+advice: continuous monitoring is worth roughly a doubling of the sample, which is a real price
+and one a practitioner should pay knowingly.
+\end{remark}
 
 \begin{corollary}[Not knowing your own stake is not free]
 \label{cor:regret}
@@ -1355,31 +1392,33 @@ declared before the data were touched.
 
 \begin{table}[t]
   \centering
-  \caption{The detection horizon of Theorem~\ref{thm:horizon}, in years of daily data at
-  $\alpha=0.05$ and $365$ periods a year. ``Pre-committed'' fixes the stake at the Kelly
-  fraction for the target ratio and pays the $\ln 2$ drift hedge; ``learned online'' adds the
-  $\tfrac12\ln T$ regret of Corollary~\ref{cor:regret}. The fixed-sample column is a
-  one-sided test at $80\%$ power that must be sized in advance, looked at once, and that
-  assumes the benchmark known. Simulated median detection times over $100$ replications
-  agree: $1.93$ against $1.84$ predicted at $\mathrm{IR}=2$, $0.89$ against $0.82$ at
-  $\mathrm{IR}=3$.}
+  \caption{Years of daily data at $\alpha=0.05$ and $365$ periods a year. The first two
+  columns are \emph{median} crossing times: the moment the wealth process is as likely as not
+  to have crossed. The third is the certificate at $80\%$ power, which is the column to
+  compare with the fixed-sample test in the fourth, and the ratio of those two is the
+  scale-free $1.90$ of Corollary~\ref{cor:free}. Comparing column one with column four is the
+  error Remark~\ref{rem:correction} records. Simulated median detection times match column
+  one: $1.93$ years observed against $1.84$ predicted at $\mathrm{IR}=2$.}
   \label{tab:horizon}
   \small
-  \begin{tabular}{lrrr}
+  \begin{tabular}{lrrrr}
     \toprule
-    Annualised $\mathrm{IR}$ & Pre-committed stake & Learned online & Fixed-sample \\
+    & \multicolumn{2}{c}{Median crossing} & At $80\%$ power & \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-4}
+    Annualised $\mathrm{IR}$ & stake pre-committed & stake learned
+      & certificate & fixed-sample test \\
     \midrule
-    $0.30$ & $82.0$ & $206.8$ & $68.7$ \\
-    $0.50$ & $29.5$ & $70.1$  & $24.7$ \\
-    $0.75$ & $13.1$ & $29.6$  & $11.0$ \\
-    $1.00$ & $7.4$  & $16.1$  & $6.2$  \\
-    $1.50$ & $3.3$  & $6.7$   & $2.7$  \\
-    $2.00$ & $1.8$  & $3.6$   & $1.5$  \\
+    $0.30$ & $82.0$ & $206.8$ & $130.7$ & $68.7$ \\
+    $0.50$ & $29.5$ & $70.1$  & $47.1$  & $24.7$ \\
+    $0.75$ & $13.1$ & $29.6$  & $20.9$  & $11.0$ \\
+    $1.00$ & $7.4$  & $16.1$  & $11.8$  & $6.2$  \\
+    $1.50$ & $3.3$  & $6.7$   & $5.2$   & $2.7$  \\
+    $2.00$ & $1.8$  & $3.6$   & $2.9$   & $1.5$  \\
     \midrule
-    \multicolumn{4}{l}{\emph{Read backwards: smallest $\mathrm{IR}$ a sample of this length can certify}} \\
-    \multicolumn{2}{l}{$6.0$ years (this study)} & $1.11$ & $1.59$ \\
-    \multicolumn{2}{l}{$10$ years}               & $0.86$ & $1.25$ \\
-    \multicolumn{2}{l}{$25$ years}               & $0.54$ & $0.81$ \\
+    \multicolumn{5}{l}{\emph{Read backwards: smallest $\mathrm{IR}$ a sample of this length can cross at median}} \\
+    \multicolumn{2}{l}{$6.0$ years (this study)} & \multicolumn{3}{l}{$1.11$ pre-committed, $1.59$ learned} \\
+    \multicolumn{2}{l}{$10$ years}               & \multicolumn{3}{l}{$0.86$ pre-committed, $1.25$ learned} \\
+    \multicolumn{2}{l}{$25$ years}               & \multicolumn{3}{l}{$0.54$ pre-committed, $0.81$ learned} \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1558,9 +1597,10 @@ statistic can repair a benchmark that encodes the wrong hypothesis.
   \caption{Clark--West against certificates, on the same eighteen settings and the same
   forecasts. The signal is the model's forecast minus the intercept-only forecast from the
   same window and refit schedule; at $h=7$ the seven phase certificates are averaged
-  (Remark~\ref{rem:stagger}). ``Designed'' pre-commits the stake to an annualised
-  information ratio of $1.0$, declared before the data were examined. Rejecting at
-  $\alpha=0.05$ needs an e-value of $20$; the largest here is $1.81$. ``Implied
+  (Remark~\ref{rem:stagger}). The payoff is the identity, so only a
+  martingale-difference null and an a-priori envelope are assumed. ``Designed'' pre-commits
+  the stake to an annualised information ratio of $1.0$, declared before the data were
+  examined. Rejecting at $\alpha=0.05$ needs an e-value of $20$; the largest here is $3.05$. ``Implied
   $\mathrm{IR}$'' reads the realised growth rate back through
   Theorem~\ref{thm:horizon}; ``ceiling'' is the $95\%$ anytime-valid upper bound of
   Section~\ref{sec:ceiling}, and every corresponding interval contains zero. This sample can
@@ -1574,27 +1614,27 @@ statistic can repair a benchmark that encodes the wrong hypothesis.
     \cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
     Asset & $h$ & Model & vs.\ zero & vs.\ mean & learned & designed & implied & ceiling \\
     \midrule
-    BTC & 1 & ridge & $2.62$ & $2.66$ & $1.00$ & $0.96$ & $0.00$ & $2.20$ \\
-    BTC & 1 & elastic\_net & $2.57$ & $2.67$ & $1.00$ & $0.96$ & $0.00$ & $1.87$ \\
-    BTC & 1 & gbm & $2.02$ & $1.75$ & $1.00$ & $0.96$ & $0.00$ & $1.13$ \\
-    BTC & 7 & ridge & $1.64$ & $1.36$ & $1.81$ & $0.99$ & $0.42$ & $1.68$ \\
-    BTC & 7 & elastic\_net & $1.76$ & $1.54$ & $1.66$ & $0.99$ & $0.39$ & $1.54$ \\
-    BTC & 7 & gbm & $1.25$ & $1.02$ & $1.04$ & $1.19$ & $0.11$ & $2.55$ \\
-    ETH & 1 & ridge & $1.86$ & $1.76$ & $1.05$ & $1.33$ & $0.12$ & $2.00$ \\
-    ETH & 1 & elastic\_net & $1.37$ & $1.25$ & $1.10$ & $0.96$ & $0.18$ & $1.73$ \\
-    ETH & 1 & gbm & $1.42$ & $1.08$ & $1.00$ & $0.96$ & $0.00$ & $1.88$ \\
-    ETH & 7 & ridge & $-0.79$ & $-1.62$ & $1.12$ & $1.01$ & $0.18$ & $0.70$ \\
-    ETH & 7 & elastic\_net & $-0.98$ & $-1.80$ & $1.11$ & $1.01$ & $0.17$ & $0.63$ \\
-    ETH & 7 & gbm & $0.55$ & $-0.36$ & $1.03$ & $1.01$ & $0.09$ & $0.78$ \\
-    SOL & 1 & ridge & $0.31$ & $1.34$ & $1.82$ & $0.98$ & $0.50$ & $2.39$ \\
-    SOL & 1 & elastic\_net & $0.15$ & $1.43$ & $1.00$ & $1.58$ & $0.00$ & $2.44$ \\
-    SOL & 1 & gbm & $0.82$ & $1.87$ & $1.20$ & $1.22$ & $0.28$ & $1.78$ \\
-    SOL & 7 & ridge & $-1.43$ & $2.01$ & $1.11$ & $1.11$ & $0.20$ & $1.86$ \\
-    SOL & 7 & elastic\_net & $-1.41$ & $2.28$ & $1.11$ & $1.11$ & $0.20$ & $1.95$ \\
-    SOL & 7 & gbm & $-1.39$ & $0.37$ & $1.14$ & $1.12$ & $0.23$ & $1.01$ \\
+    BTC & 1 & ridge & $2.62$ & $2.66$ & $1.00$ & $1.30$ & $0.00$ & $2.20$ \\
+    BTC & 1 & elastic\_net & $2.57$ & $2.67$ & $1.00$ & $1.66$ & $0.00$ & $1.87$ \\
+    BTC & 1 & gbm & $2.02$ & $1.75$ & $1.00$ & $0.97$ & $0.00$ & $1.13$ \\
+    BTC & 7 & ridge & $1.64$ & $1.36$ & $1.85$ & $1.25$ & $0.42$ & $1.68$ \\
+    BTC & 7 & elastic\_net & $1.76$ & $1.54$ & $1.67$ & $1.27$ & $0.39$ & $1.54$ \\
+    BTC & 7 & gbm & $1.25$ & $1.02$ & $1.46$ & $1.88$ & $0.34$ & $2.55$ \\
+    ETH & 1 & ridge & $1.86$ & $1.76$ & $1.56$ & $2.37$ & $0.39$ & $2.00$ \\
+    ETH & 1 & elastic\_net & $1.37$ & $1.25$ & $1.64$ & $1.55$ & $0.41$ & $1.73$ \\
+    ETH & 1 & gbm & $1.42$ & $1.08$ & $1.61$ & $1.39$ & $0.40$ & $1.88$ \\
+    ETH & 7 & ridge & $-0.79$ & $-1.62$ & $1.33$ & $1.07$ & $0.28$ & $0.70$ \\
+    ETH & 7 & elastic\_net & $-0.98$ & $-1.80$ & $1.29$ & $1.06$ & $0.26$ & $0.63$ \\
+    ETH & 7 & gbm & $0.55$ & $-0.36$ & $1.04$ & $1.02$ & $0.11$ & $0.78$ \\
+    SOL & 1 & ridge & $0.31$ & $1.34$ & $3.05$ & $1.73$ & $0.69$ & $2.39$ \\
+    SOL & 1 & elastic\_net & $0.15$ & $1.43$ & $1.06$ & $2.85$ & $0.15$ & $2.44$ \\
+    SOL & 1 & gbm & $0.82$ & $1.87$ & $2.06$ & $2.17$ & $0.55$ & $1.78$ \\
+    SOL & 7 & ridge & $-1.43$ & $2.01$ & $1.02$ & $1.06$ & $0.09$ & $1.86$ \\
+    SOL & 7 & elastic\_net & $-1.41$ & $2.28$ & $1.02$ & $1.06$ & $0.09$ & $1.95$ \\
+    SOL & 7 & gbm & $-1.39$ & $0.37$ & $1.11$ & $1.11$ & $0.20$ & $1.01$ \\
     \midrule
     \multicolumn{5}{l}{Grid-level e-value (average; Theorem~\ref{thm:merge})}
-      & \multicolumn{2}{c}{$1.18$} & \multicolumn{2}{l}{$20$ required} \\
+      & \multicolumn{2}{c}{$1.43$} & \multicolumn{2}{l}{$20$ required} \\
     \multicolumn{5}{l}{Directional variant, $\phi=\operatorname{sign}$}
       & \multicolumn{2}{c}{$1.07$} & \multicolumn{2}{l}{$20$ required} \\
     \multicolumn{5}{l}{Settings surviving e-BH at $5\%$}
@@ -1612,12 +1652,13 @@ from the same window and refit schedule. Nothing is refit: the certificate consu
 forecasts the pipeline already wrote. At $h=7$ the sample is split into its seven phases and
 the phase e-values are averaged, per Remark~\ref{rem:stagger}.
 
-Nothing is certified (Figure~\ref{fig:certificate}, middle). The largest e-value in the grid is $1.81$ against the $20$ required at
-$\alpha=0.05$; the average over the eighteen settings, which is by Theorem~\ref{thm:merge} a
-valid test of the global null under arbitrary dependence, is $1.18$; e-BH selects nothing.
-Pre-committing the stake to an annualised information ratio of $1.0$---declared before the
-data were touched, as Corollary~\ref{cor:regret} recommends---does not change the reading:
-the largest designed e-value is $1.58$.
+Nothing is certified (Figure~\ref{fig:certificate}, middle). The largest e-value in the grid
+is $3.05$ against the $20$ required at $\alpha=0.05$; the average over the eighteen settings,
+which is by Theorem~\ref{thm:merge} a valid test of the global null under arbitrary
+dependence, is $1.43$; e-BH selects nothing. Pre-committing the stake to an annualised
+information ratio of $1.0$---declared before the data were touched, as
+Corollary~\ref{cor:regret} recommends---does not change the reading: the largest designed
+e-value is $2.85$.
 
 The directional variant, $\phi=\operatorname{sign}$, is the anytime-valid replacement for
 the market-timing test of Section~\ref{sec:sign} and inherits none of its defects: it needs
@@ -1628,13 +1669,129 @@ this study once reported at $p\approx0.001$ leave no trace under an instrument t
 valid for the design that produced them.
 
 Read alongside the Clark--West columns, the table is not a contradiction but a scale
-statement. The implied information ratios---read off the realised growth rate through
-Theorem~\ref{thm:horizon}, $\mathrm{IR}=\sqrt{2P\Lambda}$---run from $0$ to $0.51$. The
+statement---and, as Section~\ref{sec:headtohead} shows, partly a statement about the
+certificate's own conservatism. The implied information ratios---read off the realised growth rate through
+Theorem~\ref{thm:horizon}, $\mathrm{IR}=\sqrt{2P\Lambda}$---run from $0$ to $0.69$. The
 smallest ratio this sample could certify is $1.59$ ($1.11$ with the stake pre-committed).
 The settings Clark--West likes are the ones whose implied ratios sit closest to that floor
-without reaching it. There is no disagreement between the instruments about the data; there
-is a disagreement about whether six years is enough to settle the question, and
-Corollary~\ref{cor:optimal} says the certificate is right about that.
+without reaching it. The instruments do not disagree about the data. They disagree about what six years suffices
+to settle, and the honest accounting is in Section~\ref{sec:headtohead}: at these effect sizes
+Clark--West is the more powerful instrument, so part of the certificate's silence is the price
+of its guarantees rather than a fact about returns. What the certificate contributes here is
+not a stronger verdict but a bounded one.
+
+\subsection{What the guarantee costs: the certificate against Clark--West}
+\label{sec:headtohead}
+
+A test that is valid under weaker assumptions, at every stopping time, cannot also be more
+powerful than one that assumes more and looks once. The question is the exchange rate. It is
+not reported in the e-value literature for this comparison, and a reader entitled to be
+sceptical will ask for it before believing anything in Section~\ref{sec:results-cert}, so we
+measure it in the design that is \emph{least} favourable to us: returns i.i.d.\ with a
+realistic drift and exogenous features, so that the benchmark's estimation error is
+uncorrelated with the signal and Clark--West against the recursive mean is exactly correctly
+sized. Measured size confirms it, at $5.5\%$.
+
+\begin{table}[t]
+  \centering
+  \caption{Power against a real signal, $400$ replications, on this study's geometry
+  ($n=2186$, $k=504$, $p=12$, drift Sharpe $0.8$). ``Nominal'' uses the threshold a
+  practitioner would actually apply---$1.645$ and $1/\alpha=20$; ``size-matched'' uses each
+  instrument's empirical $5\%$ critical value, which strips out the certificate's
+  conservatism and isolates the loss due to the construction. Clark--West is correctly sized
+  here by design (measured $5.5\%$); the certificate's measured size at its nominal threshold
+  is $0.5$--$0.7\%$, which is Ville's inequality being loose for a smooth wealth path, not a
+  modelling error.}
+  \label{tab:headtohead}
+  \small
+  \begin{tabular}{lcccccc}
+    \toprule
+    & \multicolumn{2}{c}{Clark--West vs.\ mean}
+    & \multicolumn{2}{c}{Certificate, learned stake}
+    & \multicolumn{2}{c}{Certificate, pre-committed} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+    $\mathrm{IR}$ & nominal & size-matched & nominal & size-matched & nominal & size-matched \\
+    \midrule
+    $1.0$ & $0.230$ & $0.210$ & $0.015$ & $0.142$ & $0.030$ & $0.163$ \\
+    $1.5$ & $0.510$ & $0.495$ & $0.128$ & $0.335$ & $0.188$ & $0.390$ \\
+    $2.0$ & $0.853$ & $0.850$ & $0.357$ & $0.710$ & $0.480$ & $0.757$ \\
+    $3.0$ & $1.000$ & $1.000$ & $0.963$ & $0.983$ & $0.988$ & $0.998$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Table~\ref{tab:headtohead} separates two losses that are easy to conflate.
+
+\emph{The construction is nearly as efficient as the incumbent.} At matched size the
+pre-committed certificate reaches $0.757$ where Clark--West reaches $0.850$ at
+$\mathrm{IR}=2$, and $0.998$ against $1.000$ at $\mathrm{IR}=3$. Eliminating the drift rather
+than estimating it, hedging it two-sidedly, and standardising the signal predictably together
+cost surprisingly little. Two design choices in Section~\ref{sec:certificate} are responsible
+for that being true rather than false: weighting the capital split $0.9/0.1$ instead of
+equally, worth a quarter to a half of the power, and pre-committing the stake rather than
+learning it, worth another third at $\mathrm{IR}=2$.
+
+\emph{Anytime-validity is what actually costs.} At the nominal thresholds the gap is large
+($0.480$ against $0.853$), and essentially all of it is the certificate's measured size of
+$0.5$--$0.7\%$ against a nominal $5\%$. That conservatism is not a defect to be engineered
+away: Ville's inequality is tight only for a process that jumps straight to the threshold, and
+a wealth path built from many small bets does not. Corollary~\ref{cor:free} prices it in
+advance and independently---about a factor of two in sample size---and the measured gap is of
+that order.
+
+Two negative results belong here because they were the obvious things to try. Betting
+\emph{above} the Kelly fraction, on the theory that power at a fixed threshold is a
+goal-reaching problem rather than a growth problem, makes matters strictly worse at every
+information ratio we tried: doubling the stake takes power at $\mathrm{IR}=2$ from $0.217$ to
+$0.060$. And replacing the plug-in stake with a mixture over a stake grid, which attains the
+optimal $\tfrac12\ln T$ regret, buys almost nothing here ($0.257$ against $0.233$) at forty
+times the computation, because the plug-in is already close to that bound.
+
+The reading we take from the table is the one a practitioner needs. Where the recursive-mean
+benchmark is defensible, the sample is fixed in advance, and one look is enough, Clark--West
+is the more powerful instrument and should be used. The certificate is for the cases it cannot
+serve: monitoring a live strategy, a contested or estimated benchmark, a dependent grid of
+settings, a pipeline outside any asymptotic theory, and a sample whose end the analyst does
+not want to have to fix in advance. It buys those, and the price is roughly a doubling of the
+data.
+
+\subsection{Positive control: can the instrument say yes?}
+\label{sec:positive}
+
+A method whose only demonstration on real data finds nothing is unfalsified in the positive
+direction, and its silence is not interpretable. Before reading anything into
+Table~\ref{tab:cert} we therefore point the same instrument, on the same three assets over the
+same window, at structure that is known to be there.
+
+Realised volatility is the natural control: it is strongly predictable from its own past, it
+lives on the same price series, and it is not what any model in this study forecasts, so
+nothing about the exercise is circular. The signal is the trailing five-day realised volatility
+and the outcome is the next day's; the payoff is the identity, so only a martingale-difference
+null and an a-priori envelope are assumed.
+
+\begin{center}
+  \small
+  \begin{tabular}{lrrrr}
+    \toprule
+    Asset & $n$ & e-value & anytime-valid $p$ & days to certify \\
+    \midrule
+    BTC & $2{,}748$ & $3.1\times10^{7}$ & $3.2\times10^{-8}$  & $430$ \\
+    ETH & $2{,}748$ & $4.1\times10^{9}$ & $2.4\times10^{-10}$ & $417$ \\
+    SOL & $2{,}283$ & $9.3\times10^{8}$ & $1.1\times10^{-9}$  & $148$ \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+All three are certified, in $148$ to $430$ days out of the $2{,}748$ available, with e-values
+seven to nine orders of magnitude past the threshold. The implied annualised information
+ratios, $2.1$ to $2.6$, sit above the certifiable floor of Table~\ref{tab:horizon}, which is
+exactly why they are detected and detected early.
+
+The control does two things. It shows the instrument is not conservative to the point of
+uselessness: given an effect of the size the design law says it can see, it sees it, quickly,
+on real data with real tails and real volatility clustering. And it localises the null result
+of Section~\ref{sec:results-cert}: whatever is or is not in daily returns, it is not an effect
+of the magnitude that six years of this data resolves.
 
 \subsection{What the features could still be worth}
 \label{sec:ceiling}
@@ -1938,19 +2095,30 @@ construction. The exposure regression, the delayed-execution variant and the sta
 portfolio remain worth running---they say \emph{how} a strategy made its money---but they are
 no longer load-bearing for the inferential claim.
 
-\paragraph{What is left, stated at the right scale.}
+\paragraph{What is left, and what the two instruments are actually disagreeing about.}
 Against the correct benchmark and with size calibrated under a dependence-preserving null,
 Clark--West rejects in seven of eighteen settings against about one expected, and a joint
-resampling of the whole experiment puts that count in the tail. Under certificates nothing
-is certified, the grid-level e-value is $1.18$ against $20$, and the implied information
-ratios run from $0$ to $0.50$ against a certifiable floor of $1.59$. These are not
-contradictory readings of the data; they are a $p$-value and an e-value disagreeing about
-what six years can settle, and Corollary~\ref{cor:optimal} says the e-value is right.
-The honest summary is that the question is open at this sample size, and the number that
-makes it actionable is the ceiling: the features' incremental information ratio is bounded
-above by $2.6$ and cannot be distinguished from zero. A desk can decide against that.
-It cannot decide against a $p$-value of $0.004$ on a statistic whose null was never the one
-being asked about.
+resampling of the whole experiment puts $P(N\ge7)$ at $0.0035$. Under certificates nothing is
+certified, the grid-level e-value is $1.43$ against the $20$ required, and the implied
+information ratios run from $0$ to $0.69$ against a certifiable floor of $1.59$.
+
+It would be convenient to read the second as overturning the first. It does not, and
+Section~\ref{sec:headtohead} is why. In the design where Clark--West is correctly sized it is
+the more powerful instrument by a wide margin---at an information ratio of $2$, power $0.85$
+against the certificate's $0.48$ at nominal thresholds---so a good part of the certificate's
+silence is its own conservatism rather than the data's. Corollary~\ref{cor:optimal} does not
+rescue the certificate here either: it bounds \emph{anytime-valid} procedures, and Clark--West
+is not one, so its greater power is entirely consistent with the corollary. Any reading in
+which the e-value simply wins is unavailable to us.
+
+What survives is narrower and, we think, more useful. Clark--West's count is jointly
+surprising and individually not: the smallest Romano--Wolf adjusted $p$-value is $0.052$, so
+no particular setting is identified even by the instrument that likes them best. The two
+settings it likes most have negative $\rsq$, no sign-timing skill, no alpha net of exposure,
+and no Sharpe interval excluding zero. And the certificate contributes the number that neither
+$p$-value can: an anytime-valid ceiling that bounds the features' incremental annualised
+information ratio at $2.6$ and cannot separate it from zero. A desk can act on a ceiling. It
+cannot act on a jointly-surprising-but-individually-unidentified count of seven.
 
 \section{Limitations}
 \label{sec:limitations}
@@ -1986,12 +2154,15 @@ only by the presence of the cache.
 theorem. \emph{The assumption is not free.} The default payoff needs the outcome to be
 conditionally symmetric about its drift; that permits arbitrary volatility clustering and tail
 thickness but excludes systematically skewed conditional distributions, and daily
-cryptocurrency returns are mildly skewed. The identity payoff drops the assumption to a
-martingale difference at a cost in power set by how loose the a-priori return envelope is.
-Run on this study with an envelope of $\sqrt{h}$, it gives a largest e-value of $4.13$ and a
-grid-level e-value of $1.44$, against $1.81$ and $1.18$ for $\tanh$: larger, still an order
-of magnitude short of the $20$ required, and it selects nothing under e-BH. The conclusions
-of Table~\ref{tab:cert} do not depend on the symmetry assumption. \emph{The power is real
+cryptocurrency returns are mildly skewed. It is also refutable from the marginal
+distribution alone, and daily cryptocurrency returns refute it: the sample skewness is
+$-1.05$ on BTC, $-0.96$ on ETH and $-0.23$ on SOL, each rejecting symmetry at
+$p<10^{-4}$. For that reason the identity payoff, which needs only a martingale difference
+plus an a-priori envelope, is the default and is what Table~\ref{tab:cert} reports; the
+bounded payoffs are offered for series where symmetry is defensible and this one is not. The
+$\tanh$ variant, run anyway, gives a largest e-value of $1.81$ and a grid-level $1.18$
+against the identity's $3.05$ and $1.43$: different numbers, same conclusion, and the weaker
+assumption happens also to be the stronger result here. \emph{The power is real
 but bounded.} Corollary~\ref{cor:optimal} says no anytime-valid test does better in order, but
 a fixed-sample test that is pre-committed, looked at once, and handed the true drift needs
 $23\%$ less data; a study that genuinely will not look at its data until a pre-registered
@@ -2050,8 +2221,7 @@ ratio $\mathrm{IR}$ takes $2\ln(1/\alpha)/\mathrm{IR}^2$ years, about $6/\mathrm
 the $5\%$ level, rising to $7.4/\mathrm{IR}^2$ once the drift hedge is paid for and to
 $16/\mathrm{IR}^2$ if the stake is learned online rather than declared in advance. The bound
 is optimal to first order, so no better test recovers the missing years, and continuous
-monitoring costs only three per cent more data than a fixed-sample test that may be looked at
-once. Six years of daily data---about what any liquid cryptocurrency offers---cannot certify
+monitoring costs about twice the data of a fixed-sample test that may be looked at once. Six years of daily data---about what any liquid cryptocurrency offers---cannot certify
 an information ratio below $1.59$.
 
 Applied to this study, nothing is certified. The grid-level e-value is $1.18$ against the

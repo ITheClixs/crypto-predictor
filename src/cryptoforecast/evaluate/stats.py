@@ -248,9 +248,7 @@ def pesaran_timmermann_non_overlapping(
         raise ValueError(f"horizon must be >= 1, got {horizon}")
     yt = np.asarray(y_true, dtype=float)
     yp = np.asarray(y_pred, dtype=float)
-    phases = [
-        pesaran_timmermann(pd.Series(yt[k::horizon]), yp[k::horizon]) for k in range(horizon)
-    ]
+    phases = [pesaran_timmermann(pd.Series(yt[k::horizon]), yp[k::horizon]) for k in range(horizon)]
     stat = [p.statistic for p in phases if math.isfinite(p.statistic)]
     pval = [p.p_value for p in phases if math.isfinite(p.p_value)]
     if not stat:

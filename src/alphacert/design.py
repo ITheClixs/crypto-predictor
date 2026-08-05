@@ -15,29 +15,30 @@ this instrument. ``IR_p^2 / 2`` is the Kullback-Leibler rate separating the alte
 from the null, so by the standard sequential-testing bound no level-``alpha``
 anytime-valid procedure can do materially better.
 
-Two corrections matter in practice, and they point in opposite directions.
+Three corrections matter in practice, and only one of them is favourable.
 
-*The drift hedge costs ln 2.* The certificate splits capital between the bettor who
-stakes on the signal and the bettor who hedges the drift, so half of any terminal wealth
-is the signal bettor's. That is ``ln 2 = 0.69`` nats on a budget of ``ln(1/alpha) = 3.00``
-at the 5% level: eliminating the nuisance rather than estimating it costs 23% more data,
-and buys exact validity at every drift. ``hedge`` controls whether the term is included.
+*Anytime-validity is not nearly free, and an earlier version of this module said it was.*
+The comparison has to be made at matched power. A fixed-sample one-sided test needs
+``(z_a + z_b)^2 / IR^2`` years. The e-process's log wealth at the oracle stake is
+approximately ``N(x, 2x)`` with ``x = T * IR_p^2 / 2``, so attaining power ``beta`` needs
+``x(beta) = ([z_b sqrt(2) + sqrt(2 z_b^2 + 4 ln(1/alpha))] / 2)^2``. The ratio of the two is
+about **1.9 at 80% power** and 2.2 at median power -- anytime-validity costs roughly a factor
+of two in data, not three per cent. The earlier claim compared the e-process's *median*
+crossing time with the z-test's *80%-power* sample size, which are not the same quantity.
+:func:`power_matched_horizon` computes the corrected number and
+:func:`anytime_validity_cost` the ratio.
 
-*Anytime-validity is nearly free.* The fixed-sample benchmark -- a one-sided test with a
-pre-committed sample size, looked at exactly once -- needs ``(z_alpha + z_beta)^2 / IR^2``
-years, which at 5% and 80% power is ``6.18 / IR^2``. Against ``5.99 / IR^2`` for the
-certificate, continuous monitoring costs about 3% more data and buys the right to stop
-whenever the evidence arrives.
+*The drift hedge costs less than ln 2 if you split capital unevenly.* The certificate runs a
+signal bettor against a bettor who hedges the drift. An equal split discards ``ln 2 = 0.69``
+nats of the signal bettor's wealth at the true drift, where the hedging bettor breaks even.
+Weighting the signal by ``w`` costs only ``-ln w``; at ``w = 0.9`` that is 0.105 nats, and
+measured power rises by a quarter to a half with no change in size.
 
-*Not knowing your own Kelly fraction is not free.* If the stake must be learned online,
-log wealth falls short of the oracle's by a regret term that grows like ``(1/2) ln T``.
-At ``T`` around two thousand periods that is roughly 3.8 nats -- larger than the 3.0 nats
-needed to reject at 5%. The cost of not knowing how strong your signal is can exceed the
-entire evidentiary budget, and it multiplies the horizon by two to three.
-Pre-committing the stake to the smallest information ratio worth detecting removes the
-term entirely, which makes
-"declare the alpha you care about before you look" a power decision rather than a
-methodological nicety.
+*Not knowing your own Kelly fraction is not free.* If the stake must be learned online, log
+wealth falls short of the oracle's by a regret term growing like ``(1/2) ln T``. At ``T``
+around two thousand periods that is roughly 3.8 nats -- larger than the 3.0 nats needed to
+reject at 5%. Pre-committing the stake to the smallest information ratio worth detecting
+removes the term, and in simulation it lifts power at IR = 2 from 0.23 to 0.31.
 """
 
 from __future__ import annotations
@@ -135,6 +136,37 @@ def certifiable_ratio(
     if not kelly_known:
         budget += 0.5 * math.log(max(periods, math.e))
     return float(math.sqrt(2.0 * budget * periods_per_year / periods))
+
+
+def power_matched_horizon(
+    information_ratio: float,
+    alpha: float = 0.05,
+    power: float = 0.80,
+    periods_per_year: float = CRYPTO_PERIODS_PER_YEAR,
+) -> float:
+    """Years the certificate needs to attain ``power``, at the oracle stake.
+
+    The honest comparison against :func:`fixed_sample_horizon`. Log wealth at the oracle Kelly
+    stake is approximately ``N(x, 2x)`` with ``x = T IR_p^2 / 2``, so power ``beta`` requires
+    ``x - z_beta sqrt(2x) = ln(1/alpha)``, a quadratic in ``sqrt(x)``.
+    """
+    _validate(information_ratio, alpha, periods_per_year)
+    if not 0.0 < power < 1.0:
+        raise ValueError("power must lie in (0, 1)")
+    budget = math.log(1.0 / alpha)
+    z = stats.norm.ppf(power)
+    root = (z * math.sqrt(2.0) + math.sqrt(2.0 * z**2 + 4.0 * budget)) / 2.0
+    return float(2.0 * root**2 / information_ratio**2)
+
+
+def anytime_validity_cost(alpha: float = 0.05, power: float = 0.80) -> float:
+    """Sample-size ratio, e-process to fixed-sample test, at matched level and power.
+
+    Scale-free: the information ratio cancels. About 1.9 at the conventional settings, and
+    the single number a practitioner needs in order to decide whether continuous monitoring
+    is worth its price.
+    """
+    return float(power_matched_horizon(1.0, alpha, power) / fixed_sample_horizon(1.0, alpha, power))
 
 
 def growth_to_ratio(

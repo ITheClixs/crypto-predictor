@@ -10,7 +10,7 @@ needs exactly two things from ``phi``:
 Two families satisfy (1), under different assumptions, and the choice is the single
 place where the user trades assumptions for power:
 
-``IDENTITY``
+``IDENTITY`` (the default)
     ``phi(u) = u``. Needs only a martingale-difference null, ``E[y_t | F_{t-1}] = mu``.
     Unbounded in principle, so the bet must be capped using an a-priori envelope ``R``
     on ``|y_t|``; when ``R`` is much larger than the outcome's standard deviation, that
@@ -22,7 +22,10 @@ place where the user trades assumptions for power:
     than a martingale difference but far weaker than i.i.d.: it permits arbitrary
     volatility clustering, fat tails, and any dependence in ``|y_t - mu|``. Because the
     bound is 1 rather than ``R / s_t``, the bet is not throttled and the growth rate is
-    close to Kelly-optimal.
+    close to Kelly-optimal. The assumption is strong in a way that is easy to miss:
+    conditional symmetry about a constant drift implies *zero unconditional skewness*, so it
+    is refutable from the marginal distribution alone -- and daily cryptocurrency returns
+    refute it (skew -1.05 on BTC over 2019-2026, p < 1e-70). Check before using these.
 
 ``SIGN`` discards magnitude and tests directional predictability only; it is the
 anytime-valid replacement for a Pesaran-Timmermann market-timing test, and it inherits

@@ -122,3 +122,45 @@ def test_bounded_payoffs_have_a_unit_envelope_and_identity_does_not() -> None:
     assert np.allclose(IDENTITY.envelope(scale, 0.5, 0.05), 0.55 / 0.02)
     assert np.all(np.abs(TANH(np.linspace(-10, 10, 21))) <= 1.0)
     assert np.all(np.abs(SIGN(np.linspace(-10, 10, 21))) <= 1.0)
+
+
+@pytest.mark.unit
+def test_anytime_validity_costs_about_a_factor_of_two_not_three_percent() -> None:
+    """Guards the correction to a claim an earlier version got materially wrong.
+
+    The old comparison put the e-process's *median* crossing time against the z-test's
+    *80%-power* sample size and concluded anytime-validity was nearly free. Matched properly,
+    it costs roughly double the data.
+    """
+    from alphacert.design import anytime_validity_cost, power_matched_horizon
+
+    assert anytime_validity_cost(0.05, 0.80) == pytest.approx(1.90, abs=0.02)
+    assert anytime_validity_cost(0.05, 0.50) == pytest.approx(2.21, abs=0.02)
+    for power in (0.5, 0.8, 0.9, 0.95):
+        assert 1.8 < anytime_validity_cost(0.05, power) < 2.3
+    # ...and the ratio is scale-free, so it is a single number a practitioner can carry.
+    for ratio in (0.5, 1.0, 2.0):
+        assert power_matched_horizon(ratio) / fixed_sample_horizon(ratio) == pytest.approx(
+            anytime_validity_cost(), rel=1e-9
+        )
+
+
+@pytest.mark.unit
+def test_power_matched_horizon_exceeds_the_median_crossing_time() -> None:
+    """80% power costs more data than a 50% chance of crossing, which is what the law gives."""
+    from alphacert.design import power_matched_horizon
+
+    for ratio in (0.5, 1.0, 2.0):
+        assert power_matched_horizon(ratio, power=0.80) > detection_horizon(
+            ratio, kelly_known=True, hedge=False
+        )
+
+
+@pytest.mark.unit
+def test_power_matched_horizon_validates_arguments() -> None:
+    from alphacert.design import power_matched_horizon
+
+    with pytest.raises(ValueError):
+        power_matched_horizon(1.0, power=1.0)
+    with pytest.raises(ValueError):
+        power_matched_horizon(0.0)

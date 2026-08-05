@@ -46,6 +46,7 @@ theorem that covers OLS.
 | | Clark–West | Certificate |
 |---|---|---|
 | Rejection rate at Sharpe 0.0 / 2.0, no predictability | 5.2% / **81%** (vs zero) | 0.3% / 0.8% |
+| Power at IR = 2, size-matched | 0.85 | 0.76 |
 | Calibration needed | 2,000 pipeline refits, hours | none — validity is a theorem |
 | Valid if you look every day | no | yes, at every stopping time |
 | Multiplicity over an 18-cell grid | joint bootstrap | average the e-values |
@@ -66,27 +67,61 @@ Three consequences a $t$-statistic cannot give:
    literally the staggered $h$-vintage portfolio, so the valid combination and the
    implementable strategy are the same object.
 
-### The design law
+### The design law, and its price
 
-Evidence is log wealth; log wealth grows at half the squared information ratio. So
+Evidence is log wealth; log wealth grows at half the squared information ratio. So the median
+time to certify an annualised information ratio IR is
 
-$$T^\ast = \frac{2\ln(1/\alpha)}{\mathrm{IR}^2} \text{ years} \approx \frac{6}{\mathrm{IR}^2} \text{ at the 5 percent level}.$$
+$$T^\ast = \frac{2\ln(1/\alpha)}{\mathrm{IR}^2} \text{ years} \approx \frac{6}{\mathrm{IR}^2} \text{ at the 5 percent level},$$
 
-It is optimal to first order (no cleverer test recovers the missing years); continuous
-monitoring costs only **3% more data** than a fixed-sample test that may be looked at once;
-the drift hedge costs exactly $\ln 2 = 0.69$ nats, i.e. **23% more data**; and learning the
-stake online instead of declaring a target effect size in advance costs a further factor of
-two. Pre-registration becomes a power calculation.
+and no anytime-valid test does better in order. **Six years of daily data — about what any
+liquid cryptocurrency offers — cannot certify an information ratio below 1.59.**
 
-| Annualised IR | Years to certify (stake pre-committed) | (learned online) |
+We are equally explicit about what the guarantee costs, because that number is missing from
+the e-value literature for this comparison.
+
+| | years at IR = 1 |
+|---|---|
+| Certificate, median crossing, stake pre-committed | 7.4 |
+| Certificate, median crossing, stake learned online | 16.1 |
+| **Certificate at 80% power** | **11.8** |
+| **Fixed-sample one-sided test at 80% power** | **6.2** |
+
+**Matched on level and power, anytime-validity costs about a factor of 1.9 in sample size** —
+scale-free, between 1.9 and 2.2 across conventional power levels. An earlier version of this
+work put the figure at 3% by comparing the certificate's *median* crossing time with the
+z-test's *80th percentile*; that was wrong and is corrected here.
+
+Head to head against Clark–West, in the design where Clark–West is exactly correctly sized
+(measured 5.5%), 400 replications:
+
+| IR | CW | CW size-matched | Certificate | Certificate size-matched |
+|---|---|---|---|---|
+| 1.0 | 0.230 | 0.210 | 0.030 | 0.163 |
+| 1.5 | 0.510 | 0.495 | 0.188 | 0.390 |
+| 2.0 | 0.853 | 0.850 | 0.480 | 0.757 |
+| 3.0 | 1.000 | 1.000 | 0.988 | 0.998 |
+
+Two things separate out. **The construction is nearly as efficient as the incumbent** — at
+matched size, 0.757 against 0.850 at IR = 2. **What costs is anytime-validity itself**: the
+certificate's measured size at its nominal threshold is 0.5–0.7% against a nominal 5%, because
+Ville's inequality is tight only for a process that jumps straight to the threshold.
+
+Nothing here claims the certificate dominates. Where the benchmark is defensible, the sample
+is fixed in advance and one look is enough, **use Clark–West**. The certificate is for what
+that cannot do: monitoring a live strategy, a contested or estimated benchmark, a dependent
+grid, a pipeline outside any asymptotic theory.
+
+### Positive control: it does say yes
+
+A method whose only real-data demonstration finds nothing is unfalsified. Same instrument,
+same assets, same window, pointed at realised volatility — which is genuinely predictable:
+
+| | e-value | certified in |
 |---|---|---|
-| 0.50 | 29.5 | 70.1 |
-| 1.00 | 7.4 | 16.1 |
-| 1.50 | 3.3 | 6.7 |
-| 2.00 | 1.8 | 3.6 |
-
-**Six years of daily data — about what any liquid cryptocurrency offers — cannot certify an
-information ratio below 1.59.**
+| BTC | 3.1×10⁷ | 365 days |
+| ETH | 4.2×10⁹ | 416 days |
+| SOL | 7.5×10⁸ | 148 days |
 
 ### The evidence
 
@@ -94,11 +129,10 @@ Three assets, two horizons, three estimators, purged and embargoed walk-forward 
 over 2020–2026, programmatic leakage tests, transaction costs, feasible one-bar entry delay,
 staggered portfolios, exposure regressions.
 
-- **Nothing is certified.** Largest e-value 1.81 against the 20 required; grid-level e-value
-  **1.18**; e-BH selects nothing; the directional variant (which replaces an invalid
-  Pesaran–Timmermann average) gives 1.07; dropping the symmetry assumption for the identity
-  payoff gives 1.44.
-- **Implied information ratios run 0.00 to 0.50**, against a certifiable floor of 1.59.
+- **Nothing is certified.** Largest e-value 3.05 against the 20 required; grid-level e-value
+  **1.43**; e-BH selects nothing; the directional variant (which replaces an invalid
+  Pesaran–Timmermann average) gives 1.07.
+- **Implied information ratios run 0.00 to 0.69**, against a certifiable floor of 1.59.
 - **Ceiling:** after six years, the incremental annualised information ratio of twelve
   standard technical features on these three assets is **between 0.63 and 2.55, every
   interval containing zero.**
@@ -170,10 +204,12 @@ bound = value_ceiling(signal, outcome, alpha=0.05)
 bound.ratio_ceiling(outcome.std())                 # annualised IR the features could still have
 ```
 
-**Assumptions.** `payoff="tanh"` (default) and `"sign"` need the outcome to be *conditionally
-symmetric* about its drift — far weaker than i.i.d., permitting arbitrary volatility
-clustering, fat tails and any dependence in $|y_t - \mu|$. `payoff="identity"` needs only a
-martingale difference plus an a-priori envelope on $|y_t|$, and pays for it in power.
+**Assumptions.** `payoff="identity"` (the default) needs only a martingale-difference null
+plus an a-priori envelope on $|y_t|$. `"tanh"` and `"sign"` are bounded and so are not
+throttled by that envelope, but they need the outcome to be *conditionally symmetric* about
+its drift — which implies **zero unconditional skewness**, and is therefore refutable from the
+marginal distribution alone. Daily crypto refutes it (skew −1.05 on BTC, p < 10⁻⁷⁰), which is
+why it is not the default. Check before using them.
 
 **The one numerical trap.** The infimum over the drift is evaluated on a grid, and the grid
 must resolve the drift to better than $\sigma/\sqrt{n}$ — a coarser grid lifts the numerical

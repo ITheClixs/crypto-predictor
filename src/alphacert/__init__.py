@@ -34,10 +34,12 @@ from .certificate import (
     recommended_resolution,
 )
 from .design import (
+    anytime_validity_cost,
     certifiable_ratio,
     detection_horizon,
     fixed_sample_horizon,
     growth_to_ratio,
+    power_matched_horizon,
 )
 from .merge import (
     certify_overlapping,
@@ -54,6 +56,7 @@ __all__ = [
     "TANH",
     "Certificate",
     "Payoff",
+    "anytime_validity_cost",
     "available",
     "certifiable_ratio",
     "certify",
@@ -67,6 +70,7 @@ __all__ = [
     "merge_average",
     "merge_product",
     "phase_indices",
+    "power_matched_horizon",
     "recommended_resolution",
     "value_ceiling",
 ]
