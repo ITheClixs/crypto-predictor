@@ -105,13 +105,15 @@ def clark_west(outcome: np.ndarray, model: np.ndarray, bench: np.ndarray) -> flo
 def main() -> None:
     frame = load()
     span_years = len(frame) / PERIODS_PER_YEAR
+    floor = certifiable_ratio(span_years, periods_per_year=PERIODS_PER_YEAR)
+    floor_designed = certifiable_ratio(
+        span_years, periods_per_year=PERIODS_PER_YEAR, kelly_known=True
+    )
     print(
         f"Goyal-Welch monthly, {frame['yyyymm'].iloc[0]}-{frame['yyyymm'].iloc[-1]}: "
         f"{len(frame)} months = {span_years:.1f} years\n"
         f"burn-in {BURN} months; certifiable IR floor for this span: "
-        f"{certifiable_ratio(span_years, periods_per_year=PERIODS_PER_YEAR):.2f} "
-        f"({certifiable_ratio(span_years, periods_per_year=PERIODS_PER_YEAR, kelly_known=True):.2f} "
-        f"pre-committed)\n"
+        f"{floor:.2f} ({floor_designed:.2f} pre-committed)\n"
     )
 
     premium = frame["premium"].to_numpy()
