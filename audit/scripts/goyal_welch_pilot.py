@@ -31,7 +31,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-from alphacert import certify, certifiable_ratio, growth_to_ratio, merge_average, value_ceiling
+from alphacert import certifiable_ratio, certify, growth_to_ratio, merge_average, value_ceiling
 from cryptoforecast.evaluate.stats import newey_west_lrv
 
 WORKBOOK = "data/goyal_welch/gw_17mw_IpaiLFDrGnrPRQ2o1ugV5nJsZuD1.xlsx"
