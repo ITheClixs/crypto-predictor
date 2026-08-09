@@ -46,7 +46,8 @@ arxiv: paper
 	./paper/build_arxiv.sh
 
 # The second paper: the certificate applied to the canonical equity-premium data.
-equity:
+equity: 
+	$(PY) audit/scripts/equity_tables.py
 	cd paper-equity && tectonic -X compile paper.tex
 
 # Everything the equity paper quotes. Requires the Goyal-Welch workbook under data/.
@@ -56,6 +57,7 @@ equity-results:
 	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_sensitivity.py
 	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_when.py
 	PYTHONPATH=audit/scripts $(PY) audit/scripts/plot_equity.py
+	$(PY) audit/scripts/equity_tables.py
 
 # Everything the manuscript's certificate sections quote. The joint null is excluded
 # deliberately: it is hours of refitting and is run on its own.

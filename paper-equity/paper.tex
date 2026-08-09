@@ -137,6 +137,46 @@ narrower and, we think, more useful: this literature has been operating at or be
 detection threshold of its own data for its entire history, the threshold is computable in
 advance, and the quantity worth reporting is a ceiling rather than a $p$-value.
 
+\section{Related work}
+\label{sec:related}
+
+\paragraph{The predictability literature and its instability.} \citet{welch2008} evaluate
+seventeen predictors of the equity premium and find that essentially none beats the historical
+mean out of sample; \citet{goyal2024} repeat the exercise for twenty-nine further candidates
+published since, and reach the same verdict for most of them. \citet{campbell2008} argue that
+weak predictability can still be economically meaningful once forecasts are constrained by
+economic priors, and set the benchmark effect size we use throughout.
+\citet{rapach2010} recover out-of-sample gains from forecast combination. Running underneath
+all of it is instability: the same predictor works in one era and not the next, which is the
+observation our dating result in Section~\ref{sec:results} makes precise and
+Proposition~\ref{prop:intermittent} prices.
+
+\paragraph{Power, and what a test can be expected to find.} \citet{inoue2005} show that
+out-of-sample tests are typically \emph{less} powerful than in-sample ones, because splitting
+a finite sample costs information, and warn against reading out-of-sample failure as evidence
+that in-sample evidence was spurious. Our contribution is complementary and more absolute:
+their comparison is between two procedures on the same data, whereas
+Proposition~\ref{prop:floor} bounds what \emph{any} procedure can establish from a span of a
+given length. \citet{hansen2012} address a related selection problem by constructing a set of
+models that cannot be distinguished from the best. Where a model confidence set answers
+``which of these can be told apart'', we answer ``could any of them have been told apart from
+nothing''.
+
+\paragraph{Nested forecast comparison.} \citet{diebold1995} is not valid for nested models;
+\citet{clark2001} and \citet{clark2006, clark2007} supply the corrections this literature uses,
+and \citet{guven2026} shows that the benchmark against which the correction is applied
+determines what null is being tested. We use Clark--West throughout as the incumbent and do
+not propose to replace it.
+
+\paragraph{Game-theoretic statistics.} The certificate is built from test martingales and
+e-values \citep{ville1939, shafer2019, ramdas2023, waudbysmith2024}, with merging rules from
+\citet{vovk2021} and false-discovery control from \citet{wang2022}. Applications of betting
+arguments to finance exist---\citet{kumon2011} test whether observed \emph{price processes} are
+martingales using limit-order betting strategies---but that is a specification test of the
+price process rather than a comparison of a forecasting model against an estimated benchmark,
+and it does not treat the drift as a nuisance. We are not aware of prior anytime-valid analysis
+of equity-premium predictability.
+
 \section{The certification bound}
 \label{sec:bound}
 
@@ -171,6 +211,38 @@ the two effects cancel exactly. Section~\ref{sec:results} confirms it on the dat
 measured floor is $0.38$, $0.37$ and $0.35$ at monthly, quarterly and annual frequency over
 the same century.
 
+
+Proposition~\ref{prop:floor} assumes the effect is present throughout. It is not, in this
+literature, and the correction is unfavourable.
+
+\begin{proposition}[Intermittent effects raise the floor]
+\label{prop:intermittent}
+Suppose the conditional mean is present only in a fraction $\phi$ of periods---a duty
+cycle---with per-period information ratio $\ir_{\mathrm{on}}$ when present and zero otherwise.
+A strategy sized by the signal then presents an unconditional ratio
+\[
+  \ir_{\mathrm{measured}} \;=\; \sqrt{\phi}\;\ir_{\mathrm{on}},
+\]
+so the span required to certify it scales as $1/(\phi\,\ir_{\mathrm{on}}^2)$: a factor
+$1/\phi$ longer than for an always-present effect of the same strength.
+\end{proposition}
+
+\begin{proof}
+With signal $g_t=m_t$ and $m_t=m\mathbf{1}\{\text{on}\}$, the per-period expected profit is
+$\mathbb{E}[g_ty_t]=\phi m^2$ and its variance is $\mathbb{E}[g_t^2]\sigma^2=\phi m^2\sigma^2$
+to leading order, so the ratio is $\phi m^2/\sqrt{\phi m^2\sigma^2}=\sqrt{\phi}\,(m/\sigma)$.
+Substituting into Proposition~\ref{prop:floor} gives the span. Simulation confirms the
+identity to within three per cent at $\phi\in\{1,0.5,0.25,0.14\}$.
+\end{proof}
+
+This is where the two halves of the paper meet. Section~\ref{sec:results} shows that the
+valuation ratios stopped contributing after the 1950s, which on a 1946--2025 evaluation window
+is a duty cycle of roughly $0.14$. An on-period annualised ratio of $0.5$---a strong effect by
+this literature's standards---would then present unconditionally as $0.19$ and require about
+$178$ years to certify. For $e/p$, whose wealth path is flat from 1946 onwards, the implied
+requirement is in the thousands of years. Intermittency is not a footnote to the sample-size
+problem; it is a multiplier on it.
+
 \begin{table}[t]
   \centering
   \caption{Years of data needed to reach $80\%$ power against the effect \citet{campbell2008}
@@ -198,6 +270,26 @@ single predictor tested once sits within one year of the boundary, with no margi
 parameter instability, transaction costs, or a slightly smaller true effect. Corrected for the
 search that was actually performed, the literature is below the line by a factor of two to
 three in required span.
+
+
+\paragraph{Reading the floor in the units the literature uses.} Table~\ref{tab:translation}
+converts a monthly out-of-sample $\rsq$---the quantity this literature reports---into the
+annualised information ratio the bound is stated in, and then into required span. The row that
+matters is the third: Campbell and Thompson's threshold for economic significance corresponds
+to an annualised ratio of $0.25$ and needs $103$ years for a single predictor, $253$ once the
+search is corrected for. Even a monthly $\rsq$ of $1\%$, twice what that literature treats as
+meaningful and larger than anything in our results, needs $126$ years under the correction.
+
+\begin{table}[t]
+  \centering
+  \caption{The same effect in four currencies. Monthly out-of-sample $\rsq$ as reported by the
+  literature; the implied per-period and annualised information ratios; and the calendar span a
+  one-sided fixed-sample test needs to reach $80\%$ power against it, uncorrected and
+  Bonferroni-corrected for the $46$-predictor search of \citet{goyal2024}.}
+  \label{tab:translation}
+  \small
+  \input{tables/economic_translation}
+\end{table}
 
 \begin{figure}[t]
   \centering
@@ -418,6 +510,28 @@ information ratio is at most $0.60$ and cannot be separated from zero. A century
 best-studied data in finance is not enough to tell the difference between no predictability
 and twice as much as would matter---and, because evidence compounds, the same instrument shows
 that the most cited predictors in the literature stopped contributing seventy years ago.
+
+
+\appendix
+
+\section{Every predictor}
+\label{app:full}
+
+Table~\ref{tab:full} reports all $117$ predictor--frequency pairs. ``Source'' records whether
+the predictor is the real-time diagonal of a \citet{goyal2024} vintage matrix or the workbook
+column. A dagger marks the single fit flagged as degenerate---a forecast beyond five outcome
+standard deviations---which is excluded from the summary statistics in the body and changes
+none of them.
+
+\begin{table}[hbtp]
+  \centering
+  \caption{All predictor--frequency pairs, 1926--2025. Rejecting needs an e-value of $20$;
+  the largest observed is $7.47$. ``Ceiling'' is the $95\%$ anytime-valid upper bound on the
+  incremental annualised information ratio.}
+  \label{tab:full}
+  \scriptsize
+  \input{tables/full_results}
+\end{table}
 
 \bibliographystyle{unsrtnat}
 \bibliography{references}

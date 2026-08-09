@@ -534,14 +534,22 @@ Package microtype Info: Loading generic protrusion settings for font family
  [1
 
 
-] [2]
+] [2] [3] (tables/economic_translation)
 File: ../reports/figures//fig12_equity.pdf Graphic file (type pdf)
 <use ../reports/figures//fig12_equity.pdf>
- [3] [4]
+ [4] [5]
 File: ../reports/figures//fig11_goyal_welch.pdf Graphic file (type pdf)
 <use ../reports/figures//fig11_goyal_welch.pdf>
- [5] (paper.bbl [6]) [7] (paper.aux)
+ [6]
+Underfull \vbox (badness 2478) has occurred while \output is active []
+
+ [7]
+(tables/full_results)
+
+LaTeX Warning: Float too large for page by 380.94983pt on input line 534.
+
+(paper.bbl [8] [9]) [10] (paper.aux)
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: B22FC1A19FFF397ED997CD8651AB25AF;869.
+(rerunfilecheck)             Checksum: B38D3C34D6BBDEF659E704283929F926;1098.
  )
-Output written on paper.xdv (7 pages, 42244 bytes).
+Output written on paper.xdv (10 pages, 71660 bytes).
