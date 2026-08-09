@@ -93,6 +93,12 @@ class Certificate:
     """Result of :func:`certify`: a wealth path plus the quantities read off it."""
 
     wealth: np.ndarray
+    #: The underlying martingale average, *before* the running maximum is taken. ``wealth`` is
+    #: what Ville's inequality bounds and is what a test should use; ``raw_wealth`` is the
+    #: process itself, and is what a diagnostic should use. Reading a rise in ``wealth`` as
+    #: "the signal was contributing here" is wrong -- it is non-decreasing by construction, so
+    #: it rises only when a new high is set.
+    raw_wealth: np.ndarray = field(repr=False)
     payoff: str
     drift_grid: np.ndarray = field(repr=False)
     n_bets: int = 0
@@ -262,7 +268,7 @@ def certify(
         raise ValueError("signal_weight must lie in (0, 1)")
     n = outcome.size
     if n == 0:
-        return Certificate(np.ones(0), get_payoff(payoff).name, np.zeros(0), 0)
+        return Certificate(np.ones(0), np.ones(0), get_payoff(payoff).name, np.zeros(0), 0)
 
     phi = get_payoff(payoff)
     if not phi.bounded:
@@ -311,5 +317,6 @@ def certify(
         )
         running_min = np.minimum(running_min, log_average.min(axis=1))
 
+    raw = np.exp(running_min)
     wealth = np.exp(np.maximum.accumulate(running_min))
-    return Certificate(wealth, phi.name, grid, int(np.count_nonzero(lam)))
+    return Certificate(wealth, raw, phi.name, grid, int(np.count_nonzero(lam)))

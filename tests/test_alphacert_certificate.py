@@ -178,3 +178,36 @@ def test_a_grid_too_coarse_to_resolve_the_drift_is_the_documented_failure_mode()
             rng.standard_normal(2000), _series(rng, 2000, 6.0), drift_grid=coarse
         ).rejects(0.05)
     assert leaks > 0
+
+
+@pytest.mark.unit
+def test_raw_wealth_is_the_process_and_wealth_is_its_running_maximum() -> None:
+    """Pins a distinction that is easy to misuse in a diagnostic.
+
+    ``wealth`` is non-decreasing because Ville's inequality bounds the supremum, so asking
+    "when was this rising?" of it answers "when did it set a new high", not "when was the
+    signal contributing". A duty-cycle estimate built on the wrong one reports the wrong
+    number, and did once.
+    """
+    rng = np.random.default_rng(31)
+    signal, outcome = _predictive_pair(rng, 1500, annual_ratio=3.0)
+    cert = certify(signal, outcome)
+    assert cert.raw_wealth.shape == cert.wealth.shape
+    assert np.allclose(cert.wealth, np.maximum.accumulate(cert.raw_wealth))
+    assert np.all(np.diff(cert.wealth) >= -1e-12)
+    # The underlying process genuinely goes down sometimes; the running maximum never does.
+    assert np.any(np.diff(cert.raw_wealth) < 0)
+
+
+@pytest.mark.unit
+def test_raw_wealth_of_a_noise_signal_rises_about_half_the_time() -> None:
+    """The sanity check that exposes the mistake: a driftless process is up half the time."""
+    fractions = []
+    for rep in range(20):
+        rng = np.random.default_rng([53, rep])
+        cert = certify(rng.standard_normal(1500), _series(rng, 1500, 0.8))
+        steps = np.diff(np.log(cert.raw_wealth))
+        moving = steps[np.abs(steps) > 1e-12]
+        if moving.size > 100:
+            fractions.append(float(np.mean(moving > 0)))
+    assert 0.35 < float(np.mean(fractions)) < 0.65

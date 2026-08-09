@@ -456,6 +456,77 @@ accumulating are the two Clark--West likes least.
   \label{fig:dating}
 \end{figure}
 
+
+\subsection{Could the samples ever have supported the claims?}
+\label{sec:audit}
+
+The bound is a statement about a sample, so it can be applied retrospectively. Every variable
+in the set has a recorded data span, that span fixes the floor any test faces on it, and the
+comparison with a claimed effect is then arithmetic rather than opinion.
+
+Table~\ref{tab:audit} does this for the $56$ variables with a recorded sample. Of those,
+$23$---$41\%$---have a span too short to certify an annualised ratio of $0.25$ even as a single
+test at the $5\%$ level. Once the $46$-variable search that generated the set is corrected for,
+the figure is $56$ of $56$. The median span is $99$ years and the median corrected floor is
+$0.39$, against a target of $0.25$.
+
+The direction of the shortfall is the unfavourable one. The shortest samples belong to the
+newest variables: the risk-neutral variance measures span under thirty years and face a solo
+floor of $0.46$, nearly twice the effect they would need to establish. A literature that adds
+variables faster than it adds data moves away from the threshold, not towards it.
+
+\begin{table}[t]
+  \centering
+  \caption{The certification floor implied by each variable's own sample, for the twelve
+  shortest-sampled. ``Solo'' is a single test at $5\%$; ``corrected'' applies Bonferroni over
+  the $46$-variable search. Both are compared against an annualised information ratio of
+  $0.25$.}
+  \label{tab:audit}
+  \small
+  \begin{tabular}{llrrr}
+    \toprule
+    Variable & Frequency & Span (years) & Floor, solo & Floor, corrected \\
+    \midrule
+    rsvix  & Monthly   & $29.6$ & $0.46$ & $0.72$ \\
+    impvar & Monthly   & $29.6$ & $0.46$ & $0.72$ \\
+    vp     & Monthly   & $31.9$ & $0.44$ & $0.69$ \\
+    vrp    & Monthly   & $34.9$ & $0.42$ & $0.66$ \\
+    crdstd & Quarterly & $35.5$ & $0.42$ & $0.66$ \\
+    disag  & Monthly   & $44.0$ & $0.37$ & $0.59$ \\
+    shtint & Monthly   & $52.9$ & $0.34$ & $0.54$ \\
+    sntm   & Monthly   & $58.3$ & $0.33$ & $0.51$ \\
+    accrul & Annual    & $60.0$ & $0.32$ & $0.50$ \\
+    cfacc  & Annual    & $60.0$ & $0.32$ & $0.50$ \\
+    csp    & Monthly   & $65.6$ & $0.31$ & $0.48$ \\
+    ndrbl  & Monthly   & $67.8$ & $0.30$ & $0.47$ \\
+    \midrule
+    \multicolumn{5}{l}{Median over all $56$: span $99$ y, solo $0.25$, corrected $0.39$} \\
+    \multicolumn{5}{l}{Below $0.25$: solo $33/56$; corrected $0/56$} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{How much of the time was each edge present?}
+\label{sec:duty}
+
+Proposition~\ref{prop:intermittent} needs a measured duty cycle to bite. We take it from the
+certificate's underlying process---not from $\mathcal{E}_t$, which is a running maximum and so
+rises only when a new high is set---by splitting each evaluation window into ten equal
+sub-periods and recording the fraction in which log wealth increased. A predictor with no edge
+scores about one half.
+
+The median across $116$ predictors is $0.40$, with quartiles $0.30$ and $0.50$: slightly
+\emph{below} the no-edge baseline, which is what a set of variables with no reliable edge
+looks like. More telling, $92$ of $116$---$79\%$---reach their peak wealth before the final
+quarter of their own evaluation window, meaning they contributed nothing over their last
+quarter-century or more.
+
+Feeding the median duty cycle back through Proposition~\ref{prop:intermittent} multiplies the
+required span by $2.5$, equivalently the required ratio by $\sqrt{2.5}=1.58$. Combined with
+the corrected floor of $0.39$ from Table~\ref{tab:audit}, a variable in this set would need an
+on-period annualised information ratio of roughly $0.6$---more than twice the threshold for
+economic significance---for its own sample to have established it.
+
 \paragraph{One degenerate fit, flagged rather than trusted.} The variance risk premium at
 quarterly frequency reports $\rsq=-98\%$ alongside an e-value of $4.76$. This is not a
 contradiction: its regression forecasts a $-78\%$ quarterly equity premium against an outcome
