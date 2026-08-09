@@ -1,8 +1,11 @@
 """Test the paper's claim that 'every high-Sharpe result is long-only exposure in disguise'."""
-import numpy as np, pandas as pd
-from cryptoforecast.config import DEFAULT_CONFIG
+import numpy as np
+import pandas as pd
+
 from cryptoforecast.backtest.costs import turnover
-from cryptoforecast.evaluate.stats import sharpe_ratio, newey_west_lrv
+from cryptoforecast.config import DEFAULT_CONFIG
+from cryptoforecast.evaluate.stats import newey_west_lrv, sharpe_ratio
+
 c = DEFAULT_CONFIG.costs.cost_per_side
 df = pd.read_csv("audit/forecasts.csv", parse_dates=["date"])
 print(f"{'asset':5}{'h':>3} {'model':14}{'Sharpe':>8}{'B&H':>7}{'%long':>7}{'beta_to_asset':>15}{'alpha_ann':>11}{'t(alpha) NW':>13}")

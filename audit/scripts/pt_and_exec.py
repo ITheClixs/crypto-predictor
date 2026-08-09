@@ -1,8 +1,10 @@
 """(1) Pesaran-Timmermann under overlapping labels. (2) Backtest under feasible execution."""
-import numpy as np, pandas as pd
-from cryptoforecast.evaluate.stats import pesaran_timmermann, sharpe_ratio, block_bootstrap_ci
-from cryptoforecast.config import DEFAULT_CONFIG
+import numpy as np
+import pandas as pd
+
 from cryptoforecast.backtest.costs import turnover
+from cryptoforecast.config import DEFAULT_CONFIG
+from cryptoforecast.evaluate.stats import pesaran_timmermann, sharpe_ratio
 
 df = pd.read_csv("audit/forecasts.csv", parse_dates=["date"])
 ML=("ridge","elastic_net","gbm"); c=DEFAULT_CONFIG.costs.cost_per_side

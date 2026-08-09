@@ -17,7 +17,7 @@ import pandas as pd
 
 from cryptoforecast.backtest.strategy import buy_and_hold, staggered_strategy
 from cryptoforecast.config import DEFAULT_CONFIG
-from cryptoforecast.evaluate.stats import newey_west_lrv, sharpe_ratio
+from cryptoforecast.evaluate.stats import sharpe_ratio
 
 COSTS = DEFAULT_CONFIG.costs
 MODELS = ("historical_mean", "ridge", "elastic_net", "gbm")

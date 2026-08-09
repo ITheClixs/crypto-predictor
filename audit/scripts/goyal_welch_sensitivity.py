@@ -26,9 +26,9 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from goyal_welch_pilot import ENVELOPE, PERIODS_PER_YEAR, PREDICTORS, load
 
 from alphacert import certify, merge_average, value_ceiling
-from goyal_welch_pilot import ENVELOPE, PERIODS_PER_YEAR, PREDICTORS, load
 
 BASELINE_BURN = 240
 

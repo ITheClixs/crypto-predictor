@@ -17,8 +17,9 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, "src")
-import matplotlib.pyplot as plt  # noqa: E402
-from cryptoforecast.plots.style import PALETTE, REFERENCE_BLACK, finish  # noqa: E402
+import matplotlib.pyplot as plt
+
+from cryptoforecast.plots.style import PALETTE, REFERENCE_BLACK, finish
 
 NULLS = (
     ("indep.", "audit/mc_null_wcw_h{h}_b1.csv"),

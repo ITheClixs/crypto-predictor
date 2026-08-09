@@ -1,6 +1,8 @@
 """Audit the paper's Clark-West 'validation' simulation (tests/test_stats.py:103)."""
-import numpy as np, pandas as pd
-from cryptoforecast.evaluate.stats import diebold_mariano, clark_west
+import numpy as np
+import pandas as pd
+
+from cryptoforecast.evaluate.stats import clark_west, diebold_mariano
 
 rng = np.random.default_rng(4)
 sy, su, n, R = 0.03, 0.01, 250, 5000

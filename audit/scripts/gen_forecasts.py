@@ -1,10 +1,12 @@
 """Regenerate and persist every OOS forecast the study produces (the repo does not save them)."""
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+
+from cryptoforecast.backtest.engine import walk_forward
 from cryptoforecast.config import DEFAULT_CONFIG
 from cryptoforecast.data.loaders import load_ohlcv
 from cryptoforecast.dataset import build_supervised
-from cryptoforecast.backtest.engine import walk_forward
 from cryptoforecast.models.registry import default_models
 
 OUT = Path("audit/forecasts.csv")  # run from the repo root so data/cache resolves

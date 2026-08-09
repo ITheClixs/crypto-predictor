@@ -1,7 +1,11 @@
 """Re-run the paper's inference with (a) the correct nested benchmark and (b) honest HAC bandwidths."""
-import numpy as np, pandas as pd, math
+import math
+
+import numpy as np
+import pandas as pd
 from scipy import stats
-from cryptoforecast.evaluate.stats import newey_west_lrv, holm_adjusted, benjamini_hochberg_adjusted, pesaran_timmermann
+
+from cryptoforecast.evaluate.stats import benjamini_hochberg_adjusted, holm_adjusted, newey_west_lrv
 
 df = pd.read_csv("audit/forecasts.csv", parse_dates=["date"])
 ML = ("ridge","elastic_net","gbm")

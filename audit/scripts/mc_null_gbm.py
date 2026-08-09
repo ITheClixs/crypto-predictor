@@ -8,17 +8,21 @@ purged walk-forward geometry, and the real estimators (fitted intercepts include
 Unlike the paper's simulation, forecasts here are ESTIMATED, so the estimation-noise term that
 Clark-West exists to remove is actually present.
 """
-import sys, math, numpy as np, pandas as pd
-from scipy import stats
+import math
+import sys
+from functools import partial
+
+import numpy as np
+import pandas as pd
+
+from cryptoforecast.backtest.engine import walk_forward
 from cryptoforecast.config import DEFAULT_CONFIG
 from cryptoforecast.data.loaders import load_ohlcv
 from cryptoforecast.dataset import build_supervised
-from cryptoforecast.backtest.engine import walk_forward
-from cryptoforecast.models.linear import RidgeForecaster, ElasticNetForecaster
+from cryptoforecast.evaluate.stats import diebold_mariano, newey_west_lrv
 from cryptoforecast.models.baselines import HistoricalMeanForecaster
+from cryptoforecast.models.linear import RidgeForecaster
 from cryptoforecast.models.trees import GBMForecaster
-from functools import partial
-from cryptoforecast.evaluate.stats import newey_west_lrv, diebold_mariano
 
 H     = int(sys.argv[1])
 BLOCK = int(sys.argv[2])      # 1 = iid bootstrap; 21 = block bootstrap (keeps vol clustering)
