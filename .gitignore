@@ -82,3 +82,8 @@ paper/*.synctex.gz
 
 # arXiv build staging; the tarball is committed, the scratch directory is not.
 paper/arxiv/
+
+# Goyal-Welch source archives: 28 MB each, re-downloadable from the links in
+# audit/scripts/goyal_welch_pilot.py. The workbook the pilot actually reads is committed.
+data/goyal_welch/*.zip.real
+data/goyal_welch/gwz2025/
