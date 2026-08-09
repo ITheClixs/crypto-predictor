@@ -1,4 +1,4 @@
-.PHONY: help setup data backtest report tables paper arxiv certificate test lint format typecheck check app clean
+.PHONY: help setup data backtest report tables paper arxiv equity equity-results certificate test lint format typecheck check app clean
 
 PY := ./venv/bin/python
 PIP := ./venv/bin/pip
@@ -12,6 +12,8 @@ help:
 	@echo "  tables     Emit the manuscript's LaTeX tables from reports/results.csv"
 	@echo "  paper      Typeset paper/paper.pdf (needs tectonic)"
 	@echo "  arxiv      Build the flat, self-contained arXiv tarball"
+	@echo "  equity     Typeset paper-equity/paper.pdf"
+	@echo "  equity-results  Rerun everything the equity paper quotes"
 	@echo "  certificate  Rerun the certificate study, calibration and controls"
 	@echo "  test       Run the test suite with coverage"
 	@echo "  lint       Ruff lint"
@@ -42,6 +44,18 @@ paper: tables
 
 arxiv: paper
 	./paper/build_arxiv.sh
+
+# The second paper: the certificate applied to the canonical equity-premium data.
+equity:
+	cd paper-equity && tectonic -X compile paper.tex
+
+# Everything the equity paper quotes. Requires the Goyal-Welch workbook under data/.
+equity-results:
+	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_validate.py
+	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_all.py
+	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_sensitivity.py
+	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_when.py
+	PYTHONPATH=audit/scripts $(PY) audit/scripts/plot_equity.py
 
 # Everything the manuscript's certificate sections quote. The joint null is excluded
 # deliberately: it is hours of refitting and is run on its own.

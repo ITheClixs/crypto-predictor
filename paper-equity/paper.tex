@@ -1,0 +1,425 @@
+\documentclass{article}
+
+\PassOptionsToPackage{numbers,compress}{natbib}
+\usepackage[preprint]{neurips_2023}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{xcolor}
+
+\graphicspath{{../reports/figures/}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\makeatletter
+\renewcommand{\@noticestring}{%
+  Preprint. Code, pinned data, and one script per reported number:
+  \url{https://github.com/ITheClixs/crypto-return-predictability}%
+}
+\makeatother
+
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue!60!black}
+
+\newcommand{\rsq}{R^2_{OS}}
+\newcommand{\ir}{\mathrm{IR}}
+
+\title{A Century Is Not Enough:\\Certification Bounds for Out-of-Sample Return Predictability}
+
+\author{%
+  Mehmet Demir Guven\thanks{%
+    Independent work. The author is affiliated with ETH Z\"urich, but this research was
+    carried out independently of it: it was not funded, supervised, commissioned or endorsed
+    by ETH Z\"urich or by any other institution or firm, and no collaborator contributed to
+    it.} \\
+  Department of Computer Science \\
+  ETH Z\"urich \\
+  Universit\"atstrasse 6, 8092 Z\"urich, Switzerland \\
+  \texttt{demirguven178@gmail.com} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  How much predictability could a century of data rule out? We answer in closed form and then
+  measure it. Evidence about an alpha accumulates as log wealth, which grows at half the
+  squared information ratio, so a sample spanning $T$ years can certify an annualised
+  information ratio no smaller than a floor that depends on $T$, the level, and the size of
+  the search---and on nothing else. Sampling the same span more finely does not lower it: the
+  floor for the Goyal--Welch data is $0.38$ monthly, $0.37$ quarterly and $0.35$ annually,
+  across a twelvefold range in observation count. Against the effect Campbell and Thompson
+  call economically significant, an annualised ratio of $0.25$, a single predictor needs $99$
+  years to reach $80\%$ power and the $46$-predictor search of \citet{goyal2024} needs $244$.
+  The canonical dataset is $100$ years old. We then apply an anytime-valid certificate to
+  $117$ predictor--frequency pairs spanning 1926--2025. Nothing is certified, under any of
+  nine specifications; the largest evidence value ever observed is $8.0$ against the $20$
+  required. The deliverable is not that null but the bound beside it: the median predictor's
+  incremental annualised information ratio is at most $0.60$, and $112$ of $116$ ceilings lie
+  above $0.25$, so for almost every published predictor a century of the best-studied data in
+  finance can separate neither ``nothing'' nor ``economically meaningful'' from the other.
+  Because evidence compounds, the wealth path also dates each edge: the valuation ratios
+  $d/p$, $d/y$ and $e/p$---the predictors a Clark--West test ranks highest---stopped
+  contributing in the 1950s and have added nothing since, which a static test cannot see.
+  Our pipeline reproduces \citeauthor{goyal2024}'s published out-of-sample $\rsq$ with a
+  correlation of $0.968$ across their fourteen classic predictors.
+\end{abstract}
+
+\section{Introduction}
+
+The out-of-sample predictability literature asks whether a variable forecasts the equity
+premium. After \citet{welch2008} the consensus answer is mostly no, and after
+\citet{goyal2024} it is mostly no again for a further twenty-nine candidates. This paper asks
+a prior question that determines what any such answer can mean: \emph{given a sample of a
+certain length, what size of effect could it have detected at all?}
+
+The question has an exact answer, and the answer is uncomfortable. Section~\ref{sec:bound}
+derives a certification floor: the smallest annualised information ratio a sample spanning $T$
+years can establish at level $\alpha$. Two features of it matter. The floor scales with
+$1/\sqrt{T}$ in \emph{calendar span} and is almost unaffected by sampling frequency, so a
+century of monthly data and a century of annual data face nearly the same bound despite a
+twelvefold difference in observations. And it degrades with the size of the search, which in
+this literature is large and known.
+
+Put those together against the effect the literature itself treats as meaningful---%
+\citet{campbell2008} take a monthly out-of-sample $\rsq$ of $0.5\%$, an annualised information
+ratio of about $0.25$, as economically significant---and the arithmetic is stark. A single
+predictor needs $99$ years to reach $80\%$ power against it. Correcting for the $46$-predictor
+search that \citet{goyal2024} actually ran needs $244$. The canonical dataset begins in 1926.
+
+\paragraph{What we do with that.} A bound on what a study could have found is only useful if
+paired with a bound on what it did find. Section~\ref{sec:instrument} uses an anytime-valid
+\emph{certificate} \citep{guven2026}, a non-negative wealth process whose validity is a
+finite-sample theorem and whose logarithm is the profit and loss of an explicit drift-hedged
+strategy. Two properties earn its place here. It supplies a time-uniform \emph{ceiling} on a
+predictor's incremental value, which is the number this literature has never reported and the
+one a reader can act on. And because evidence compounds rather than averages, its wealth path
+\emph{dates} an edge: a predictor that worked until 1957 and not since cannot keep
+accumulating, and the path shows exactly when it stopped.
+
+\paragraph{What we find.} Across $117$ predictor--frequency pairs from 1926 to 2025, nothing
+is certified, under any of nine specifications of burn-in, window and payoff. That is
+unsurprising and is not the contribution. The contribution is the interval: the median
+predictor's incremental annualised information ratio is bounded above by $0.60$, and $112$ of
+$116$ ceilings sit above Campbell and Thompson's $0.25$. A century of the most heavily studied
+data in finance can rule out neither zero nor an economically meaningful edge, for almost
+every predictor in the set.
+
+The dating result is the one we did not expect. Clark--West and the certificate rank the
+predictors close to inversely, and the wealth paths say why. The valuation ratios $d/p$, $d/y$
+and $e/p$---the most cited predictors in the literature, and the ones Clark--West scores
+highest at $1.34$ to $1.64$---peaked in 1946--1957 and have contributed nothing in the seventy
+years since. Inflation and the Treasury-bill rate, which Clark--West scores lowest, are the
+only variables still accumulating. A test that averages a covariance over a century cannot
+distinguish a steady edge from a dead one; a test that compounds cannot avoid it.
+
+\paragraph{What this is not.} We do not claim the certificate is more powerful than
+Clark--West. It is not: \citet{guven2026} measures the exchange rate at roughly a factor of two
+in sample size, the price of validity at every stopping time and under weaker assumptions. Nor
+do we claim to overturn \citet{welch2008}; we agree with it and reproduce it. The claim is
+narrower and, we think, more useful: this literature has been operating at or below the
+detection threshold of its own data for its entire history, the threshold is computable in
+advance, and the quantity worth reporting is a ceiling rather than a $p$-value.
+
+\section{The certification bound}
+\label{sec:bound}
+
+Let a signal-weighted strategy have annualised information ratio $\ir$, and consider testing
+whether $\ir > 0$ from $T$ years of data at level $\alpha$.
+
+\begin{proposition}[Certification floor]
+\label{prop:floor}
+A one-sided fixed-sample test at level $\alpha$ attains power $\beta$ against an alternative
+$\ir$ if and only if $T \ge (z_\alpha + z_\beta)^2/\ir^2$ years. Equivalently, a sample
+spanning $T$ years cannot establish any ratio below
+\[
+  \ir_{\min}(T,\alpha,\beta) \;=\; \frac{z_\alpha + z_\beta}{\sqrt{T}} .
+\]
+Under a Bonferroni correction for a search over $m$ candidates, replace $\alpha$ by
+$\alpha/m$.
+\end{proposition}
+
+The proposition is elementary and that is the point: it needs no new theory and it applies to
+the tools this literature already uses. Its content is in the substitutions.
+
+\begin{corollary}[Frequency does not help]
+\label{cor:frequency}
+$\ir_{\min}$ depends on the calendar span $T$ and not on the sampling frequency. Increasing
+the number of observations by sampling a fixed span more finely leaves the floor unchanged.
+\end{corollary}
+
+This is worth stating because the opposite is widely assumed. Doubling the observation count
+by moving from quarterly to monthly data halves the standard error of a \emph{per-period}
+mean, but the annualised information ratio is a per-period quantity scaled by $\sqrt{P}$, and
+the two effects cancel exactly. Section~\ref{sec:results} confirms it on the data: the
+measured floor is $0.38$, $0.37$ and $0.35$ at monthly, quarterly and annual frequency over
+the same century.
+
+\begin{table}[t]
+  \centering
+  \caption{Years of data needed to reach $80\%$ power against the effect \citet{campbell2008}
+  call economically significant---a monthly out-of-sample $\rsq$ of $0.5\%$, an annualised
+  information ratio of $0.25$---as the search widens. The searches are those the literature
+  actually ran. The Goyal--Welch sample begins in 1926.}
+  \label{tab:floor}
+  \small
+  \begin{tabular}{lrr}
+    \toprule
+    Correction & Floor at 100 years & Years needed for $\ir=0.25$ \\
+    \midrule
+    One predictor, $\alpha=0.05$              & $0.252$ & $99$ \\
+    Bonferroni over 17 \citep{welch2008}       & $0.365$ & $207$ \\
+    Bonferroni over 46 \citep{goyal2024}       & $0.397$ & $244$ \\
+    Bonferroni over 100                        & $0.420$ & $273$ \\
+    \midrule
+    \multicolumn{3}{l}{\emph{Available: 100 years (1926--2025).}} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Table~\ref{tab:floor} and the left panel of Figure~\ref{fig:equity} state the position. A
+single predictor tested once sits within one year of the boundary, with no margin for
+parameter instability, transaction costs, or a slightly smaller true effect. Corrected for the
+search that was actually performed, the literature is below the line by a factor of two to
+three in required span.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{fig12_equity.pdf}
+  \caption{\textbf{Left:} the certification floor against calendar span, for searches of one,
+  seventeen and forty-six predictors. The horizontal line is Campbell and Thompson's
+  economic-significance threshold; the vertical line is the data. \textbf{Right:} every
+  predictor--frequency pair, plotted as its anytime-valid ceiling against its out-of-sample
+  $\rsq$. The median ceiling is $0.60$ and $112$ of $116$ lie above $0.25$: for almost every
+  predictor the data rule out neither zero nor an economically meaningful edge.}
+  \label{fig:equity}
+\end{figure}
+
+\section{The instrument}
+\label{sec:instrument}
+
+We use the drift-robust certificate of \citet{guven2026} and summarise only what is needed
+here. For a predictable signal $g_t$---the model's forecast minus the intercept-only forecast
+from the same estimation window---and an outcome $y_t$, the certificate is
+\[
+  \mathcal{E}_t \;=\; \inf_{\mu\in\mathbb{R}}\;
+  \Big[\,w\,W^{\mathrm{sig}}_t(\mu) + (1-w)\,W^{\mathrm{ctr}}_t(\mu)\,\Big],
+\]
+where $W^{\mathrm{sig}}$ is the wealth of a bettor staking a predictable fraction on $g_t$
+leading $y_t$, and $W^{\mathrm{ctr}}$ is the wealth of a bettor staking two-sidedly on $\mu$
+being the wrong drift. Each is a non-negative martingale for fixed $\mu$, so their convex
+combination is one, and an infimum is at most its value at the truth; Ville's inequality then
+gives $P(\exists t:\mathcal{E}_t\ge1/\alpha)\le\alpha$ in finite samples and uniformly in
+time, for any drift. We use the identity payoff throughout, which assumes only a
+martingale-difference null and an a-priori envelope on $|y_t|$, and report the bounded payoffs
+as sensitivities.
+
+Three properties are load-bearing here.
+
+\emph{A ceiling, not just a verdict.} Inverting the same construction over the value parameter
+gives a time-uniform confidence interval for $\theta=\mathbb{E}[z_t(y_t-\mu)]$, the expected
+return of a position sized by the standardised signal. Read as an annualised information
+ratio, its upper endpoint is the number we report.
+
+\emph{Evidence compounds, so it can be dated.} $\mathcal{E}_t$ is a product. A predictor whose
+edge stops contributing stops the process, and the path records when.
+
+\emph{Multiplicity without a bootstrap.} E-values average under arbitrary dependence, so the
+grid-level statistic over $117$ dependent tests is an average, and false-discovery control
+follows from e-BH \citep{wang2022}.
+
+\section{Data and design}
+\label{sec:data}
+
+We use the \citet{goyal2024} dataset through December 2025: monthly, quarterly and annual
+equity-premium series from 1926 together with the seventeen classic \citet{welch2008}
+predictors and the twenty-nine added by \citeauthor{goyal2024}. The outcome is the log equity
+premium $\log(1+r_t)-\log(1+r^f_t)$; predictors are lagged one period; forecasts come from an
+expanding-window OLS regression with an intercept, re-estimated every period, and the
+benchmark is the same window's historical mean, which is that regression's intercept-only
+restriction. Following \citeauthor{goyal2024}, the out-of-sample period begins twenty years
+after the in-sample period starts.
+
+\paragraph{Real-time versus revised series.} Many of the new predictors require re-estimation
+every period, and \citeauthor{goyal2024} ship them as vintage matrices whose rows index the
+period and whose columns index the vintage. The admissible series is the diagonal---what a
+forecaster actually had---and the revised series is the last column. We use the diagonal
+throughout and record the source per predictor. On the twenty-five predictors where both
+exist, the revised series looks \emph{better} for only four, so this choice does not drive the
+results; it is nonetheless the difference between an out-of-sample claim and a claim that
+quietly uses full-sample parameter estimates.
+
+\paragraph{Validation.} Because everything here depends on the pipeline being right, we
+validate it against \citeauthor{goyal2024}'s published Table 3 Panel A, predictor by
+predictor, matching their evaluation window and their Campbell--Thompson restriction. Across
+the fourteen classic monthly predictors the correlation is $0.968$ (Spearman $0.959$), signs
+agree in $13$ of $14$, and the median absolute gap is $0.075$ percentage points. The single
+disagreement is $tms$, where both values round to zero.
+
+\begin{remark}[The Campbell--Thompson restriction is not free]
+Truncating the forecast at a non-negative equity premium helps $13$ of the $14$ predictors and
+moves the mean out-of-sample $\rsq$ from $-0.511\%$ to $-0.281\%$. Since the effects under
+discussion are themselves a few tenths of a percentage point, an economically motivated
+truncation is doing about as much work as any predictor in the set. It helps most exactly
+where the unrestricted regression produces the wildest forecast. We report unrestricted
+numbers by default.
+\end{remark}
+
+\section{Results}
+\label{sec:results}
+
+\paragraph{Nothing is certified, and not for want of trying.} Across $117$
+predictor--frequency pairs, out-of-sample $\rsq$ is negative for $95$ ($81\%$), no predictor
+reaches the $\alpha=0.05$ threshold, the grid-level e-value is $1.79$ against the $20$
+required, and nothing survives e-BH. Table~\ref{tab:sensitivity} sweeps the specification:
+burn-ins of ten to forty years, rolling windows of twenty to fifty years against the expanding
+one, and two alternative payoffs. Nothing certifies under any of the nine, and the largest
+e-value ever observed is $8.04$. The rolling windows are the informative negative---%
+\citeauthor{welch2008}'s complaint is instability, so a window that forgets is the
+specification most likely to find something, and it does not.
+
+\begin{table}[t]
+  \centering
+  \caption{Specification sensitivity, fourteen classic monthly predictors. Rejecting needs an
+  e-value of $20$.}
+  \label{tab:sensitivity}
+  \small
+  \begin{tabular}{lllrrrr}
+    \toprule
+    Burn-in & Window & Payoff & Median $\rsq$ (\%) & Max e-value & Grid e-value & Certified \\
+    \midrule
+    10 y & expanding   & identity & $-0.329$ & $3.05$ & $1.48$ & $0$ \\
+    20 y & expanding   & identity & $-0.378$ & $5.71$ & $2.04$ & $0$ \\
+    30 y & expanding   & identity & $-0.342$ & $8.02$ & $2.55$ & $0$ \\
+    40 y & expanding   & identity & $-0.308$ & $6.27$ & $1.94$ & $0$ \\
+    20 y & rolling 20 y & identity & $-0.989$ & $5.50$ & $1.81$ & $0$ \\
+    20 y & rolling 30 y & identity & $-0.579$ & $8.04$ & $2.73$ & $0$ \\
+    20 y & rolling 50 y & identity & $-0.515$ & $7.58$ & $2.17$ & $0$ \\
+    20 y & expanding   & tanh     & $-0.378$ & $1.74$ & $1.24$ & $0$ \\
+    20 y & expanding   & sign     & $-0.378$ & $1.38$ & $1.08$ & $0$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{The ceilings are the result.} The right panel of Figure~\ref{fig:equity} plots
+every pair. The median ceiling on the incremental annualised information ratio is $0.60$;
+$112$ of $116$ exceed $0.25$. By frequency the medians are $0.46$ monthly, $0.53$ quarterly
+and $0.86$ annual. The correct summary of a century of this literature is therefore not ``the
+predictors do not work'' but a statement with a number in it: \emph{the incremental
+information ratio of the median canonical predictor lies somewhere between zero and
+approximately $0.6$, and a hundred years cannot narrow it further}.
+
+\paragraph{Frequency does not buy power.} The certifiable floor is $0.38$ monthly, $0.37$
+quarterly and $0.35$ annually over the same span, across $1200$, $400$ and $100$ observations
+respectively---Corollary~\ref{cor:frequency}, measured.
+
+\paragraph{When each edge existed.} Table~\ref{tab:dating} and Figure~\ref{fig:dating} give
+the result we did not anticipate. Clark--West averages a covariance over the century; the
+certificate compounds, so a dead edge stops the process and the path dates the death. The
+three valuation ratios have added nothing since the 1950s. The two variables still
+accumulating are the two Clark--West likes least.
+
+\begin{table}[t]
+  \centering
+  \caption{Clark--West against the certificate, and what the wealth path shows. ``Nats'' are
+  the log-wealth contributed in each half of the evaluation period.}
+  \label{tab:dating}
+  \small
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Predictor & Clark--West & e-value & Peak year & Nats, 1st half & Nats, 2nd half \\
+    \midrule
+    $d/y$  & $1.64$ & $1.14$ & $1957$ & $+0.13$ & $+0.00$ \\
+    $e/p$  & $1.55$ & $1.00$ & $1946$ & $+0.00$ & $+0.00$ \\
+    $tbl$  & $1.44$ & $3.48$ & $2021$ & $+0.20$ & $+1.05$ \\
+    $d/p$  & $1.34$ & $1.45$ & $1957$ & $+0.37$ & $+0.00$ \\
+    $tms$  & $0.78$ & $3.92$ & $1987$ & $+1.34$ & $+0.03$ \\
+    $infl$ & $0.83$ & $5.71$ & $1999$ & $+0.59$ & $+1.16$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.92\linewidth]{fig11_goyal_welch.pdf}
+  \caption{Certificate wealth paths for six classic predictors. A predictor whose edge stops
+  contributing stops compounding, so the path dates it. The valuation ratios flatten in the
+  1950s; inflation and the Treasury-bill rate are the only two still rising.}
+  \label{fig:dating}
+\end{figure}
+
+\paragraph{One degenerate fit, flagged rather than trusted.} The variance risk premium at
+quarterly frequency reports $\rsq=-98\%$ alongside an e-value of $4.76$. This is not a
+contradiction: its regression forecasts a $-78\%$ quarterly equity premium against an outcome
+standard deviation of $8\%$, a nine-sigma artifact of a $120$-observation fit. Squared-error
+measures are quadratic and one such point destroys them; the certificate's stake is capped
+relative to the signal's own scale and is unmoved. We record the largest forecast each fit
+ever made in units of the outcome's standard deviation and flag anything beyond five. One of
+$117$ is flagged; excluding it changes nothing.
+
+\section{Discussion}
+
+\paragraph{A null result and a bound are different objects.} \citet{welch2008} established
+that these predictors do not beat the historical mean out of sample, and we reproduce it. What
+that literature has not supplied is the other half: how large an effect the data could have
+excluded. Without it a negative result is not interpretable, because it is consistent both
+with there being nothing and with there being something the design could never have seen.
+Table~\ref{tab:floor} shows this literature has lived in the second case throughout.
+
+\paragraph{The instrument is not the finding.} We are explicit that the certificate is less
+powerful than Clark--West where Clark--West is well specified \citep{guven2026}. It is used
+here for three things a $t$-statistic cannot do: produce a ceiling, date an edge, and correct
+a dependent grid without a bootstrap. Its failure to certify is therefore weak evidence on its
+own, and the ceilings---which do not depend on rejecting anything---carry the paper.
+
+\paragraph{What would change the answer.} Not a better test:
+Proposition~\ref{prop:floor} binds any procedure. Not finer sampling:
+Corollary~\ref{cor:frequency}. Only a longer span, a larger effect, or a smaller search. Of
+those, only the last is under a researcher's control, which is an argument for pre-registering
+a small number of candidates rather than screening many.
+
+\section{Limitations}
+
+The floor of Proposition~\ref{prop:floor} assumes a constant effect; a predictor that is
+strong in some regimes and absent in others has a higher effective floor still, so our numbers
+are optimistic. Bonferroni is conservative, and a sharper multiplicity correction would lower
+the corrected column of Table~\ref{tab:floor}, though not to the point of clearing the
+boundary. The certificate's own conservatism means its ceilings are wider than a
+fixed-sample interval would be, which cuts against us. And our predictor set is
+\citeauthor{goyal2024}'s: a set assembled from published papers is selected on past
+significance, which biases toward finding predictability, not away from it.
+
+\section{Conclusion}
+
+Evidence about an alpha accumulates as log wealth, so what a sample can certify is fixed in
+advance by its calendar span, its level, and the size of the search. For the canonical
+equity-premium data those quantities give $99$ years for a single predictor against the effect
+the literature calls economically significant, and $244$ once the search that was actually run
+is accounted for. There are $100$ years. Applying an anytime-valid certificate to $117$
+predictor--frequency pairs certifies nothing under any of nine specifications, but the useful
+output is the interval it does supply: the median predictor's incremental annualised
+information ratio is at most $0.60$ and cannot be separated from zero. A century of the
+best-studied data in finance is not enough to tell the difference between no predictability
+and twice as much as would matter---and, because evidence compounds, the same instrument shows
+that the most cited predictors in the literature stopped contributing seventy years ago.
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\end{document}

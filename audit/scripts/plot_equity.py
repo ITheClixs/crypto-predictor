@@ -49,17 +49,25 @@ def main() -> None:
     searches = ((1, "one predictor"), (17, "17 (GW 2008)"), (46, "46 (GWZ 2024)"))
     for i, (m, label) in enumerate(searches):
         left.plot(
-            years, [floor_at(y, 0.05 / m) for y in years],
-            color=PALETTE[i], lw=1.7, label=f"Bonferroni over {label}",
+            years,
+            [floor_at(y, 0.05 / m) for y in years],
+            color=PALETTE[i],
+            lw=1.7,
+            label=f"Bonferroni over {label}",
         )
     left.axhline(CAMPBELL_THOMPSON, color=NEGATIVE, ls="--", lw=1.4)
     left.annotate(
         "Campbell-Thompson 'economically significant' (IR 0.25)",
-        (400, CAMPBELL_THOMPSON * 1.06), ha="right", fontsize=7.5, color=NEGATIVE,
+        (400, CAMPBELL_THOMPSON * 1.06),
+        ha="right",
+        fontsize=7.5,
+        color=NEGATIVE,
     )
     left.axvline(SPAN, color=REFERENCE_BLACK, ls=":", lw=1.2)
     left.annotate(
-        f"the data: {SPAN:.0f} years", (SPAN * 1.05, 1.05), fontsize=7.5,
+        f"the data: {SPAN:.0f} years",
+        (SPAN * 1.05, 1.05),
+        fontsize=7.5,
         color=REFERENCE_BLACK,
     )
     left.set_xscale("log")
@@ -74,19 +82,33 @@ def main() -> None:
     table = table[~table["degenerate_fit"]]
     for i, (freq, group) in enumerate(table.groupby("frequency")):
         right.scatter(
-            group["r2_oos_pct"].clip(lower=-8), group["ir_ceiling"],
-            s=22, alpha=0.75, color=PALETTE[i], label=freq, edgecolor="none",
+            group["r2_oos_pct"].clip(lower=-8),
+            group["ir_ceiling"],
+            s=22,
+            alpha=0.75,
+            color=PALETTE[i],
+            label=freq,
+            edgecolor="none",
         )
     right.axhline(
-        CAMPBELL_THOMPSON, color=NEGATIVE, ls="--", lw=1.4,
+        CAMPBELL_THOMPSON,
+        color=NEGATIVE,
+        ls="--",
+        lw=1.4,
     )
     right.annotate(
-        "IR 0.25", (-7.8, CAMPBELL_THOMPSON * 1.08), fontsize=7.5, color=NEGATIVE,
+        "IR 0.25",
+        (-7.8, CAMPBELL_THOMPSON * 1.08),
+        fontsize=7.5,
+        color=NEGATIVE,
     )
     median = float(table["ir_ceiling"].median())
     right.axhline(median, color=POSITIVE, lw=1.3)
     right.annotate(
-        f"median ceiling {median:.2f}", (-7.8, median * 1.05), fontsize=7.5, color=POSITIVE,
+        f"median ceiling {median:.2f}",
+        (-7.8, median * 1.05),
+        fontsize=7.5,
+        color=POSITIVE,
     )
     right.axvline(0.0, color=REFERENCE_BLACK, lw=0.8, alpha=0.5)
     right.set_xlabel("Out-of-sample $R^2$ (%), clipped at $-8$")
