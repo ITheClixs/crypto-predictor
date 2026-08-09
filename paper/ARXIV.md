@@ -14,15 +14,15 @@ other institution, and with no collaborators.
 repository: PolyForm Noncommercial 1.0.0 for code, CC BY-NC-SA 4.0 for the manuscript,
 figures and derived data.
 
-## Read this before you press submit
+**Patent.** None sought, decided 2026-08-09. Posting is therefore unblocked. Recorded because
+the decision is irreversible in one direction: publication is a public disclosure and an
+absolute novelty bar at the EPO and in Switzerland, so it forecloses a European filing
+permanently. Nothing in this repository should be read as preserving that option.
 
-**Posting is a public disclosure and it is irreversible.** If there is any intention to seek
-patent protection, file first. At the EPO and in Switzerland, disclosure before filing is an
-absolute novelty bar with no grace period; the US allows twelve months. Note separately that
-EPC Art. 52(2)(a) excludes mathematical methods *as such*, and US practice after *Alice* is
-hostile to abstract-method claims, so a patent on a statistical test is a hard filing even
-when the order is right. If you are a member of ETH, its IP regulations may attach to
-inventions irrespective of funding — worth one conversation with ETH transfer before posting.
+**Competing interests.** The author holds no position in BTC, ETH or SOL, confirmed
+2026-08-09. The Declarations section states this.
+
+## Read this before you press submit
 
 **A non-commercial licence does not protect the method.** Copyright reaches this text and this
 code, not the mathematics. Anyone may reimplement the certificate from Section 6 and sell it.
@@ -53,7 +53,7 @@ contribution. That is a legitimate trade to make; it should be a deliberate one.
 
 **Comments field**
 
-    39 pages, 10 figures. Reference implementation, data cache, and the scripts reproducing
+    40 pages, 10 figures. Reference implementation, data cache, and the scripts reproducing
     every number: https://github.com/ITheClixs/crypto-return-predictability
 
 **MSC class** `62L10, 62M20, 91G70` — sequential analysis, prediction theory, statistical

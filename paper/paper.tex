@@ -1715,9 +1715,9 @@ sized. Measured size confirms it, at $5.5\%$.
     \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
     $\mathrm{IR}$ & nominal & size-matched & nominal & size-matched & nominal & size-matched \\
     \midrule
-    $1.0$ & $0.230$ & $0.210$ & $0.015$ & $0.142$ & $0.030$ & $0.163$ \\
+    $1.0$ & $0.230$ & $0.210$ & $0.015$ & $0.143$ & $0.030$ & $0.163$ \\
     $1.5$ & $0.510$ & $0.495$ & $0.128$ & $0.335$ & $0.188$ & $0.390$ \\
-    $2.0$ & $0.853$ & $0.850$ & $0.357$ & $0.710$ & $0.480$ & $0.757$ \\
+    $2.0$ & $0.853$ & $0.850$ & $0.358$ & $0.710$ & $0.480$ & $0.758$ \\
     $3.0$ & $1.000$ & $1.000$ & $0.963$ & $0.983$ & $0.988$ & $0.998$ \\
     \bottomrule
   \end{tabular}
@@ -1726,7 +1726,7 @@ sized. Measured size confirms it, at $5.5\%$.
 Table~\ref{tab:headtohead} separates two losses that are easy to conflate.
 
 \emph{The construction is nearly as efficient as the incumbent.} At matched size the
-pre-committed certificate reaches $0.757$ where Clark--West reaches $0.850$ at
+pre-committed certificate reaches $0.758$ where Clark--West reaches $0.850$ at
 $\mathrm{IR}=2$, and $0.998$ against $1.000$ at $\mathrm{IR}=3$. Eliminating the drift rather
 than estimating it, hedging it two-sidedly, and standardising the signal predictably together
 cost surprisingly little. Two design choices in Section~\ref{sec:certificate} are responsible
@@ -2154,26 +2154,32 @@ the manuscript's and reported cell values differing by up to five percentage poi
 only by the presence of the cache.
 
 \paragraph{Limitations of the certificate.} Three are worth naming and none is hidden by the
-theorem. \emph{The assumption is not free.} The default payoff needs the outcome to be
-conditionally symmetric about its drift; that permits arbitrary volatility clustering and tail
-thickness but excludes systematically skewed conditional distributions, and daily
-cryptocurrency returns are mildly skewed. It is also refutable from the marginal
-distribution alone, and daily cryptocurrency returns refute it: the sample skewness is
-$-1.05$ on BTC, $-0.96$ on ETH and $-0.23$ on SOL, each rejecting symmetry at
-$p<10^{-4}$. For that reason the identity payoff, which needs only a martingale difference
-plus an a-priori envelope, is the default and is what Table~\ref{tab:cert} reports; the
-bounded payoffs are offered for series where symmetry is defensible and this one is not. The
-$\tanh$ variant, run anyway, gives a largest e-value of $1.81$ and a grid-level $1.18$
-against the identity's $3.05$ and $1.43$: different numbers, same conclusion, and the weaker
-assumption happens also to be the stronger result here. \emph{The power is real
-but bounded.} Corollary~\ref{cor:optimal} says no anytime-valid test does better in order, but
-a fixed-sample test that is pre-committed, looked at once, and handed the true drift needs
-$23\%$ less data; a study that genuinely will not look at its data until a pre-registered
-sample size is reached gives up nothing by using one. \emph{The infimum is numerical.} The
-drift search is a grid, and a grid too coarse to resolve $\sigma/\sqrt{n}$ silently destroys
-the guarantee rather than merely weakening it. We report the refinement check, the library
-defaults conservatively and exposes the spacing, and its test suite records the failure mode;
-that is mitigation, not elimination.
+theorem.
+
+\emph{The bounded payoffs rest on an assumption these data refute.} Conditional symmetry about
+a constant drift implies zero unconditional skewness, so it is checkable from the marginal
+distribution alone---and the sample skewness is $-1.05$ on BTC, $-0.96$ on ETH and $-0.23$ on
+SOL, each rejecting it at $p<10^{-4}$. The identity payoff, which needs only a
+martingale-difference null plus an a-priori envelope, is therefore the default and is what
+Table~\ref{tab:cert} reports. Run anyway, the $\tanh$ variant gives a largest e-value of
+$1.81$ and a grid-level $1.18$ against the identity's $3.05$ and $1.43$: different numbers,
+same conclusion, and here the weaker assumption is also the stronger result. The bounded
+payoffs remain available for series where symmetry is defensible; this one is not.
+
+\emph{The instrument is less powerful than the incumbent, and we say by how much.}
+Section~\ref{sec:headtohead} measures it: against a correctly sized Clark--West, power $0.48$
+against $0.85$ at an information ratio of $2$ at nominal thresholds, and $0.758$ against
+$0.850$ once both are size-matched. Corollary~\ref{cor:free} prices the gap in advance at
+roughly a factor of two in sample size, and Corollary~\ref{cor:optimal} says no anytime-valid
+procedure does better in order---but Clark--West is not an anytime-valid procedure, so nothing
+here licenses reading the certificate's silence as a stronger verdict than the $p$-value's
+noise. A study that will genuinely fix its sample size in advance, look once, and defend its
+benchmark gives up power for nothing by using a certificate.
+
+\emph{The infimum is numerical.} The drift search is a grid, and a grid too coarse to resolve
+$\sigma/\sqrt{n}$ silently destroys the guarantee rather than merely weakening it. We report
+the refinement check, the library defaults conservatively and exposes the spacing, and its
+test suite records the failure mode; that is mitigation, not elimination.
 
 \paragraph{Limitations that bound generalisation.}
 Asset selection is not survivorship-free (Section~\ref{sec:data}); this biases

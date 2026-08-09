@@ -1,4 +1,4 @@
-.PHONY: help setup data backtest report tables paper test lint format typecheck check app clean
+.PHONY: help setup data backtest report tables paper arxiv certificate test lint format typecheck check app clean
 
 PY := ./venv/bin/python
 PIP := ./venv/bin/pip
@@ -11,6 +11,8 @@ help:
 	@echo "  report     Rebuild reports/results.md + figures from cached runs"
 	@echo "  tables     Emit the manuscript's LaTeX tables from reports/results.csv"
 	@echo "  paper      Typeset paper/paper.pdf (needs tectonic)"
+	@echo "  arxiv      Build the flat, self-contained arXiv tarball"
+	@echo "  certificate  Rerun the certificate study, calibration and controls"
 	@echo "  test       Run the test suite with coverage"
 	@echo "  lint       Ruff lint"
 	@echo "  format     Black + ruff --fix"
@@ -38,8 +40,25 @@ tables:
 paper: tables
 	cd paper && tectonic -X compile paper.tex
 
+arxiv: paper
+	./paper/build_arxiv.sh
+
+# Everything the manuscript's certificate sections quote. The joint null is excluded
+# deliberately: it is hours of refitting and is run on its own.
+certificate:
+	$(PY) audit/scripts/gen_forecasts.py
+	$(PY) audit/scripts/certificate_study.py
+	$(PY) audit/scripts/certificate_study.py --payoff sign
+	$(PY) audit/scripts/positive_control.py
+	$(PY) audit/scripts/power_head_to_head.py 400
+	$(PY) audit/scripts/certificate_calibration.py 400
+	$(PY) audit/scripts/garch_null.py 400
+	$(PY) audit/scripts/execution_contrast.py
+	$(PY) audit/scripts/bootstrap_stability.py
+	$(PY) audit/scripts/plot_certificate.py
+
 test:
-	$(PY) -m pytest --cov=cryptoforecast --cov-report=term-missing
+	$(PY) -m pytest --cov=cryptoforecast --cov=alphacert --cov-report=term-missing
 
 lint:
 	$(PY) -m ruff check src tests app

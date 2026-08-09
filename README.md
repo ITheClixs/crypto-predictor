@@ -99,11 +99,11 @@ Head to head against Clark–West, in the design where Clark–West is exactly c
 |---|---|---|---|---|
 | 1.0 | 0.230 | 0.210 | 0.030 | 0.163 |
 | 1.5 | 0.510 | 0.495 | 0.188 | 0.390 |
-| 2.0 | 0.853 | 0.850 | 0.480 | 0.757 |
+| 2.0 | 0.853 | 0.850 | 0.480 | 0.758 |
 | 3.0 | 1.000 | 1.000 | 0.988 | 0.998 |
 
 Two things separate out. **The construction is nearly as efficient as the incumbent** — at
-matched size, 0.757 against 0.850 at IR = 2. **What costs is anytime-validity itself**: the
+matched size, 0.758 against 0.850 at IR = 2. **What costs is anytime-validity itself**: the
 certificate's measured size at its nominal threshold is 0.5–0.7% against a nominal 5%, because
 Ville's inequality is tight only for a process that jumps straight to the threshold.
 
