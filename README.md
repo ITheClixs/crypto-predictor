@@ -5,8 +5,9 @@ reference implementation (`alphacert`) and a six-year cryptocurrency case study*
 
 [![ci](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml/badge.svg)](https://github.com/ITheClixs/crypto-return-predictability/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.12%2B-blue)
-![tests](https://img.shields.io/badge/tests-217-informational)
-![license](https://img.shields.io/badge/license-MIT-green)
+![tests](https://img.shields.io/badge/tests-220-informational)
+![coverage](https://img.shields.io/badge/coverage-95%25-informational)
+![license](https://img.shields.io/badge/license-noncommercial-orange)
 
 ---
 
