@@ -56,6 +56,9 @@ equity-results:
 	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_all.py
 	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_sensitivity.py
 	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_when.py
+	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_audit.py
+	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_corrections.py
+	PYTHONPATH=audit/scripts $(PY) audit/scripts/goyal_welch_duty.py
 	PYTHONPATH=audit/scripts $(PY) audit/scripts/plot_equity.py
 	$(PY) audit/scripts/equity_tables.py
 

@@ -470,6 +470,16 @@ test at the $5\%$ level. Once the $46$-variable search that generated the set is
 the figure is $56$ of $56$. The median span is $99$ years and the median corrected floor is
 $0.39$, against a target of $0.25$.
 
+\paragraph{The result does not rest on a punitive correction.} Bonferroni is the most
+conservative multiplicity adjustment in common use, so it is fair to ask whether the headline
+is an artifact of choosing it. It is not, for a structural reason: at the \emph{first}
+rejection both Holm and Benjamini--Hochberg use the same threshold $\alpha/m$ that Bonferroni
+uses everywhere, and the floor is a statement about whether \emph{any} variable could clear
+the bar. All three therefore give $0$ of $56$ below $0.25$. So does a merely stricter single
+test at $\alpha=0.01$ with no multiplicity adjustment at all. And with \emph{no} correction
+whatsoever, $23$ of $56$ still fail. The finding depends on there being forty-six tests, not
+on how one chooses to price them.
+
 The direction of the shortfall is the unfavourable one. The shortest samples belong to the
 newest variables: the risk-neutral variance measures span under thirty years and face a solo
 floor of $0.46$, nearly twice the effect they would need to establish. A literature that adds
@@ -501,7 +511,8 @@ variables faster than it adds data moves away from the threshold, not towards it
     ndrbl  & Monthly   & $67.8$ & $0.30$ & $0.47$ \\
     \midrule
     \multicolumn{5}{l}{Median over all $56$: span $99$ y, solo $0.25$, corrected $0.39$} \\
-    \multicolumn{5}{l}{Below $0.25$: solo $33/56$; corrected $0/56$} \\
+    \multicolumn{5}{l}{Below $0.25$: solo $33/56$; corrected $0/56$ under Bonferroni,} \\
+    \multicolumn{5}{l}{\quad Holm and Benjamini--Hochberg alike} \\
     \bottomrule
   \end{tabular}
 \end{table}

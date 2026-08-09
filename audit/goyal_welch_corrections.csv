@@ -1,0 +1,7 @@
+correction,alpha,median_floor,below_threshold,n
+none (single test),0.05,0.24932367091410368,33,56
+"alpha = 0.01, still a single test",0.01,0.31765842470096917,0,56
+"Benjamini-Hochberg, first rejection",0.0010869565217391304,0.3917629295453765,0,56
+"Holm, first rejection",0.0010869565217391304,0.3917629295453765,0,56
+Bonferroni over 46,0.0010869565217391304,0.3917629295453765,0,56
+Bonferroni over 100,0.0005,0.4143385142421814,0,56
