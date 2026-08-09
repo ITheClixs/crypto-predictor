@@ -72,13 +72,17 @@ def load() -> pd.DataFrame:
 
 
 def walk_forward(
-    x: np.ndarray, y: np.ndarray, burn: int
+    x: np.ndarray, y: np.ndarray, burn: int, min_train: int = 60
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Expanding-window OLS with an intercept, and the intercept-only benchmark beside it.
 
     Returns (outcome, model forecast, benchmark forecast) over the evaluation window. Every
     forecast at ``t`` uses observations strictly before ``t``, and the predictor is already
     lagged, so nothing contemporaneous is available to either forecaster.
+
+    ``min_train`` is the number of usable observations a fit needs before it is allowed to
+    produce a forecast, and it has to scale with the frequency: sixty is comfortable for
+    monthly data and impossible for annual, where the whole burn-in is twenty points.
     """
     n = y.size
     model = np.full(n, np.nan)
@@ -86,7 +90,7 @@ def walk_forward(
     for t in range(burn, n):
         xt, yt = x[:t], y[:t]
         keep = np.isfinite(xt) & np.isfinite(yt)
-        if keep.sum() < 60 or not np.isfinite(x[t]):
+        if keep.sum() < min_train or not np.isfinite(x[t]):
             continue
         design = np.column_stack([np.ones(keep.sum()), xt[keep]])
         coef, *_ = np.linalg.lstsq(design, yt[keep], rcond=None)
