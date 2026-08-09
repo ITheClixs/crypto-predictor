@@ -4,14 +4,36 @@ Everything the submission form asks for, plus the checks that were run before bu
 tarball. Rebuild the package with `./paper/build_arxiv.sh`, which writes
 `paper/arxiv-submission.tar.gz`.
 
-## Before you submit: two things only the author can confirm
+## Settled
 
-1. **Affiliation.** The manuscript lists *Department of Computer Science, ETH Zürich*. This
-   was carried over from an earlier draft and has not been verified in this pass. arXiv
-   endorsement and any later venue submission both depend on it being accurate — correct it in
-   `paper.tex` if it is not.
-2. **Licence.** The default arXiv licence is non-exclusive and irrevocable. The repository is
-   MIT, so CC BY 4.0 is the consistent choice, but it is a decision, not a default.
+**Affiliation.** ETH Zürich, with a title-page footnote and a Declarations section recording
+that the work was independent: not funded, supervised, commissioned or endorsed by ETH or any
+other institution, and with no collaborators.
+
+**Licence.** Select **CC BY-NC-SA 4.0** on the arXiv submission form. It matches the
+repository: PolyForm Noncommercial 1.0.0 for code, CC BY-NC-SA 4.0 for the manuscript,
+figures and derived data.
+
+## Read this before you press submit
+
+**Posting is a public disclosure and it is irreversible.** If there is any intention to seek
+patent protection, file first. At the EPO and in Switzerland, disclosure before filing is an
+absolute novelty bar with no grace period; the US allows twelve months. Note separately that
+EPC Art. 52(2)(a) excludes mathematical methods *as such*, and US practice after *Alice* is
+hostile to abstract-method claims, so a patent on a statistical test is a hard filing even
+when the order is right. If you are a member of ETH, its IP regulations may attach to
+inventions irrespective of funding — worth one conversation with ETH transfer before posting.
+
+**A non-commercial licence does not protect the method.** Copyright reaches this text and this
+code, not the mathematics. Anyone may reimplement the certificate from Section 6 and sell it.
+That is stated plainly in `LICENSE` and in the Declarations rather than left for a reader to
+discover.
+
+**One cost of NC you are accepting knowingly.** PolyForm Noncommercial is not an OSI-approved
+open-source licence. Many quantitative desks and several package ecosystems cannot use
+non-OSI code at all, and the paper's pitch is partly "install this and check it on your own
+pipeline". The licence therefore narrows the audience for the artifact that carries the
+contribution. That is a legitimate trade to make; it should be a deliberate one.
 
 ## Form fields
 

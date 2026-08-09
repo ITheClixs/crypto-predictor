@@ -5,12 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cryptoforecast"
 version = "0.1.0"
-description = "A leak-free walk-forward study of short-horizon crypto return predictability."
+description = "Anytime-valid certificates of incremental predictive ability, and a crypto case study."
 readme = "README.md"
 requires-python = ">=3.12"
-license = { file = "LICENSE" }
-authors = [{ name = "ITheClixs" }]
+license = { file = "LICENSE" }  # PolyForm Noncommercial 1.0.0; see LICENSE
+authors = [{ name = "Mehmet Demir Guven", email = "demirguven178@gmail.com" }]
 keywords = [
+    "e-values",
+    "anytime-valid-inference",
     "quantitative-finance",
     "walk-forward",
     "backtesting",

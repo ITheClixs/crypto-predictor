@@ -1169,5 +1169,16 @@ audit/scripts/         every number in the audit, one script per claim
 
 ## License
 
-MIT, see [LICENSE](LICENSE). This is a research exercise. It is not investment advice, and
-the result is that the models do not work.
+**Non-commercial.** Code under [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/);
+paper, figures and data under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+See [LICENSE](LICENSE). Research, teaching and evaluation are permitted; commercial use is not,
+without a separate written licence. Enquiries: demirguven178@gmail.com
+
+Note what that does *not* cover. Copyright protects this text and this code, not the method.
+Anyone may read the paper, reimplement the certificate from the equations, and use it
+commercially — no licence can prevent that, and none is claimed to.
+
+Commits up to `4eefb24` were published under MIT and remain so for copies already obtained.
+
+This is a research exercise. It is not investment advice, and its principal empirical finding
+is that the models tested do not work.

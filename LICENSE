@@ -1,21 +1,51 @@
-MIT License
+Copyright (c) 2026 Mehmet Demir Guven. All rights reserved.
 
-Copyright (c) 2026 lauren
+TWO LICENCES APPLY TO THIS REPOSITORY.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+1. SOFTWARE  --  everything under src/, tests/, audit/scripts/, app/, and the
+   build tooling.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+   Licensed under the PolyForm Noncommercial License 1.0.0.
+   Canonical text: https://polyformproject.org/licenses/noncommercial/1.0.0/
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+   In short: you may use, copy, modify and share this software for any purpose
+   that is not a commercial one -- research, teaching, personal study,
+   evaluation, and use by charitable, educational and government organisations
+   are all permitted. Use of the software in or for a commercial product or
+   service, including internal use by a for-profit firm in its business, is
+   not permitted without a separate written licence from the copyright holder.
+   The canonical text governs; this paragraph is a summary and is not the
+   licence.
+
+2. PAPER, FIGURES AND DATA  --  everything under paper/, reports/, and
+   audit/*.csv.
+
+   Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+   International (CC BY-NC-SA 4.0).
+   Canonical text: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+
+   You may share and adapt this material for non-commercial purposes with
+   attribution, and must license any adaptation under the same terms.
+
+WHAT THESE LICENCES DO NOT DO.
+
+They restrict copying and distribution of this text and this code. They do not
+restrict the *methods* described. Copyright does not cover ideas, algorithms or
+mathematical results. Anyone is free to read the paper, implement the
+certificate of Section 6 independently, and use it commercially. That is not an
+oversight and it is not something a licence can change; only a patent could,
+and no patent has been filed.
+
+PRIOR VERSIONS.
+
+Commits up to and including 4eefb24 were published under the MIT License.
+Copies obtained under those terms remain under them; this change applies going
+forward and cannot be applied retroactively to copies already distributed.
+
+NO WARRANTY.
+
+The software and the paper are provided "as is", without warranty of any kind,
+express or implied. This is research. It is not investment advice, and its
+principal empirical finding is that the models tested do not work.
+
+Commercial licensing enquiries: demirguven178@gmail.com
