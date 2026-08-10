@@ -91,3 +91,4 @@ paper-equity/*.log
 paper-equity/*.blg
 paper-equity/*.aux
 paper-equity/*.out
+paper-equity/arxiv/
