@@ -87,3 +87,7 @@ paper/arxiv/
 # audit/scripts/goyal_welch_pilot.py. The workbook the pilot actually reads is committed.
 data/goyal_welch/*.zip.real
 data/goyal_welch/gwz2025/
+paper-equity/*.log
+paper-equity/*.blg
+paper-equity/*.aux
+paper-equity/*.out

@@ -24,6 +24,7 @@
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
 \theoremstyle{definition}
 \newtheorem{remark}[theorem]{Remark}
 
@@ -58,27 +59,29 @@
 \maketitle
 
 \begin{abstract}
-  How much predictability could a century of data rule out? We answer in closed form and then
-  measure it. Evidence about an alpha accumulates as log wealth, which grows at half the
-  squared information ratio, so a sample spanning $T$ years can certify an annualised
-  information ratio no smaller than a floor that depends on $T$, the level, and the size of
-  the search---and on nothing else. Sampling the same span more finely does not lower it: the
-  floor for the Goyal--Welch data is $0.38$ monthly, $0.37$ quarterly and $0.35$ annually,
-  across a twelvefold range in observation count. Against the effect Campbell and Thompson
-  call economically significant, an annualised ratio of $0.25$, a single predictor needs $99$
-  years to reach $80\%$ power and the $46$-predictor search of \citet{goyal2024} needs $244$.
-  The canonical dataset is $100$ years old. We then apply an anytime-valid certificate to
-  $117$ predictor--frequency pairs spanning 1926--2025. Nothing is certified, under any of
-  nine specifications; the largest evidence value ever observed is $8.0$ against the $20$
-  required. The deliverable is not that null but the bound beside it: the median predictor's
-  incremental annualised information ratio is at most $0.60$, and $112$ of $116$ ceilings lie
-  above $0.25$, so for almost every published predictor a century of the best-studied data in
-  finance can separate neither ``nothing'' nor ``economically meaningful'' from the other.
-  Because evidence compounds, the wealth path also dates each edge: the valuation ratios
-  $d/p$, $d/y$ and $e/p$---the predictors a Clark--West test ranks highest---stopped
-  contributing in the 1950s and have added nothing since, which a static test cannot see.
-  Our pipeline reproduces \citeauthor{goyal2024}'s published out-of-sample $\rsq$ with a
-  correlation of $0.968$ across their fourteen classic predictors.
+  How precisely can a century-scale equity-premium dataset constrain economically meaningful
+  out-of-sample predictability? We first state a minimum detectable effect under an explicit
+  Gaussian constant-effect benchmark: for a one-sided test at size $\alpha$ and target power
+  $\pi$, the smallest annualised information ratio detectable from $T$ years of \emph{evaluation}
+  is $[z_{1-\alpha}+z_\pi]/\sqrt{T}$. This is a model-based power calculation, not a
+  distribution-free impossibility bound. Because the design reserves twenty years for
+  initialisation, the 1926--2025 data give at most eighty years of out-of-sample evaluation, so
+  the detectable ratio is $0.28$ for one prespecified predictor and $0.44$ after Bonferroni
+  correction over the forty-six candidates \citet{goyal2024} examine---against Campbell and
+  Thompson's economic-significance threshold of $0.246$. The design is short by twenty-three
+  years for a single test and by one hundred and seventy-three once the search is priced.
+  We then apply a drift-robust, anytime-valid certificate to $117$ predictor--frequency pairs.
+  Under the primary specification no pair reaches the individual $5\%$ threshold and none
+  survives e-BH; across nine design specifications applied to the fourteen classic monthly
+  predictors, none does either. Among the $116$ unflagged pairs the median of the \emph{marginal}
+  $95\%$ upper endpoints is $0.60$ and $112$ exceed $0.25$, so most intervals remain compatible
+  both with no incremental predictability and with effects conventionally called economically
+  meaningful. Sequential paths show the accumulation is highly uneven across predictors and
+  across time: of six classic predictors, only inflation accumulates evidence in both halves of
+  the window, the Treasury-bill rate only in the second, the term spread gains in the first and
+  surrenders it in the second, and the three valuation ratios accumulate in neither. These
+  describe when the procedure gathered evidence and are not estimates of structural-break
+  dates.
 \end{abstract}
 
 \section{Introduction}
@@ -89,9 +92,12 @@ premium. After \citet{welch2008} the consensus answer is mostly no, and after
 a prior question that determines what any such answer can mean: \emph{given a sample of a
 certain length, what size of effect could it have detected at all?}
 
-The question has an exact answer, and the answer is uncomfortable. Section~\ref{sec:bound}
-derives a certification floor: the smallest annualised information ratio a sample spanning $T$
-years can establish at level $\alpha$. Two features of it matter. The floor scales with
+Under an explicit Gaussian constant-effect benchmark the question has a closed-form answer, and
+it is uncomfortable. Section~\ref{sec:bound} derives a minimum detectable effect: the smallest
+annualised information ratio a design evaluating $T$ years can detect at level $\alpha$ with
+power $\pi$. It is a power calculation under a stated model, not a distribution-free
+impossibility theorem, and Remark~\ref{rem:notimpossibility} says so precisely. Two features of
+it matter. The floor scales with
 $1/\sqrt{T}$ in \emph{calendar span} and is almost unaffected by sampling frequency, so a
 century of monthly data and a century of annual data face nearly the same bound despite a
 twelvefold difference in observations. And it degrades with the size of the search, which in
@@ -99,9 +105,11 @@ this literature is large and known.
 
 Put those together against the effect the literature itself treats as meaningful---%
 \citet{campbell2008} take a monthly out-of-sample $\rsq$ of $0.5\%$, an annualised information
-ratio of about $0.25$, as economically significant---and the arithmetic is stark. A single
-predictor needs $99$ years to reach $80\%$ power against it. Correcting for the $46$-predictor
-search that \citet{goyal2024} actually ran needs $244$. The canonical dataset begins in 1926.
+ratio of $0.246$, as economically significant---and the arithmetic is stark. Under the
+Gaussian benchmark of Section~\ref{sec:bound}, a single predictor needs $103$ years of
+\emph{evaluation} to reach $80\%$ power against it, and $253$ once the $46$-predictor search
+\citet{goyal2024} ran is priced. The canonical dataset begins in 1926 and the design reserves
+its first twenty years, leaving eighty.
 
 \paragraph{What we do with that.} A bound on what a study could have found is only useful if
 paired with a bound on what it did find. Section~\ref{sec:instrument} uses an anytime-valid
@@ -109,25 +117,31 @@ paired with a bound on what it did find. Section~\ref{sec:instrument} uses an an
 finite-sample theorem and whose logarithm is the profit and loss of an explicit drift-hedged
 strategy. Two properties earn its place here. It supplies a time-uniform \emph{ceiling} on a
 predictor's incremental value, which is the number this literature has never reported and the
-one a reader can act on. And because evidence compounds rather than averages, its wealth path
-\emph{dates} an edge: a predictor that worked until 1957 and not since cannot keep
-accumulating, and the path shows exactly when it stopped.
+one a reader can act on. And because evidence compounds rather than averages, its path records
+\emph{when} evidence arrived: a covariance averaged over a century weights an early
+contribution and a late one identically, whereas a compounding process does not. We read the
+path as a description of the procedure's evidence accumulation, not as an estimate of a
+break date.
 
 \paragraph{What we find.} Across $117$ predictor--frequency pairs from 1926 to 2025, nothing
 is certified, under any of nine specifications of burn-in, window and payoff. That is
-unsurprising and is not the contribution. The contribution is the interval: the median
-predictor's incremental annualised information ratio is bounded above by $0.60$, and $112$ of
-$116$ ceilings sit above Campbell and Thompson's $0.25$. A century of the most heavily studied
-data in finance can rule out neither zero nor an economically meaningful edge, for almost
-every predictor in the set.
+unsurprising and is not the contribution. The contribution is the interval: across the $116$
+unflagged pairs the median of the \emph{marginal} $95\%$ upper endpoints on the incremental
+annualised information ratio is $0.60$, and $112$ of them sit above Campbell and Thompson's
+$0.25$. These are pairwise bounds, not a simultaneous statement about a median parameter. Read
+as such they say that for almost every predictor in the set, the data rule out neither zero nor
+an economically meaningful edge.
 
-The dating result is the one we did not expect. Clark--West and the certificate rank the
-predictors close to inversely, and the wealth paths say why. The valuation ratios $d/p$, $d/y$
-and $e/p$---the most cited predictors in the literature, and the ones Clark--West scores
-highest at $1.34$ to $1.64$---peaked in 1946--1957 and have contributed nothing in the seventy
-years since. Inflation and the Treasury-bill rate, which Clark--West scores lowest, are the
-only variables still accumulating. A test that averages a covariance over a century cannot
-distinguish a steady edge from a dead one; a test that compounds cannot avoid it.
+The timing result is secondary and needs stating carefully. Across all $117$ pairs, Clark--West
+statistics and certificate e-values are \emph{positively} rank correlated, at a Spearman
+coefficient of $+0.54$ ($+0.55$ over the $116$ unflagged). The two are measuring overlapping
+things, as they should. Among six classic predictors we display for illustration they disagree
+sharply, at $-0.83$; that subset shows the two \emph{can} diverge and why, not that they
+generally invert. Read on the certificate's underlying process, the three valuation ratios---the
+predictors Clark--West scores highest, at $1.34$ to $1.64$---accumulate no evidence in either
+half of the window, while inflation, the Treasury-bill rate and the term spread do, in different
+halves. A statistic that averages a covariance over a century weights the two halves equally; a
+process that compounds does not, and the difference is visible.
 
 \paragraph{What this is not.} We do not claim the certificate is more powerful than
 Clark--West. It is not: \citet{guven2026} measures the exchange rate at roughly a factor of two
@@ -148,7 +162,7 @@ weak predictability can still be economically meaningful once forecasts are cons
 economic priors, and set the benchmark effect size we use throughout.
 \citet{rapach2010} recover out-of-sample gains from forecast combination. Running underneath
 all of it is instability: the same predictor works in one era and not the next, which is the
-observation our dating result in Section~\ref{sec:results} makes precise and
+observation the sequential paths of Section~\ref{sec:results} illustrate and
 Proposition~\ref{prop:intermittent} prices.
 
 \paragraph{Power, and what a test can be expected to find.} \citet{inoue2005} show that
@@ -156,11 +170,13 @@ out-of-sample tests are typically \emph{less} powerful than in-sample ones, beca
 a finite sample costs information, and warn against reading out-of-sample failure as evidence
 that in-sample evidence was spurious. Our contribution is complementary and more absolute:
 their comparison is between two procedures on the same data, whereas
-Proposition~\ref{prop:floor} bounds what \emph{any} procedure can establish from a span of a
-given length. \citet{hansen2012} address a related selection problem by constructing a set of
-models that cannot be distinguished from the best. Where a model confidence set answers
-``which of these can be told apart'', we answer ``could any of them have been told apart from
-nothing''.
+Proposition~\ref{prop:floor} asks what a span of a given length can support at a stated size and
+power under a stated model---a design question rather than a procedure comparison. It is not a
+statement about all procedures, and Remark~\ref{rem:notimpossibility} draws that line. \citet{hansen2011} address a related selection problem by constructing a set of
+models that cannot be distinguished from the best. Where a model confidence set answers ``which of
+these can be told apart'', we ask ``could any of them have been told apart from nothing, given
+this much data''. We also run their procedure on our own forecasts in
+Section~\ref{sec:toolkit}, where it retains every model including the benchmark.
 
 \paragraph{Nested forecast comparison.} \citet{diebold1995} is not valid for nested models;
 \citet{clark2001} and \citet{clark2006, clark2007} supply the corrections this literature uses,
@@ -183,93 +199,134 @@ of equity-premium predictability.
 Let a signal-weighted strategy have annualised information ratio $\ir$, and consider testing
 whether $\ir > 0$ from $T$ years of data at level $\alpha$.
 
-\begin{proposition}[Certification floor]
+\begin{proposition}[Gaussian minimum detectable information ratio]
 \label{prop:floor}
-A one-sided fixed-sample test at level $\alpha$ attains power $\beta$ against an alternative
-$\ir$ if and only if $T \ge (z_\alpha + z_\beta)^2/\ir^2$ years. Equivalently, a sample
-spanning $T$ years cannot establish any ratio below
+Let $X_1,\dots,X_n$ be independent Gaussian strategy returns with mean $\mu$ and known variance
+$\sigma^2$, let there be $P$ observations per year, let $n=PT$, and define the annualised
+information ratio $\rho=\sqrt{P}\,\mu/\sigma$. For the one-sided test of $H_0:\mu\le0$ against
+$H_1:\mu>0$ at size $\alpha$, the uniformly most powerful test rejects when
+$\sqrt{n}\,\bar X/\sigma \ge z_{1-\alpha}$, and its power is
 \[
-  \ir_{\min}(T,\alpha,\beta) \;=\; \frac{z_\alpha + z_\beta}{\sqrt{T}} .
+  \pi(\rho,T) \;=\; \Phi\!\big(\rho\sqrt{T}-z_{1-\alpha}\big).
 \]
-Under a Bonferroni correction for a search over $m$ candidates, replace $\alpha$ by
-$\alpha/m$.
+The smallest annualised ratio attaining target power $\pi$ from $T$ years of evaluation is
+therefore
+\[
+  \rho_{\mathrm{MDE}}(T,\alpha,\pi) \;=\; \frac{z_{1-\alpha}+z_\pi}{\sqrt{T}},
+\]
+and the span needed against a given $\rho$ is $[z_{1-\alpha}+z_\pi]^2/\rho^2$. For $m$
+prespecified hypotheses under Bonferroni, replace $\alpha$ by $\alpha/m$.
 \end{proposition}
 
-The proposition is elementary and that is the point: it needs no new theory and it applies to
-the tools this literature already uses. Its content is in the substitutions.
+We write \emph{floor} for $\rho_{\mathrm{MDE}}$ throughout, as shorthand for ``the minimum
+detectable ratio of this design at this size and power''. It is a property of a design, not of
+the class of all procedures; Remark~\ref{rem:notimpossibility} states the difference and we do
+not use the word in the stronger sense anywhere.
 
-\begin{corollary}[Frequency does not help]
+\begin{remark}[What this is and is not]
+\label{rem:notimpossibility}
+Proposition~\ref{prop:floor} is a design-stage power calculation under a stated model, not a
+distribution-free lower bound over all procedures. Effects below $\rho_{\mathrm{MDE}}$ can still
+produce rejection; they do so with probability below $\pi$. The calculation assumes independent
+Gaussian returns, a constant effect, known variance, and a strategy fixed in advance; with
+serial dependence $\sigma^2$ must be replaced by a long-run variance, and with an estimated
+variance the finite-sample distribution is noncentral $t$ rather than normal. A genuinely
+procedure-independent statement would require a minimax or information-theoretic argument under
+a specified experiment, which we do not attempt. We use the benchmark because it is the
+calculation the applied literature would itself perform, not because it is the sharpest
+available.
+\end{remark}
+
+\begin{corollary}[Frequency invariance under square-root-of-time scaling]
 \label{cor:frequency}
-$\ir_{\min}$ depends on the calendar span $T$ and not on the sampling frequency. Increasing
-the number of observations by sampling a fixed span more finely leaves the floor unchanged.
+Under the assumptions of Proposition~\ref{prop:floor}---independent increments, a constant
+effect, non-overlapping observations, and mean and variance scaling as $P$ and $\sqrt{P}$ so
+that $\rho$ is preserved---$\rho_{\mathrm{MDE}}$ depends on the calendar span $T$ and not on the
+number $P$ of observations per year.
 \end{corollary}
 
-This is worth stating because the opposite is widely assumed. Doubling the observation count
-by moving from quarterly to monthly data halves the standard error of a \emph{per-period}
-mean, but the annualised information ratio is a per-period quantity scaled by $\sqrt{P}$, and
-the two effects cancel exactly. Section~\ref{sec:results} confirms it on the data: the
-measured floor is $0.38$, $0.37$ and $0.35$ at monthly, quarterly and annual frequency over
-the same century.
-
+The cancellation is exact only under those assumptions. It need not hold under serial
+correlation, overlapping observations, conditional heteroskedasticity, recursive estimation,
+predictor persistence, or when lower-frequency series carry information that higher-frequency
+ones do not. Section~\ref{sec:results} reports that the measured thresholds are numerically
+close across frequencies in this dataset, which is evidence that the approximation is adequate
+here and not a proof that it holds generally.
 
 Proposition~\ref{prop:floor} assumes the effect is present throughout. It is not, in this
 literature, and the correction is unfavourable.
 
-\begin{proposition}[Intermittent effects raise the floor]
+\begin{proposition}[Intermittent effects raise the detectable threshold]
 \label{prop:intermittent}
-Suppose the conditional mean is present only in a fraction $\phi$ of periods---a duty
-cycle---with per-period information ratio $\ir_{\mathrm{on}}$ when present and zero otherwise.
-A strategy sized by the signal then presents an unconditional ratio
+Let $I_t\in\{0,1\}$ be an indicator, independent of the innovation, with $P(I_t=1)=\phi$, and
+let $y_t=m I_t+\varepsilon_t$ with $\mathbb{E}[\varepsilon_t]=0$ and
+$\operatorname{Var}(\varepsilon_t)=\sigma^2$. For a strategy sized on $g_t=mI_t$, the
+per-period payoff $X_t=g_ty_t$ has $\mathbb{E}[X_t]=\phi m^2$ and
+$\operatorname{Var}(X_t)=\phi m^2\sigma^2+\phi(1-\phi)m^4$, so with
+$\rho_{\mathrm{on}}=m/\sigma$ the per-period ratio is
 \[
-  \ir_{\mathrm{measured}} \;=\; \sqrt{\phi}\;\ir_{\mathrm{on}},
+  \rho_{\mathrm{measured}}
+  \;=\; \frac{\sqrt{\phi}\,\rho_{\mathrm{on}}}
+             {\sqrt{1+(1-\phi)\rho_{\mathrm{on}}^{2}}}
+  \;\approx\; \sqrt{\phi}\,\rho_{\mathrm{on}}
+  \qquad\text{for small }\rho_{\mathrm{on}},
 \]
-so the span required to certify it scales as $1/(\phi\,\ir_{\mathrm{on}}^2)$: a factor
-$1/\phi$ longer than for an always-present effect of the same strength.
+and under that approximation the span required scales as $1/(\phi\,\rho_{\mathrm{on}}^2)$: a
+factor $1/\phi$ longer than for an always-present effect of the same on-period strength.
 \end{proposition}
 
-\begin{proof}
-With signal $g_t=m_t$ and $m_t=m\mathbf{1}\{\text{on}\}$, the per-period expected profit is
-$\mathbb{E}[g_ty_t]=\phi m^2$ and its variance is $\mathbb{E}[g_t^2]\sigma^2=\phi m^2\sigma^2$
-to leading order, so the ratio is $\phi m^2/\sqrt{\phi m^2\sigma^2}=\sqrt{\phi}\,(m/\sigma)$.
-Substituting into Proposition~\ref{prop:floor} gives the span. Simulation confirms the
-identity to within three per cent at $\phi\in\{1,0.5,0.25,0.14\}$.
-\end{proof}
+The second denominator term is the variance contributed by switching between regimes, and it is
+not negligible in general: at a per-period $\rho_{\mathrm{on}}$ of $0.58$ the approximation
+overstates the ratio by up to $14\%$ across duty cycles, and at $1.7$ by up to $90\%$, in both
+cases worst at the smallest $\phi$. At the magnitudes this paper uses it is negligible---an
+annualised on-period ratio of $0.5$ is a per-period $0.14$ at monthly frequency, where the
+error stays under $1\%$ for every $\phi$. We confirm the exact expression against four million
+simulated periods at each of seven duty cycles and three ratios; the largest discrepancy is
+$0.99\%$ and occurs where Monte Carlo noise dominates. The strategy also has to be able
+to size on $I_t$, which requires the regime to be known in advance; where it is not, the
+achievable ratio is lower still, so the approximation errs in the direction that understates
+the problem.
 
-This is where the two halves of the paper meet. Section~\ref{sec:results} shows that the
-valuation ratios stopped contributing after the 1950s, which on a 1946--2025 evaluation window
-is a duty cycle of roughly $0.14$. An on-period annualised ratio of $0.5$---a strong effect by
-this literature's standards---would then present unconditionally as $0.19$ and require about
-$178$ years to certify. For $e/p$, whose wealth path is flat from 1946 onwards, the implied
-requirement is in the thousands of years. Intermittency is not a footnote to the sample-size
-problem; it is a multiplier on it.
+\begin{remark}[We do not estimate $\phi$ from the wealth path]
+\label{rem:nophi}
+It is tempting to read a duty cycle off the interval between the start of evaluation and the
+year the certificate's wealth peaks, and an earlier draft did. We do not. The peak is a random,
+post-hoc quantity that depends on noise, stake calibration and the payoff; it is not a
+changepoint estimator and carries no interval. Where a duty cycle appears below it is measured
+as the fraction of equal sub-periods with positive accumulation---a descriptive statistic---or
+supplied externally as a hypothetical.
+\end{remark}
 
 \begin{table}[t]
   \centering
-  \caption{Years of data needed to reach $80\%$ power against the effect \citet{campbell2008}
-  call economically significant---a monthly out-of-sample $\rsq$ of $0.5\%$, an annualised
-  information ratio of $0.25$---as the search widens. The searches are those the literature
-  actually ran. The Goyal--Welch sample begins in 1926.}
+  \caption{Minimum detectable annualised information ratio at $80\%$ power, and the evaluation
+  span needed against Campbell and Thompson's economic-significance threshold. Every entry comes
+  from one script (\texttt{goyal\_welch\_mde.py}) and the same expressions. The threshold is
+  reported unrounded at $0.2456$: rounding it to $0.25$ shortens the required span by about four
+  years. The data span 100 calendar years, but the twenty-year initialisation leaves at most
+  \textbf{80} years of out-of-sample evaluation, which is the span the test actually has.}
   \label{tab:floor}
   \small
-  \begin{tabular}{lrr}
+  \begin{tabular}{lrrrr}
     \toprule
-    Correction & Floor at 100 years & Years needed for $\ir=0.25$ \\
+    Correction & $\alpha$ & MDE at 80 y & MDE at 100 y & Years needed for $\rho=0.2456$ \\
     \midrule
-    One predictor, $\alpha=0.05$              & $0.252$ & $99$ \\
-    Bonferroni over 17 \citep{welch2008}       & $0.365$ & $207$ \\
-    Bonferroni over 46 \citep{goyal2024}       & $0.397$ & $244$ \\
-    Bonferroni over 100                        & $0.420$ & $273$ \\
+    One predictor                  & $0.0500$ & $0.278$ & $0.249$ & $103$ \\
+    Bonferroni over 17 \citep{welch2008} & $0.0029$ & $0.402$ & $0.360$ & $214$ \\
+    Bonferroni over 46 \citep{goyal2024} & $0.0011$ & $0.437$ & $0.391$ & $253$ \\
+    Bonferroni over 100            & $0.0005$ & $0.462$ & $0.413$ & $283$ \\
     \midrule
-    \multicolumn{3}{l}{\emph{Available: 100 years (1926--2025).}} \\
+    \multicolumn{5}{l}{\emph{Available evaluation span: 80 years. Short by 23 years for one
+    test, 173 corrected.}} \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Table~\ref{tab:floor} and the left panel of Figure~\ref{fig:equity} state the position. A
-single predictor tested once sits within one year of the boundary, with no margin for
-parameter instability, transaction costs, or a slightly smaller true effect. Corrected for the
-search that was actually performed, the literature is below the line by a factor of two to
-three in required span.
+Table~\ref{tab:floor} states the position, and the distinction between the raw and the
+evaluation span matters. Against the raw hundred years a single test would sit within three
+years of the boundary; against the eighty years the design actually evaluates it is short by
+twenty-three, with no margin for parameter instability, transaction costs, or a slightly
+smaller true effect. Corrected for the search that was performed, the shortfall is one hundred
+and seventy-three years.
 
 
 \paragraph{Reading the floor in the units the literature uses.} Table~\ref{tab:translation}
@@ -294,47 +351,128 @@ meaningful and larger than anything in our results, needs $126$ years under the 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{fig12_equity.pdf}
-  \caption{\textbf{Left:} the certification floor against calendar span, for searches of one,
+  \caption{\textbf{Left:} the minimum detectable ratio against evaluation span, for searches of one,
   seventeen and forty-six predictors. The horizontal line is Campbell and Thompson's
   economic-significance threshold; the vertical line is the data. \textbf{Right:} every
   predictor--frequency pair, plotted as its anytime-valid ceiling against its out-of-sample
-  $\rsq$. The median ceiling is $0.60$ and $112$ of $116$ lie above $0.25$: for almost every
-  predictor the data rule out neither zero nor an economically meaningful edge.}
+  $\rsq$. The median of the marginal upper endpoints is $0.60$ and $112$ of $116$ lie above
+  $0.25$: for almost every predictor the data rule out neither zero nor an economically
+  meaningful edge.}
   \label{fig:equity}
 \end{figure}
 
 \section{The instrument}
 \label{sec:instrument}
 
-We use the drift-robust certificate of \citet{guven2026} and summarise only what is needed
-here. For a predictable signal $g_t$---the model's forecast minus the intercept-only forecast
-from the same estimation window---and an outcome $y_t$, the certificate is
+We use the drift-robust certificate of \citet{guven2026}. Because every number in
+Section~\ref{sec:results} depends on it, we state the construction in full rather than by
+reference.
+
+\paragraph{Setup.} Let $\mathcal{F}_t$ be the filtration generated by everything observable
+through the close of period $t$. The outcome $y_{t}$ is the period-$t$ log equity premium; the
+signal $g_{t}$ is the period-$t$ forecast from the predictive regression minus the
+intercept-only forecast from the \emph{same} estimation window, so $g_t$ is
+$\mathcal{F}_{t-1}$-measurable and equals zero exactly when the two forecasts agree. Write
+$\hat\sigma_{t}$ for the running standard deviation of the outcome through $t-1$ and
+$z_t=g_t/\hat\sigma^{g}_{t}$ for the signal standardised by its own running scale, again using
+only $\mathcal{F}_{t-1}$. The null is
 \[
-  \mathcal{E}_t \;=\; \inf_{\mu\in\mathbb{R}}\;
-  \Big[\,w\,W^{\mathrm{sig}}_t(\mu) + (1-w)\,W^{\mathrm{ctr}}_t(\mu)\,\Big],
+  H_0:\quad \mathbb{E}\!\left[\,y_t-\mu \,\middle|\, \mathcal{F}_{t-1}\right]=0
+  \quad\text{for some fixed but unknown } \mu\in\mathbb{R},
 \]
-where $W^{\mathrm{sig}}$ is the wealth of a bettor staking a predictable fraction on $g_t$
-leading $y_t$, and $W^{\mathrm{ctr}}$ is the wealth of a bettor staking two-sidedly on $\mu$
-being the wrong drift. Each is a non-negative martingale for fixed $\mu$, so their convex
-combination is one, and an infimum is at most its value at the truth; Ville's inequality then
-gives $P(\exists t:\mathcal{E}_t\ge1/\alpha)\le\alpha$ in finite samples and uniformly in
-time, for any drift. We use the identity payoff throughout, which assumes only a
-martingale-difference null and an a-priori envelope on $|y_t|$, and report the bounded payoffs
-as sensitivities.
+that is, the outcome is a martingale difference around \emph{some} drift and the signal carries
+no information about it. The drift $\mu$ is a nuisance and is not assumed known.
 
-Three properties are load-bearing here.
+\paragraph{Two martingales.} Fix a candidate drift $\mu$ and a payoff $\varphi$; throughout we
+take $\varphi(u)=u$, the identity, which requires an a-priori envelope $B$ with $|y_t|\le B$ and
+nothing else. Put $\psi_t(\mu)=\varphi\!\left((y_t-\mu)/\hat\sigma_t\right)$ and let
+$E_t=\sup_u|\varphi(u)|$ over the reachable range be the corresponding payoff envelope. Define
+\begin{align*}
+  W^{\mathrm{sig}}_t(\mu) &= \prod_{s\le t}\bigl(1+\lambda_s\,g_s\,\psi_s(\mu)\bigr),
+  &\lambda_s &\in \Bigl[0,\ \tfrac{c}{|g_s|E}\Bigr] \ \text{predictable},\\
+  W^{\mathrm{ctr}}_t(\mu) &= \tfrac12\prod_{s\le t}\bigl(1+\kappa\psi_s(\mu)\bigr)
+                        + \tfrac12\prod_{s\le t}\bigl(1-\kappa\psi_s(\mu)\bigr),
+  &\kappa &= \tfrac{c'}{E},
+\end{align*}
+with $c=0.9$ and $c'=0.9$ so that every factor stays strictly positive. The first is the wealth
+of a bettor who stakes a predictable fraction on the signal leading the outcome; the second is
+the average of two bettors staking in opposite directions on $\mu$ being the wrong centre. The
+stakes $\lambda_s$ are chosen by the usual predictable-mixture rule from the realised payoffs
+through $s-1$, capped at $c/(|g_s|E)$; because they are $\mathcal{F}_{s-1}$-measurable, no
+choice of $\lambda$ can affect validity, only power.
 
-\emph{A ceiling, not just a verdict.} Inverting the same construction over the value parameter
-gives a time-uniform confidence interval for $\theta=\mathbb{E}[z_t(y_t-\mu)]$, the expected
-return of a position sized by the standardised signal. Read as an annualised information
-ratio, its upper endpoint is the number we report.
+\paragraph{The certificate.} With $w=0.9$,
+\[
+  \mathcal{E}^{\,\mathrm{raw}}_t \;=\; \inf_{\mu\in\mathbb{R}}\;
+  \Bigl[\,w\,W^{\mathrm{sig}}_t(\mu) + (1-w)\,W^{\mathrm{ctr}}_t(\mu)\,\Bigr],
+  \qquad
+  \mathcal{E}_t \;=\; \max_{s\le t}\ \mathcal{E}^{\,\mathrm{raw}}_s .
+\]
+Under $H_0$ each of $W^{\mathrm{sig}}_t(\mu^\star)$ and $W^{\mathrm{ctr}}_t(\mu^\star)$ is a
+non-negative martingale at the true drift $\mu^\star$, hence so is their convex combination, and
+an infimum over $\mu$ is bounded above by the value at $\mu^\star$. Ville's inequality gives
+$P\bigl(\exists t:\mathcal{E}_t\ge1/\alpha\bigr)\le\alpha$ in finite samples, uniformly in time
+and uniformly in the unknown drift. At a wrong $\mu$ the centring bettor gets rich, so the
+infimum is not dragged to zero by candidates the data have already ruled out; the nuisance is
+\emph{eliminated} rather than estimated, which is what removes the bootstrap.
 
-\emph{Evidence compounds, so it can be dated.} $\mathcal{E}_t$ is a product. A predictor whose
-edge stops contributing stops the process, and the path records when.
+Two numerical points matter and we state them because getting either wrong is silent. The
+infimum is computed on a grid, and the grid spacing must resolve the drift to better than its
+sampling error $\hat\sigma/\sqrt{n}$---a grid spaced at $\hat\sigma$ produces an infimum above
+the true one and leaks type-I error. And $\mathcal{E}_t$ is the running maximum, which is the
+object Ville's inequality bounds and the only one a test may use; $\mathcal{E}^{\,\mathrm{raw}}$
+is the process itself and is the object any \emph{diagnostic} must use, since a running maximum
+rises only when a new high is set. Table~\ref{tab:dating}, Figure~\ref{fig:dating} and
+Section~\ref{sec:duty} all use $\mathcal{E}^{\,\mathrm{raw}}$.
 
-\emph{Multiplicity without a bootstrap.} E-values average under arbitrary dependence, so the
-grid-level statistic over $117$ dependent tests is an average, and false-discovery control
-follows from e-BH \citep{wang2022}.
+\paragraph{From a certificate to a ceiling.} Inverting the same construction over a value
+parameter, rather than testing it against zero, gives a time-uniform confidence interval for
+\[
+  \theta \;=\; \mathbb{E}\bigl[z_t\,(y_t-\mu)\bigr],
+\]
+the expected per-period return of a position sized by the standardised signal. For each
+candidate $(\theta,\mu)$ a two-sided betting martingale tests $\mathbb{E}[z_t(y_t-\mu)]=\theta$;
+it is averaged with the centring martingale as above, and $\theta$ is retained when the infimum
+over $\mu$ never reaches $1/\alpha$. The retained set is an interval and its endpoints are found
+by bisection. The following converts its upper endpoint into the units this literature uses.
+
+\begin{lemma}[Value to annualised information ratio]
+\label{lem:convert}
+Let $\sigma_y$ be the outcome's standard deviation and $P$ the number of periods in a year.
+A position taking $z_t$ units of the outcome earns $\theta$ per period in expectation with
+per-period standard deviation $\sigma_y\sqrt{\mathbb{E}[z_t^2]}$, so its per-period information
+ratio is $\theta/(\sigma_y\sqrt{\mathbb{E}[z_t^2]})$. The standardisation makes
+$\mathbb{E}[z_t^2]\to1$, and under serially uncorrelated payoffs the ratio scales with the
+square root of the aggregation, giving
+\[
+  \rho \;=\; \frac{\sqrt{P}\,\theta}{\sigma_y}.
+\]
+Applying this to the interval's upper endpoint gives the reported ceiling.
+\end{lemma}
+
+\begin{lemma}[Out-of-sample $\rsq$ to information ratio]
+\label{lem:r2}
+Let the benchmark forecast have mean-squared error $\sigma_y^2$ and let the model's incremental
+forecast be $g_t$ with $\mathbb{E}[g_t^2]=\sigma_g^2$. Then
+$\rsq = 1 - \mathbb{E}[(y_t-\hat y_t)^2]/\mathbb{E}[(y_t-\bar y)^2] = \sigma_g^2/\sigma_y^2$
+when the incremental forecast is orthogonal to the benchmark error, and a position sized
+proportionally to $g_t$ has per-period ratio $\sigma_g/\sigma_y=\sqrt{\rsq}$. Annualising,
+\[
+  \rho \;=\; \sqrt{P\,\rsq}.
+\]
+At $P=12$ and $\rsq=0.5\%$ this is $\rho=0.2450$; the $0.2456$ used in Table~\ref{tab:floor}
+comes from the same calculation applied to the log-premium series' own moments.
+\end{lemma}
+
+Both conversions assume serially uncorrelated payoffs and unit-scale standardisation; neither is
+exact and both are stated so a reader can check them against their own convention. They are the
+only place a squared-error number and a betting number are made comparable, and every such
+comparison in this paper routes through them.
+
+\emph{Multiplicity without a bootstrap.} E-values average to an e-value under arbitrary
+dependence, so the grid-level statistic over the $117$ dependent tests is their mean, and
+false-discovery control follows from e-BH \citep{wang2022} with no assumption on the dependence
+structure and no resampling.
 
 \section{Data and design}
 \label{sec:data}
@@ -376,20 +514,29 @@ numbers by default.
 \section{Results}
 \label{sec:results}
 
-\paragraph{Nothing is certified, and not for want of trying.} Across $117$
-predictor--frequency pairs, out-of-sample $\rsq$ is negative for $95$ ($81\%$), no predictor
-reaches the $\alpha=0.05$ threshold, the grid-level e-value is $1.79$ against the $20$
-required, and nothing survives e-BH. Table~\ref{tab:sensitivity} sweeps the specification:
+\paragraph{Two grids, kept separate.} The \emph{primary} grid is the $117$
+predictor--frequency pairs of Table~\ref{tab:full}, run once under the pre-specified design of
+Section~\ref{sec:data}. The \emph{sensitivity} grid is a smaller object: the fourteen classic
+monthly predictors, re-run under nine designs. The two are reported separately throughout,
+because a maximum over $117$ pairs and a maximum over $14$ are not comparable quantities and an
+earlier draft quoted one for the other.
+
+\paragraph{Nothing is certified, and not for want of trying.} On the primary grid, out-of-sample
+$\rsq$ is negative for $95$ of $117$ ($81\%$), no pair reaches the $\alpha=0.05$ threshold, the
+largest e-value observed is $7.47$, the grid-level merged e-value is $1.79$ against the $20$
+required, and nothing survives e-BH. On the sensitivity grid, Table~\ref{tab:sensitivity} sweeps
 burn-ins of ten to forty years, rolling windows of twenty to fifty years against the expanding
-one, and two alternative payoffs. Nothing certifies under any of the nine, and the largest
-e-value ever observed is $8.04$. The rolling windows are the informative negative---%
-\citeauthor{welch2008}'s complaint is instability, so a window that forgets is the
-specification most likely to find something, and it does not.
+one, and two alternative payoffs; nothing certifies under any of the nine, and the largest
+e-value seen anywhere in that sweep is $8.04$ (fourteen predictors, rolling thirty-year window).
+The rolling windows are the informative negative---\citeauthor{welch2008}'s complaint is
+instability, so a window that forgets is the specification most likely to find something, and it
+does not.
 
 \begin{table}[t]
   \centering
-  \caption{Specification sensitivity, fourteen classic monthly predictors. Rejecting needs an
-  e-value of $20$.}
+  \caption{Specification sensitivity. Scope is the \emph{fourteen classic monthly predictors},
+  not the $117$-pair primary grid; ``Max e-value'' is therefore a maximum over fourteen. Row two
+  is the primary design restricted to those fourteen. Rejecting needs an e-value of $20$.}
   \label{tab:sensitivity}
   \small
   \begin{tabular}{lllrrrr}
@@ -410,37 +557,57 @@ specification most likely to find something, and it does not.
 \end{table}
 
 \paragraph{The ceilings are the result.} The right panel of Figure~\ref{fig:equity} plots
-every pair. The median ceiling on the incremental annualised information ratio is $0.60$;
-$112$ of $116$ exceed $0.25$. By frequency the medians are $0.46$ monthly, $0.53$ quarterly
-and $0.86$ annual. The correct summary of a century of this literature is therefore not ``the
-predictors do not work'' but a statement with a number in it: \emph{the incremental
-information ratio of the median canonical predictor lies somewhere between zero and
-approximately $0.6$, and a hundred years cannot narrow it further}.
+every pair. The median of the marginal $95\%$ upper endpoints on the incremental annualised
+information ratio is $0.60$; $112$ of $116$ exceed $0.25$. By frequency the medians are $0.46$
+monthly, $0.53$ quarterly and $0.86$ annual. Each endpoint has time-uniform coverage for its own
+predictor--frequency pair; their median summarises the collection and is \emph{not} itself a
+$95\%$ bound on a median parameter, which would require a simultaneous or order-statistic
+construction we do not attempt. Read correctly, the summary of this literature is not ``the
+predictors do not work'' but a statement with a number in it: \emph{the pairwise intervals are
+wide, with a median upper endpoint near $0.6$, and eighty years of evaluation does not narrow
+them below the threshold this literature calls economically meaningful}.
 
 \paragraph{Frequency does not buy power.} The certifiable floor is $0.38$ monthly, $0.37$
 quarterly and $0.35$ annually over the same span, across $1200$, $400$ and $100$ observations
 respectively---Corollary~\ref{cor:frequency}, measured.
 
-\paragraph{When each edge existed.} Table~\ref{tab:dating} and Figure~\ref{fig:dating} give
-the result we did not anticipate. Clark--West averages a covariance over the century; the
-certificate compounds, so a dead edge stops the process and the path dates the death. The
-three valuation ratios have added nothing since the 1950s. The two variables still
-accumulating are the two Clark--West likes least.
+\paragraph{When the evidence arrived.} Table~\ref{tab:dating} and Figure~\ref{fig:dating}
+report where in the evaluation window each certificate accumulated its log wealth, measured on
+the underlying process rather than on the running maximum. Clark--West averages a covariance
+over the century and so weights the two halves equally; the certificate compounds and does not.
+Over the full grid the two rank predictors similarly, at Spearman $+0.54$ across all $117$ pairs
+and $+0.55$ across the $116$ unflagged. The six shown here are chosen for familiarity and are
+the part of the grid where the two disagree most---their own rank correlation is $-0.83$---so
+they illustrate the mechanism and should not be read as the general pattern. The valuation
+ratios contribute negatively in both halves; inflation, the Treasury-bill rate and the term
+spread contribute in different halves: inflation in both, the Treasury-bill rate only in the second, and the term
+spread gaining $1.16$ nats in the first and surrendering $0.95$ of it in the second. The three
+valuation ratios are negative in both halves. On the underlying process $d/p$ and $d/y$ rise
+above one only briefly in the 1950s and $e/p$ never does, so their reported ``peak years'' are
+high-water marks of paths that start at one and end below it rather than dates at which
+anything stopped---precisely the artifact that reading a running maximum produces. These are descriptions of an evidence path, not break-date estimates, and they carry
+no interval.
 
 \begin{table}[t]
   \centering
-  \caption{Clark--West against the certificate, and what the wealth path shows. ``Nats'' are
-  the log-wealth contributed in each half of the evaluation period.}
+  \caption{Six illustrative predictors: Clark--West against the certificate, and where in the
+  window the certificate accumulated. ``Nats'' are log-wealth contributed in each half of the
+  evaluation period, measured on the underlying process, not on the running maximum
+  $\mathcal{E}_t$. ``Peak'' is the year that process is highest; it is a descriptive feature of
+  a noisy path, not a break-date estimate. These six are the part of the grid where the two
+  procedures disagree most (Spearman $-0.83$ here against $+0.54$ over all $117$ pairs).
+  $\dagger$: the process exceeds one only transiently, so the peak is a high-water mark of a
+  declining path. ``---'': the process never exceeds one, and no peak is meaningful.}
   \label{tab:dating}
   \small
   \begin{tabular}{lrrrrr}
     \toprule
     Predictor & Clark--West & e-value & Peak year & Nats, 1st half & Nats, 2nd half \\
     \midrule
-    $d/y$  & $1.64$ & $1.14$ & $1957$ & $+0.13$ & $+0.00$ \\
-    $e/p$  & $1.55$ & $1.00$ & $1946$ & $+0.00$ & $+0.00$ \\
-    $tbl$  & $1.44$ & $3.48$ & $2021$ & $+0.20$ & $+1.05$ \\
-    $d/p$  & $1.34$ & $1.45$ & $1957$ & $+0.37$ & $+0.00$ \\
+    $d/y$  & $1.64$ & $1.14$ & $1957^{\dagger}$ & $-0.17$ & $-0.15$ \\
+    $e/p$  & $1.55$ & $1.00$ & ---              & $-1.18$ & $-0.18$ \\
+    $tbl$  & $1.44$ & $3.48$ & $2021$ & $-0.11$ & $+1.11$ \\
+    $d/p$  & $1.34$ & $1.45$ & $1957^{\dagger}$ & $-0.01$ & $-0.43$ \\
     $tms$  & $0.78$ & $3.92$ & $1987$ & $+1.34$ & $+0.03$ \\
     $infl$ & $0.83$ & $5.71$ & $1999$ & $+0.59$ & $+1.16$ \\
     \bottomrule
@@ -450,12 +617,110 @@ accumulating are the two Clark--West likes least.
 \begin{figure}[t]
   \centering
   \includegraphics[width=0.92\linewidth]{fig11_goyal_welch.pdf}
-  \caption{Certificate wealth paths for six classic predictors. A predictor whose edge stops
-  contributing stops compounding, so the path dates it. The valuation ratios flatten in the
-  1950s; inflation and the Treasury-bill rate are the only two still rising.}
+  \caption{Certificate wealth for six illustrative predictors, plotted as the \emph{underlying}
+  process rather than the running maximum $\mathcal{E}_t$, so that periods of no accumulation
+  appear flat or falling rather than merely level. Inflation, the Treasury-bill rate and the term
+  spread accumulate, at different times and none decisively; the three valuation ratios do not.
+  These are paths of a noisy stochastic process, not break-date estimates: they show when this
+  procedure gathered evidence, and carry no interval on any change in the underlying process.
+  Note that the three valuation ratios spend most of the window \emph{below} one: $d/p$ and
+  $d/y$ rise above it only transiently in the 1950s and $e/p$ never does, so no durable evidence
+  accumulates for any of them---a fact the running maximum conceals by construction.
+  The six are the region of the grid where the certificate and Clark--West disagree most and are
+  not representative of all $117$ pairs.}
   \label{fig:dating}
 \end{figure}
 
+
+\paragraph{Sample accounting.} Four counts appear in this paper and they are different objects.
+Table~\ref{tab:accounting} states each once.
+
+\begin{table}[t]
+  \centering
+  \caption{What each count in this paper refers to.}
+  \label{tab:accounting}
+  \small
+  \begin{tabular}{rlp{0.52\linewidth}}
+    \toprule
+    Count & Object & Scope \\
+    \midrule
+    $117$ & Primary grid & Every predictor--frequency pair that clears the minimum-observation
+    rule, run once under the pre-specified design. All rejection and merging statistics use
+    this. \\
+    $116$ & Unflagged pairs & The primary grid less the one degenerate fit
+    (Section~\ref{sec:results}). Ceiling summaries use this, since a nine-sigma forecast makes a
+    ceiling uninterpretable rather than wrong. Including it moves the median by less than
+    $0.01$. \\
+    $56$  & Own-sample audit & Variables in \citeauthor{goyal2024}'s ReadMe with a recorded
+    sample period from which a span can be computed; the audit is per \emph{variable}, not per
+    pair. \\
+    $14$  & Sensitivity grid & The classic monthly predictors, re-run under nine designs. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Does the standard toolkit see anything we do not?}
+\label{sec:toolkit}
+
+A non-result from a new instrument is worth little until the conventional instruments have been
+run on identical inputs. Table~\ref{tab:toolkit} does that on the fourteen classic monthly
+predictors, using the same walk-forward forecasts.
+
+Diebold--Mariano on squared-error loss is reported for completeness and is \emph{not} a valid
+test here: the comparison is nested, so under the null the loss differential is degenerate and
+the statistic is not asymptotically normal \citep{clark2001}. It rejects nothing, and it would
+be no evidence if it did. Clark--West, the standard nested correction, rejects nothing at $5\%$;
+its largest statistic is $1.64$ for $d/y$, a one-sided $p$ of $0.051$, which is not significant
+before any multiplicity correction and is far from it after. The Clark--McCracken ENC-t
+statistic is, for a one-step-ahead nested pair, \emph{algebraically identical} to Clark--West:
+the adjusted loss differential is exactly twice the encompassing product and the factor cancels
+in the $t$-ratio. We verify this to machine precision in code and report it as one test rather
+than two, because presenting the same number under two names would overstate the corroboration.
+
+The model confidence set of \citet{hansen2011}, computed over the benchmark and all fourteen
+models jointly with a stationary bootstrap, retains \emph{all fifteen} at the $90\%$ level. That
+is the sharpest way to state the situation: after eighty years of monthly data, the historical
+mean cannot be distinguished from any predictor in the classic set, nor any predictor from any
+other. The MCS and the grid-level e-value answer the same question and give the same answer.
+
+None of this makes the certificate right. It establishes the weaker thing the paper needs: the
+absence of a rejection is a property of the data at this sample size, not of our instrument, and
+the toolkit that produced the literature's positive results does not produce them here. What the
+toolkit does not supply, at any point, is a bound on how large the effect could still be. That
+is the gap the ceiling fills.
+
+\begin{table}[t]
+  \centering
+  \caption{The conventional toolkit on the identical walk-forward forecasts, fourteen classic
+  monthly predictors, $960$ monthly observations each. DM is shown for completeness only and is
+  invalid under nesting. ENC-t coincides with Clark--West by construction. No test rejects at
+  $5\%$ uncorrected, let alone corrected.}
+  \label{tab:toolkit}
+  \small
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Predictor & DM (invalid) & $p$ & Clark--West $=$ ENC-t & $p$ & In MCS \\
+    \midrule
+    $d/p$  & $-0.16$ & $0.56$ & $1.34$  & $0.090$ & yes \\
+    $d/y$  & $-0.73$ & $0.77$ & $1.64$  & $0.051$ & yes \\
+    $e/p$  & $-0.73$ & $0.77$ & $1.55$  & $0.060$ & yes \\
+    $d/e$  & $-1.33$ & $0.91$ & $-0.37$ & $0.644$ & yes \\
+    $b/m$  & $-1.41$ & $0.92$ & $0.59$  & $0.279$ & yes \\
+    $ntis$ & $-0.40$ & $0.66$ & $0.86$  & $0.195$ & yes \\
+    $tbl$  & $0.09$  & $0.47$ & $1.44$  & $0.075$ & yes \\
+    $lty$  & $-0.53$ & $0.70$ & $1.37$  & $0.085$ & yes \\
+    $ltr$  & $-1.80$ & $0.96$ & $-0.56$ & $0.713$ & yes \\
+    $tms$  & $-0.17$ & $0.57$ & $0.78$  & $0.217$ & yes \\
+    $dfy$  & $-0.93$ & $0.82$ & $-0.75$ & $0.774$ & yes \\
+    $dfr$  & $-0.87$ & $0.81$ & $-0.23$ & $0.591$ & yes \\
+    $infl$ & $0.39$  & $0.35$ & $0.83$  & $0.203$ & yes \\
+    $svar$ & $-0.63$ & $0.74$ & $-0.51$ & $0.696$ & yes \\
+    \midrule
+    \multicolumn{6}{l}{Benchmark (historical mean) is also retained: $15$ of $15$ models in the
+    $90\%$ MCS.} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \subsection{Could the samples ever have supported the claims?}
 \label{sec:audit}
@@ -474,8 +739,7 @@ $0.39$, against a target of $0.25$.
 conservative multiplicity adjustment in common use, so it is fair to ask whether the headline
 is an artifact of choosing it. It is not, for a structural reason: at the \emph{first}
 rejection both Holm and Benjamini--Hochberg use the same threshold $\alpha/m$ that Bonferroni
-uses everywhere, and the floor is a statement about whether \emph{any} variable could clear
-the bar. All three therefore give $0$ of $56$ below $0.25$. So does a merely stricter single
+uses everywhere, and the question is whether \emph{any} variable in the set clears the bar. All three therefore give $0$ of $56$ below $0.25$. So does a merely stricter single
 test at $\alpha=0.01$ with no multiplicity adjustment at all. And with \emph{no} correction
 whatsoever, $23$ of $56$ still fail. The finding depends on there being forty-six tests, not
 on how one chooses to price them.
@@ -487,7 +751,8 @@ variables faster than it adds data moves away from the threshold, not towards it
 
 \begin{table}[t]
   \centering
-  \caption{The certification floor implied by each variable's own sample, for the twelve
+  \caption{The minimum detectable ratio implied by each variable's own sample span, at $80\%$
+  power, for the twelve
   shortest-sampled. ``Solo'' is a single test at $5\%$; ``corrected'' applies Bonferroni over
   the $46$-variable search. Both are compared against an annualised information ratio of
   $0.25$.}
@@ -527,16 +792,19 @@ sub-periods and recording the fraction in which log wealth increased. A predicto
 scores about one half.
 
 The median across $116$ predictors is $0.40$, with quartiles $0.30$ and $0.50$: slightly
-\emph{below} the no-edge baseline, which is what a set of variables with no reliable edge
-looks like. More telling, $92$ of $116$---$79\%$---reach their peak wealth before the final
-quarter of their own evaluation window, meaning they contributed nothing over their last
-quarter-century or more.
+\emph{below} the one-half baseline a no-edge process produces, which is what a set of variables
+with no reliable edge looks like. We do not read a duty cycle off the year each wealth path
+peaks; per Remark~\ref{rem:nophi} that quantity is post-hoc and carries no interval.
 
-Feeding the median duty cycle back through Proposition~\ref{prop:intermittent} multiplies the
-required span by $2.5$, equivalently the required ratio by $\sqrt{2.5}=1.58$. Combined with
-the corrected floor of $0.39$ from Table~\ref{tab:audit}, a variable in this set would need an
-on-period annualised information ratio of roughly $0.6$---more than twice the threshold for
-economic significance---for its own sample to have established it.
+Treating $0.40$ as a hypothetical $\phi$ and feeding it through
+Proposition~\ref{prop:intermittent} multiplies the required span by $2.5$, equivalently the
+required ratio by $\sqrt{2.5}=1.58$. Combined with the corrected floor of $0.39$ from
+Table~\ref{tab:audit}, a variable that was genuinely present only two-fifths of the time would
+need an on-period annualised information ratio near $0.6$---more than twice the threshold for
+economic significance---for its own sample to have established it. We offer this as an
+illustration of the direction and magnitude of the intermittency penalty, not as an estimate:
+the descriptive statistic above is not an estimator of $\phi$, and we make no claim that it
+is.
 
 \paragraph{One degenerate fit, flagged rather than trusted.} The variance risk premium at
 quarterly frequency reports $\rsq=-98\%$ alongside an e-value of $4.76$. This is not a
@@ -558,12 +826,13 @@ Table~\ref{tab:floor} shows this literature has lived in the second case through
 
 \paragraph{The instrument is not the finding.} We are explicit that the certificate is less
 powerful than Clark--West where Clark--West is well specified \citep{guven2026}. It is used
-here for three things a $t$-statistic cannot do: produce a ceiling, date an edge, and correct
-a dependent grid without a bootstrap. Its failure to certify is therefore weak evidence on its
+here for three things a $t$-statistic cannot do: produce a time-uniform ceiling, show where in
+the sample evidence accumulated, and correct a dependent grid without a bootstrap. Its failure to certify is therefore weak evidence on its
 own, and the ceilings---which do not depend on rejecting anything---carry the paper.
 
-\paragraph{What would change the answer.} Not a better test:
-Proposition~\ref{prop:floor} binds any procedure. Not finer sampling:
+\paragraph{What would change the answer.} Not, within the Gaussian benchmark,
+a test of the same size and power: Proposition~\ref{prop:floor} fixes the detectable effect
+from the span alone. Not finer sampling:
 Corollary~\ref{cor:frequency}. Only a longer span, a larger effect, or a smaller search. Of
 those, only the last is under a researcher's control, which is an argument for pre-registering
 a small number of candidates rather than screening many.
@@ -581,18 +850,27 @@ significance, which biases toward finding predictability, not away from it.
 
 \section{Conclusion}
 
-Evidence about an alpha accumulates as log wealth, so what a sample can certify is fixed in
-advance by its calendar span, its level, and the size of the search. For the canonical
-equity-premium data those quantities give $99$ years for a single predictor against the effect
-the literature calls economically significant, and $244$ once the search that was actually run
-is accounted for. There are $100$ years. Applying an anytime-valid certificate to $117$
-predictor--frequency pairs certifies nothing under any of nine specifications, but the useful
-output is the interval it does supply: the median predictor's incremental annualised
-information ratio is at most $0.60$ and cannot be separated from zero. A century of the
-best-studied data in finance is not enough to tell the difference between no predictability
-and twice as much as would matter---and, because evidence compounds, the same instrument shows
-that the most cited predictors in the literature stopped contributing seventy years ago.
+Evidence about an alpha accumulates as log wealth, so under a Gaussian constant-effect
+benchmark what a design can detect is fixed in advance by its evaluation span, its size, its
+target power and the breadth of the search. For the canonical equity-premium data those
+quantities require $103$ years of evaluation for a single prespecified predictor against the
+effect this literature calls economically significant, and $253$ once the search
+\citet{goyal2024} actually ran is priced. The 1926--2025 data, after a twenty-year burn-in,
+supply eighty.
 
+Applying an anytime-valid certificate to $117$ predictor--frequency pairs certifies nothing,
+under the primary specification or under any of nine variants. That non-result is the expected
+one and is not the contribution. The contribution is the interval the certificate supplies
+without needing to reject: across the $116$ unflagged pairs the median marginal $95\%$ upper
+endpoint on the incremental annualised information ratio is $0.60$, and $112$ exceed $0.25$.
+A century of the best-studied data in finance leaves most of these predictors compatible both
+with no predictability at all and with roughly twice as much as would matter. The sequential
+paths add a description of when each procedure gathered its evidence---never, for the three
+valuation ratios the literature cites most; late and unevenly for inflation, the Treasury-bill
+rate and the term spread---which a covariance averaged over the same century cannot show. We
+report that as heterogeneity in evidence accumulation. Whether it
+reflects a change in the underlying process is a question this design cannot answer, and we do
+not claim it does.
 
 \appendix
 
