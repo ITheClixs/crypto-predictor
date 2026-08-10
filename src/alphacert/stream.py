@@ -28,7 +28,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .certificate import _EPS, Certificate, _betting_fractions
+from .certificate import _EPS, Certificate, _betting_fractions, _shift
 
 
 def certify_mean(returns: np.ndarray, *, return_bound: float, cap: float = 0.9) -> Certificate:
@@ -98,17 +98,41 @@ class StreamCeiling:
         return self.lower > 0.0 or self.upper < 0.0
 
 
+def _variance_adaptive_stake(centred: np.ndarray, reach: float, alpha: float) -> np.ndarray:
+    """Predictable stakes set by the running variance, truncated for positivity.
+
+    This is the Waudby-Smith--Ramdas predictable-mixture rule. It matters far more than it
+    looks. A stake fixed at ``c / B`` makes the interval's width proportional to the
+    a-priori envelope ``B``, so the ceiling would be a statement about the envelope rather
+    than about the data -- and since one global envelope has to cover the single most
+    extreme observation in the whole panel, that penalises every well-behaved series for an
+    outlier belonging to a different one.
+
+    Setting the stake from the running variance removes that coupling: the envelope enters
+    only through a truncation that binds when the variance is small, and the leading term is
+    the series' own scale. The stake is a function of strictly past data, so validity is
+    untouched -- any predictable stake leaves the process a martingale under the null.
+    """
+    n = centred.size
+    t = np.arange(1, n + 1)
+    running_mean = _shift(np.cumsum(centred) / t, 0.0)
+    running_var = _shift(np.cumsum((centred - running_mean) ** 2) / t, 0.25 * reach**2)
+    variance = np.maximum(running_var, _EPS)
+    scale = np.sqrt(2.0 * np.log(1.0 / alpha) / (variance * t * np.log1p(t)))
+    return np.minimum(scale, 0.9 / max(reach, _EPS))
+
+
 def _rules_out(x: np.ndarray, candidate: float, envelope: float, alpha: float) -> bool:
     """Does a two-sided betting martingale against ``E[X] = candidate`` ever reach 1/alpha?
 
     Two bettors stake in opposite directions on the centred stream and their wealths are
-    averaged, so the pair is a non-negative martingale when the candidate is the truth. The
-    stake is fixed rather than adaptive: the interval is computed at many candidates and a
-    predictable-mixture stake at each would cost far more than it buys in width.
+    averaged, so the pair is a non-negative martingale when the candidate is the truth.
+    Stakes are predictable and variance-adaptive; see :func:`_variance_adaptive_stake` for
+    why that choice, rather than a fixed fraction of the envelope, is load-bearing.
     """
     centred = x - candidate
-    reach = envelope + abs(candidate)
-    stake = 0.5 / max(reach, _EPS)
+    reach = max(envelope + abs(candidate), _EPS)
+    stake = _variance_adaptive_stake(centred, reach, alpha)
     up = np.cumsum(np.log1p(stake * centred))
     down = np.cumsum(np.log1p(-stake * centred))
     peak = float(np.max(np.logaddexp(up, down) - np.log(2.0)))

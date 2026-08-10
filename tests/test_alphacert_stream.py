@@ -156,3 +156,35 @@ def test_ceiling_rejects_malformed_input() -> None:
         mean_ceiling(np.array([0.01, np.inf]), return_bound=BOUND)
     with pytest.raises(ValueError, match="alpha"):
         mean_ceiling(np.zeros(5), return_bound=BOUND, alpha=1.5)
+
+
+@pytest.mark.unit
+def test_the_ceiling_does_not_track_the_envelope() -> None:
+    """The property that makes the ceiling a statement about data rather than about B.
+
+    A stake fixed at ``c / B`` gives an interval whose width is proportional to the
+    a-priori envelope, so widening B to accommodate one outlier somewhere in a panel would
+    inflate the reported ceiling of every well-behaved series in it. The variance-adaptive
+    stake breaks that coupling. This test would fail outright under the fixed-stake rule
+    that preceded it, where tripling B roughly tripled the ceiling.
+    """
+    rng = np.random.default_rng(71)
+    x = _stream(rng, 1500, 0.0)
+    scale = float(x.std(ddof=1))
+    tight = mean_ceiling(x, return_bound=0.35).sharpe_ceiling(scale)
+    loose = mean_ceiling(x, return_bound=1.05).sharpe_ceiling(scale)
+    assert loose / tight < 1.6, f"ceiling tracks the envelope: {tight:.3f} -> {loose:.3f}"
+
+
+@pytest.mark.unit
+def test_coverage_holds_across_sample_sizes() -> None:
+    """Time-uniform coverage is a claim at every n, not at one convenient n."""
+    for n in (200, 900):
+        misses = 0
+        reps = 120
+        truth = 0.5 / np.sqrt(12.0) * SIGMA
+        for rep in range(reps):
+            rng = np.random.default_rng([73, rep, n])
+            interval = mean_ceiling(_stream(rng, n, 0.5), return_bound=BOUND)
+            misses += not (interval.lower <= truth <= interval.upper)
+        assert misses / reps <= 0.10, f"n={n} miscovered at {misses / reps:.3f}"

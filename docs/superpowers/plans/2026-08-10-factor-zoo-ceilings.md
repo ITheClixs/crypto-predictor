@@ -40,6 +40,55 @@ The gap is a per-factor, jointly-corrected, time-uniform **upper** bound. No e-v
 - Any claim of the form "procedure A and procedure B rank X inversely" must be computed on the **full** population, never on a displayed subset. This bug also shipped once.
 - No claim that a wealth-path peak dates a structural break. It is a noisy argmax with no interval.
 
+## Amendment, 2026-08-10 (after executing Tasks 1-2)
+
+Two things in this plan were wrong and are superseded by what the data showed.
+
+**1. The fixed stake in `_rules_out` was unusable.** As specified, the stake was `0.5 / (B +
+|candidate|)`, which makes the interval's width proportional to the a-priori envelope `B`.
+Measured on real factors, the reported ceiling for `Accruals` moved from 1.70 to 7.11 as `B`
+went from 0.6 to 4.0 — the headline number would have been a statement about an arbitrary
+constant. A mixture over a stake grid did not fix it, because every grid point was itself a
+fraction of `1/B`.
+
+The implemented rule is instead the Waudby-Smith--Ramdas variance-adaptive predictable stake,
+`sqrt(2 log(1/alpha) / (running_var * t * log(1+t)))`, truncated at `0.9 / reach` for
+positivity. The envelope now enters only through a truncation that binds when the variance is
+small. `tests/test_alphacert_stream.py::test_the_ceiling_does_not_track_the_envelope` pins
+this and fails under the original rule.
+
+**2. `ENVELOPE = 0.60` is not attainable and the estimand needs restating.** OSAP long-short
+returns run from −88.7% to +321.3% monthly, so no envelope below 3.3 holds on the raw panel —
+and an envelope that large is set by a single observation belonging to one factor, penalising
+all 211 others.
+
+The estimand is therefore the mean of the return **winsorised at ±50% per month**, with
+`ENVELOPE = 0.50`. Justification: a monthly long-short decile return outside ±50% is not a
+harvestable factor return. It binds on 70 of 173,302 observations (0.04%); only 3 exceed
+±100%, two of them in the 1930s. Tasks 4 and 7 must report the sensitivity grid
+`W in {0.35, 0.50, 0.75}` rather than a single number, and the paper must state the estimand
+as the winsorised mean rather than the mean.
+
+**3. The OSAP API in Task 3 was guessed and is wrong.** The real interface is
+`OpenAP().dl_port('op', 'pandas')` — 1,226,794 rows, columns `signalname, port, date, ret,
+signallag, Nlong, Nshort`, where `port == 'LS'` selects the long-short leg (212 signals,
+1926-2024, returns in percent) — and `OpenAP().dl_signal_doc('pandas')`, whose 29 columns
+include `SampleEndYear` for the publication split.
+
+Two columns there are worth more than the plan anticipated and should be used:
+
+- `Cat.Signal` separates real predictors from OSAP's deliberate **placebos**. That is a
+  built-in negative control, and a far better one than the synthetic null in Task 7: the
+  placebos should show ceilings indistinguishable from the no-edge baseline. Add this as a
+  control and report it.
+- `GScholarCites202509` gives each factor's citation count, which makes a genuinely new
+  question askable: *do the most-cited factors have the most room left?* If citation count is
+  uncorrelated with, or inversely related to, the post-publication ceiling, that is a result
+  the field would quote. Compute the rank correlation on the **full** set, never on a
+  displayed subset.
+
+---
+
 ## File Structure
 
 **New library code (`src/alphacert/`):**
