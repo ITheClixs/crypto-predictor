@@ -92,3 +92,10 @@ paper-equity/*.blg
 paper-equity/*.aux
 paper-equity/*.out
 paper-equity/arxiv/
+dist-alphacert/dist/
+dist-alphacert/build/
+dist-alphacert/*.egg-info/
+paper-workshop/*.log
+paper-workshop/*.blg
+paper-workshop/*.aux
+data/osap/

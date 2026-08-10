@@ -1,0 +1,59 @@
+# Standalone distribution for alphacert.
+#
+# The repository root packages `cryptoforecast`, which pulls in xgboost, yfinance, flask and
+# matplotlib. None of that is needed to use the certificates, and asking a statistician to
+# install a crypto backtester to get an e-process is not a serious offer. This file builds
+# alphacert alone, from the same source tree, with numpy and scipy as its only dependencies.
+#
+#   pip install ./dist-alphacert
+#
+# Build a wheel with:  python -m build dist-alphacert
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alphacert"
+version = "0.1.0"
+description = "Anytime-valid certificates and ceilings for out-of-sample predictive ability."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "PolyForm Noncommercial 1.0.0" }
+authors = [{ name = "Mehmet Demir Guven", email = "demirguven178@gmail.com" }]
+keywords = [
+    "e-values",
+    "e-processes",
+    "anytime-valid-inference",
+    "test-martingale",
+    "sequential-testing",
+    "forecast-evaluation",
+    "confidence-sequence",
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Typing :: Typed",
+]
+
+# Deliberately minimal. Everything here is implemented in numpy; scipy is used only for the
+# normal quantiles in the design calculations.
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.5"]
+
+[project.urls]
+Source = "https://github.com/ITheClixs/crypto-return-predictability"
+
+[tool.setuptools]
+# The source lives in the parent tree; this distribution does not copy it.
+package-dir = { alphacert = "../src/alphacert" }
+
+[tool.setuptools.packages.find]
+where = ["../src"]
+include = ["alphacert*"]
