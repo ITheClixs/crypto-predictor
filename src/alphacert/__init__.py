@@ -49,6 +49,7 @@ from .merge import (
     phase_indices,
 )
 from .payoffs import IDENTITY, SIGN, TANH, Payoff, available, get_payoff
+from .stream import StreamCeiling, certify_mean, mean_ceiling
 
 __all__ = [
     "IDENTITY",
@@ -56,10 +57,12 @@ __all__ = [
     "TANH",
     "Certificate",
     "Payoff",
+    "StreamCeiling",
     "anytime_validity_cost",
     "available",
     "certifiable_ratio",
     "certify",
+    "certify_mean",
     "certify_overlapping",
     "default_drift_grid",
     "detection_horizon",
@@ -67,6 +70,7 @@ __all__ = [
     "fixed_sample_horizon",
     "get_payoff",
     "growth_to_ratio",
+    "mean_ceiling",
     "merge_average",
     "merge_product",
     "phase_indices",
