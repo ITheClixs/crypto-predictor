@@ -89,6 +89,48 @@ Two columns there are worth more than the plan anticipated and should be used:
 
 ---
 
+## HALT, 2026-08-10 (novelty check before Task 3) — Tasks 4, 5 and 6 are pre-empted
+
+A rigorous prior-art search, run before touching Task 3, found that the empirical question
+this plan was built around is already answered in print, by people with better data access
+than we have. The plan's premise was wrong and Tasks 4-6 must not be executed as written.
+
+**What exists:**
+
+| Work | Covers | Kills |
+|---|---|---|
+| Chen & Velikov, *Zeroing in on the Expected Returns of Anomalies*, JFQA 2023 | 120 anomalies, net of effective spreads, post-publication effects, **empirical-Bayes correction for data mining**; average expected return ~8bp/month, strongest 10-20bp | Tasks 4, 5 **and** 6 together |
+| Chen & Welch, *What Useful Alphas?*, arXiv 2607.06502, July 2026 | ~200 OSAP anomalies; median 48bp → 19bp post-2005 → 7bp ex-microcap; "useless to non-micro-cap portfolio managers in the 21st century" | Task 4's headline |
+| Chen & Velikov, *Accounting for the Anomaly Zoo: A Trading Cost Perspective* | 120 anomalies gross and net of trading costs | Task 6 outright |
+| Chen, *Do t-Statistic Hurdles Need to be Raised?* | The HLZ multiple-testing threshold directly | Part of the framing |
+| McLean & Pontiff 2016 | The 58% post-publication decay | The premise |
+
+**Why the earlier search missed this.** The check run while writing this plan asked whether
+*anytime-valid methods* had been applied to the factor zoo. They have not — that finding still
+stands, confirmed twice. But the absence of our **method** in that literature is not the
+absence of our **question**, and the question is what a reader judges. This was an error in
+how the search was scoped, not in how it was run.
+
+**What genuinely remains open**, confirmed by search:
+
+1. No e-value, betting-martingale or confidence-sequence treatment exists anywhere in
+   empirical asset pricing. The *instrument* is unused in this field.
+2. Sequential **factor retirement** — when should a desk kill a live factor, and what error
+   control does that decision carry? — has no academic treatment. Searching returns only
+   practitioner blog posts on "alpha decay". Every paper above is a fixed-sample snapshot;
+   none frames monitoring as a sequential decision with valid error control.
+
+**Assessment.** Point 1 is a methods contribution, not a finance finding, and its natural home
+is a statistics venue with finance as the application. Point 2 is genuinely open but is a
+decision-theory contribution, harder to make citable, and closer to a practice paper.
+
+Rewriting a settled empirical question with a tighter interval is precisely the trap the
+equity-premium paper fell into: careful method, already-answered question. **Do not execute
+Tasks 4-6.** Tasks 1-2 stand on their own — `alphacert.stream` is general, tested and correct
+regardless of what it is pointed at.
+
+---
+
 ## File Structure
 
 **New library code (`src/alphacert/`):**
